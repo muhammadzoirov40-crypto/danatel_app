@@ -1,0 +1,52 @@
+# ===== danatel.tj — Пурраи лоиҳа =====
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: danatel_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: danatel
+      POSTGRES_PASSWORD: danatel_secret
+      POSTGRES_DB: danatel
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U danatel"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: ./backend
+    container_name: danatel_api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg2://danatel:danatel_secret@db:5432/danatel
+      SECRET_KEY: ${SECRET_KEY:-change_me_long_random_secret}
+      DC_MERCHANT_ID: ${DC_MERCHANT_ID:-}
+      DC_SECRET_KEY: ${DC_SECRET_KEY:-}
+      DC_API_URL: ${DC_API_URL:-https://api.dcpay.tj}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_ADMIN_CHAT_ID: ${TELEGRAM_ADMIN_CHAT_ID:-}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:8080}
+      ADMIN_PHONE: ${ADMIN_PHONE:-992000000000
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin}
+    ports:
+      - "8000:8000"
+
+  web:
+    build: ./frontend
+    container_name: danatel_web
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "8080:80"
+
+volumes:
+  pgdata:

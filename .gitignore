@@ -1,0 +1,24 @@
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.env
+
+# ===== Node =====
+node_modules/
+dist/
+.vite/
+
+# ===== DB / IDE =====
+*.sqlite3
+*.db
+.idea/
+.vscode/
+.DS_Store
+
+# ===== Logs =====
+*.log
+npm-debug.log*
