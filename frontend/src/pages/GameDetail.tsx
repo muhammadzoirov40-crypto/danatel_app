@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../api/client";
 import type { Game } from "../types";
 import OrderForm from "../components/OrderForm";
+import GameLogo from "../components/GameLogo";
 import { useApp } from "../context/AppContext";
 
 /** Саҳифаи тафсилоти бозӣ + формаи фармоиш */
@@ -56,8 +57,8 @@ export default function GameDetail() {
 
       {/* Сарлавҳаи бозӣ */}
       <div className="card p-4 sm:p-6 mb-5 flex items-center gap-4">
-        <div className="grid place-items-center w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 text-4xl shrink-0">
-          {game.emoji}
+        <div className="shrink-0">
+          <GameLogo game={game} size="hero" />
         </div>
         <div>
           <h1 className="text-xl sm:text-2xl font-bold leading-tight">{game.name}</h1>

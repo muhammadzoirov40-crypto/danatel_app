@@ -59,6 +59,7 @@ class GameOut(BaseModel):
     requires_player_id: bool = True
     player_id_label: str = "Player ID"
     image_url: str | None = None
+    image_pad: int = 0
 
 
 class GameDetailOut(GameOut):
@@ -141,6 +142,7 @@ class GameUpsert(BaseModel):
     player_id_label_en: str = ""
     player_id_label_uz: str = ""
     image_url: str | None = None
+    image_pad: int = 0
     is_active: bool = True
     sort_order: int = 0
 

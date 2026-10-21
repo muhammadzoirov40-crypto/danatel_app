@@ -36,6 +36,7 @@ def list_games(
             requires_player_id=g.requires_player_id,
             player_id_label=g.get_player_label(lang),
             image_url=g.image_url,
+            image_pad=g.image_pad,
         )
         for g in games
     ]
@@ -75,5 +76,6 @@ def game_detail(slug: str, lang: str = Query("tj"), db: Session = Depends(get_db
         requires_player_id=game.requires_player_id,
         player_id_label=game.get_player_label(lang),
         image_url=game.image_url,
+        image_pad=game.image_pad,
         products=products,
     )

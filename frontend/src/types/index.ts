@@ -19,6 +19,8 @@ export interface Game {
   requires_player_id: boolean;
   player_id_label: string;
   image_url?: string | null;
+  /** Фазои дохилӣ барои лого (px) */
+  image_pad?: number;
   products?: Product[];
 }
 

@@ -181,6 +181,33 @@ SEED_GAMES: list[dict] = [
 ]
 
 
+# =====================================================================
+# 🖼️ РАСМҲОИ ЛОГО (аз маҳаллӣ: frontend/public/images/)
+# =====================================================================
+GAME_IMAGES: dict[str, str] = {
+    "free-fire": "/images/free-fire.png",
+    "pubg-mobile": "/images/pubg-mobile.png",
+    "blood-strike": "/images/blood-strike.png",
+    "arena-breakout": "/images/arena-breakout.png",
+    "arena-breakout-infinite": "/images/arena-breakout-infinite.jpg",
+    "honor-of-kings": "/images/honor-of-kings.png",
+    "marvel-rivals": "/images/marvel-rivals.png",
+    "mobile-legends": "/images/mobile-legends.svg",
+}
+
+# Ғафсии лого: баъзе расмҳо калимаҳои васеъ ҳастанд → фазои бештар
+IMAGE_PAD: dict[str, int] = {
+    "free-fire": 20,
+    "pubg-mobile": 14,
+    "mobile-legends": 22,
+    "honor-of-kings": 16,
+    "marvel-rivals": 16,
+    "arena-breakout-infinite": 0,
+    "blood-strike": 0,
+    "arena-breakout": 0,
+}
+
+
 def seed_if_empty() -> None:
     """Агар ҷадвалҳо холӣ бошанд — маълумоти ибтидоӣ мегузорад."""
     with SessionLocal() as db:  # type: Session
@@ -191,6 +218,9 @@ def seed_if_empty() -> None:
 
         for g in SEED_GAMES:
             products = g.pop("products")
+            slug = g.get("slug", "")
+            g["image_url"] = GAME_IMAGES.get(slug)
+            g["image_pad"] = IMAGE_PAD.get(slug, 0)
             game = Game(**g, is_active=True)
             db.add(game)
             db.flush()

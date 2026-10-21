@@ -63,6 +63,8 @@ class Game(Base):
     image_url: Mapped[str | None] = mapped_column(String(512))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
+    # Фазои дохилӣ барои лого (px) — баъзе расмҳо васеъ ҳастанд
+    image_pad: Mapped[int] = mapped_column(Integer, default=0)
 
     products: Mapped[list["Product"]] = relationship(
         back_populates="game", cascade="all, delete-orphan", order_by="Product.sort_order"
