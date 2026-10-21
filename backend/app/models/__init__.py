@@ -1,5 +1,6 @@
 """Моделии ҷадвалҳои датабес."""
 from datetime import datetime
+from decimal import Decimal
 
 from sqlalchemy import (
     Boolean,
@@ -25,13 +26,87 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     telegram_id: Mapped[str | None] = mapped_column(String(32), unique=True, index=True)
+    # 📱 Вуруди оддӣ ( телефон + парол )
+    phone: Mapped[str | None] = mapped_column(String(32), unique=True, index=True)
+    password_hash: Mapped[str | None] = mapped_column(String(255))
     username: Mapped[str | None] = mapped_column(String(64))
     full_name: Mapped[str | None] = mapped_column(String(128))
     language: Mapped[str] = mapped_column(String(5), default="tj")
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    # 💰 БАЛАНС ( Decimal барои дақиқии пул )
+    balance: Mapped[Decimal] = mapped_column(
+        Numeric(14, 2), default=Decimal("0.00"), nullable=False, server_default="0"
+    )
+
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
-    orders: Mapped[list["Order"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    orders: Mapped[list["Order"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+        foreign_keys="Order.user_id",
+    )
+    transactions: Mapped[list["BalanceTransaction"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+        # ⚠️ Ду FK ба users ҳаст (user_id + admin_id) → бояд возеҳ нишон диҳем
+        foreign_keys="BalanceTransaction.user_id",
+    )
+
+    @property
+    def balance_float(self) -> float:
+        return float(self.balance or 0)
+
+
+class BalanceTransactionKind:
+    """Навъи тағйироти баланс."""
+
+    CREDIT = "credit"      # ➕ илова аз ҷониби Admin
+    DEBIT = "debit"        # ➖ буриш ҳангоми донат
+    REFUND = "refund"      # 🔄 баргардонидани пул
+
+    ALL = [CREDIT, DEBIT, REFUND]
+
+
+class BalanceTransaction(Base):
+    """
+    📜 Таърихи ҳамаи тағйироти баланс.
+
+    Ҳар як сатр = як амалиёт: User, маблағ, сана, Admin, сабаб.
+    Баланси ҷорӣ дар users.balance нигоҳ дошта мешавад,
+    ин ҷадвал танҳо барои таърих/ҳисобот аст.
+    """
+
+    __tablename__ = "balance_transactions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    # ⬅️ Аз ҷониби кӣ: Admin-и иҷокунанда (холӣ = худи система/User)
+    admin_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), index=True
+    )
+
+    kind: Mapped[str] = mapped_column(String(16), index=True)  # credit / debit / refund
+    # Маблағ бо аломат: + илова, - буриш
+    amount: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False)
+    # Баланс ПАС аз ин амалиёт
+    balance_after: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False)
+
+    # Сабаби тағйирот
+    reason: Mapped[str | None] = mapped_column(Text)
+    # Истинод ба фармоиш (ҳангоми донат)
+    order_id: Mapped[int | None] = mapped_column(
+        ForeignKey("orders.id", ondelete="SET NULL"), index=True
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), index=True
+    )
+
+    user: Mapped["User"] = relationship(foreign_keys=[user_id], back_populates="transactions")
+    admin: Mapped["User | None"] = relationship(foreign_keys=[admin_id])
 
 
 # =====================================================================
@@ -127,8 +202,9 @@ class OrderStatus:
 
 
 class PaymentMethod:
-    DC = "dc_wallet"
-    ALL = [DC]
+    DC = "dc_wallet"        # 💳 Пардохти берунии DC Wallet
+    BALANCE = "balance"     # 💰 Аз баланси дохилӣ (ҳамён)
+    ALL = [DC, BALANCE]
 
 
 class Order(Base):
@@ -155,6 +231,9 @@ class Order(Base):
     dc_invoice_id: Mapped[str | None] = mapped_column(String(128), index=True)
     dc_payment_url: Mapped[str | None] = mapped_column(String(512))
     transaction_id: Mapped[str | None] = mapped_column(String(128))
+
+    # 🛡️ Идемпотентность — аз донати такрорӣ (дублировка) манъ мекунад
+    client_token: Mapped[str | None] = mapped_column(String(64), unique=True, index=True)
 
     # Забони дархосткунанда
     language: Mapped[str] = mapped_column(String(5), default="tj")

@@ -53,6 +53,59 @@ export interface PaymentInit {
   message: string;
 }
 
+export interface User {
+  id: number;
+  phone?: string | null;
+  username?: string | null;
+  full_name?: string | null;
+  language: Lang;
+  is_admin: boolean;
+  /** 💰 Баланси ҷорӣ бо сомонӣ */
+  balance: number;
+  created_at: string;
+}
+
+export interface BalanceInfo {
+  user_id: number;
+  balance: number;
+}
+
+export type TxKind = "credit" | "debit" | "refund";
+
+export interface BalanceTx {
+  id: number;
+  user_id: number;
+  admin_id?: number | null;
+  kind: TxKind;
+  amount: number;
+  balance_after: number;
+  reason?: string | null;
+  order_id?: number | null;
+  created_at: string;
+  admin_name?: string | null;
+}
+
+export interface AdminUser {
+  id: number;
+  phone?: string | null;
+  username?: string | null;
+  full_name?: string | null;
+  language: Lang;
+  is_admin: boolean;
+  balance: number;
+  orders_count: number;
+  created_at: string;
+}
+
+/** Усули пардохт */
+export type PaymentMethodType = "dc_wallet" | "balance";
+
+export const TX_META: Record<TxKind, { cls: string; icon: string; key: string }> = {
+  credit: { cls: "bg-emerald-100 text-emerald-800", icon: "➕", key: "credit" },
+  debit: { cls: "bg-rose-100 text-rose-800", icon: "➖", key: "debit" },
+  refund: { cls: "bg-sky-100 text-sky-800", icon: "🔄", key: "refund" },
+};
+
 export interface AdminStats {
   orders_total: number;
   orders_today: number;

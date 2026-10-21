@@ -1,16 +1,14 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import { LANGS } from "../i18n";
-import { setToken } from "../api/client";
 
-/** Сарлавҳа + интихоби забон */
+/** Сарлавҳа + интихоби забон + баланс */
 export default function Navbar() {
-  const { lang, setLang, t, isAdmin, setAdmin } = useApp();
+  const { lang, setLang, t, user, balance, isAdmin, logout } = useApp();
   const nav = useNavigate();
 
-  const logout = () => {
-    setToken(null);
-    setAdmin(false);
+  const onLogout = () => {
+    logout();
     nav("/");
   };
 
@@ -26,6 +24,20 @@ export default function Navbar() {
         </Link>
 
         <div className="flex items-center gap-2">
+          {/* 💰 Баланс — танҳо барои корбари вурудкарда */}
+          {user && (
+            <Link
+              to="/profile"
+              className="flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-100 transition"
+              title={t("balance")}
+            >
+              💰
+              <span className="tabular-nums">
+                {balance.toLocaleString("tj-TJ")}
+              </span>
+            </Link>
+          )}
+
           {/* Забон — мобилӣ: хурд, десктоп: калон */}
           <div className="flex items-center gap-1 rounded-xl border border-slate-200 p-1">
             {LANGS.map((l) => (
@@ -47,6 +59,13 @@ export default function Navbar() {
             ))}
           </div>
 
+          {/* 👤 Профил — барои корбари оддӣ */}
+          {user && !isAdmin && (
+            <Link to="/profile" className="btn-ghost text-sm" title={t("profile")}>
+              👤 <span className="hidden md:inline">{t("profile")}</span>
+            </Link>
+          )}
+
           <Link
             to="/admin"
             className="btn-ghost text-sm hidden sm:inline-flex"
@@ -56,7 +75,7 @@ export default function Navbar() {
           </Link>
 
           {isAdmin && (
-            <button onClick={logout} className="btn-ghost text-sm">
+            <button onClick={onLogout} className="btn-ghost text-sm">
               ⎋ <span className="hidden md:inline">{t("logout")}</span>
             </button>
           )}

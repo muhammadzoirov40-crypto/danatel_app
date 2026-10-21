@@ -2,7 +2,7 @@
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 # =====================================================================
 # 🔐 АВТОРИЗАТСИЯ
@@ -12,6 +12,15 @@ from pydantic import BaseModel, ConfigDict, Field
 class LoginRequest(BaseModel):
     phone: str
     password: str
+
+
+class RegisterRequest(BaseModel):
+    """📱 Қайди корбари нав."""
+
+    phone: str
+    password: str = Field(min_length=4, max_length=128)
+    full_name: str | None = Field(default=None, max_length=128)
+    language: str = Field(default="tj", max_length=5)
 
 
 class Token(BaseModel):
@@ -25,10 +34,13 @@ class UserOut(BaseModel):
 
     id: int
     telegram_id: str | None = None
+    phone: str | None = None
     username: str | None = None
     full_name: str | None = None
     language: str = "tj"
     is_admin: bool = False
+    # 💰 Баланси ҷорӣ бо сомонӣ
+    balance: Decimal = Decimal("0.00")
     created_at: datetime
 
 
@@ -56,10 +68,26 @@ class GameOut(BaseModel):
     name: str
     emoji: str
     currency: str
+    # NULL-ро ба пешфарз табдил медиҳад — барои ҷадвалҳои кӯҳна
     requires_player_id: bool = True
     player_id_label: str = "Player ID"
     image_url: str | None = None
     image_pad: int = 0
+
+    @field_validator("requires_player_id", mode="before")
+    @classmethod
+    def _req_pid(cls, v):
+        return True if v is None else v
+
+    @field_validator("player_id_label", mode="before")
+    @classmethod
+    def _pid_label(cls, v):
+        return "Player ID" if v in (None, "") else v
+
+    @field_validator("image_pad", mode="before")
+    @classmethod
+    def _img_pad(cls, v):
+        return 0 if v is None else v
 
 
 class GameDetailOut(GameOut):
@@ -77,6 +105,65 @@ class OrderCreate(BaseModel):
     player_id: str = Field(min_length=2, max_length=64)
     player_nickname: str | None = Field(default=None, max_length=128)
     language: str = Field(default="tj", max_length=5)
+
+    # 💳 Усули пардохт: "dc_wallet" | "balance" (аз ҳамён)
+    payment_method: str = Field(default="dc_wallet", max_length=32)
+    # 🛡️ Идемпотентность — аз донати такрорӣ (дублировка) манъ мекунад
+    client_token: str | None = Field(default=None, max_length=64)
+
+
+# =====================================================================
+# 💰 БАЛАНС / ҲАМЁН
+# =====================================================================
+
+
+class BalanceOut(BaseModel):
+    """Баланси ҷории корбар."""
+
+    user_id: int
+    balance: Decimal
+
+
+class BalanceAdjustRequest(BaseModel):
+    """Admin ба баланси корбар маблағ илова мекунад."""
+
+    user_id: int
+    amount: Decimal = Field(gt=0, description="Маблағ бояд аз сифат зиёд бошад")
+    reason: str | None = Field(default=None, max_length=255)
+
+
+class BalanceTransactionOut(BaseModel):
+    """Як сатри таърихи баланс."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    user_id: int
+    admin_id: int | None = None
+    kind: str
+    amount: Decimal
+    balance_after: Decimal
+    reason: str | None = None
+    order_id: int | None = None
+    created_at: datetime
+    # Барои нишон дар ҷадвал
+    admin_name: str | None = None
+
+
+class AdminUserOut(BaseModel):
+    """Корбар дар панели Admin бо баланси ҷорӣ."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    phone: str | None = None
+    username: str | None = None
+    full_name: str | None = None
+    language: str = "tj"
+    is_admin: bool = False
+    balance: Decimal
+    orders_count: int = 0
+    created_at: datetime
 
 
 class PaymentInitOut(BaseModel):

@@ -32,6 +32,38 @@ def create_access_token(data: dict, expires_minutes: int | None = None) -> str:
     return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
 
+def _decode_user(
+    credentials: HTTPAuthorizationCredentials | None,
+    db: Session,
+) -> User | None:
+    """Кӯшиши гирифтани корбар аз токен. Агар нодуруст бошад → None."""
+    if credentials is None:
+        return None
+    try:
+        payload = jwt.decode(
+            credentials.credentials, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+        )
+        user_id: int | None = payload.get("sub")
+        if user_id is None:
+            return None
+    except JWTError:
+        return None
+    return db.get(User, int(user_id))
+
+
+def get_current_user_optional(
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+    db: Session = Depends(get_db),
+) -> User | None:
+    """
+    🔓 Корбари ҷорӣ АГАР токен дуруст бошад, вагарна None.
+
+    Барои endpoints-ҳое, ки ҳам барои мизоҷони бе вуруд ва ҳам
+    барои корбарони вурудкарда кор мекунанд (масалан: фармоиш).
+    """
+    return _decode_user(credentials, db)
+
+
 def get_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     db: Session = Depends(get_db),
@@ -44,17 +76,7 @@ def get_current_user(
     )
     if credentials is None:
         raise unauthorized
-    try:
-        payload = jwt.decode(
-            credentials.credentials, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
-        )
-        user_id: int | None = payload.get("sub")
-        if user_id is None:
-            raise unauthorized
-    except JWTError:
-        raise unauthorized
-
-    user = db.get(User, int(user_id))
+    user = _decode_user(credentials, db)
     if user is None:
         raise unauthorized
     return user

@@ -1,0 +1,146 @@
+import { useState, type FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
+import { useApp } from "../context/AppContext";
+import { api, ApiError } from "../api/client";
+
+/**
+ * 🔑 Вуруд / Қайд — як саҳифаи ягона.
+ *
+ *  - Вуруд: телефон + парол
+ *  - Қайд: телефон + парол + ном (ихтиёрӣ)
+ *  - Баланс: 0 сомонӣ ҳангоми қайд
+ */
+export default function Login() {
+  const { t, lang, login, register } = useApp();
+  const nav = useNavigate();
+  const [mode, setMode] = useState<"login" | "register">("login");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [err, setErr] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    setErr("");
+
+    // Санҷиши пешакӣ
+    const digits = phone.replace(/\D/g, "");
+    if (digits.length < 9) {
+      setErr(t("invalidPhone"));
+      return;
+    }
+    if (password.length < 4) {
+      setErr(t("passwordShort"));
+      return;
+    }
+
+    setLoading(true);
+    try {
+      if (mode === "login") {
+        await login(phone, password);
+      } else {
+        await register({
+          phone,
+          password,
+          full_name: fullName.trim() || undefined,
+          language: lang,
+        });
+      }
+      nav("/profile");
+    } catch (e2) {
+      setErr(e2 instanceof ApiError ? e2.message : t("error"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="mx-auto max-w-md px-4 py-10">
+      <div className="card p-6 sm:p-8">
+        <div className="text-center mb-6">
+          <div className="text-4xl mb-2">🔑</div>
+          <h1 className="text-xl font-bold">
+            {mode === "login" ? t("login") : t("register")}
+          </h1>
+          <p className="text-sm text-slate-500 mt-1">
+            {mode === "login" ? t("noAccount") : t("haveAccount")}
+          </p>
+        </div>
+
+        <form onSubmit={submit} className="space-y-4">
+          <div>
+            <label className="label">{t("phone")} *</label>
+            <input
+              className="input"
+              inputMode="tel"
+              placeholder="+992XXXXXXXXX"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              autoComplete="tel"
+            />
+          </div>
+
+          <div>
+            <label className="label">{t("password")} *</label>
+            <input
+              className="input"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete={
+                mode === "login" ? "current-password" : "new-password"
+              }
+            />
+          </div>
+
+          {mode === "register" && (
+            <div>
+              <label className="label">{t("fullName")}</label>
+              <input
+                className="input"
+                placeholder={t("fullName")}
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                autoComplete="name"
+              />
+            </div>
+          )}
+
+          {err && (
+            <div className="rounded-xl bg-rose-50 border border-rose-200 px-4 py-3 text-sm text-rose-700">
+              {err}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn-primary w-full py-3"
+          >
+            {loading ? (
+              <>
+                <span className="animate-spin">⏳</span> {t("loading")}
+              </>
+            ) : mode === "login" ? (
+              <>🔓 {t("login")}</>
+            ) : (
+              <>✅ {t("register")}</>
+            )}
+          </button>
+        </form>
+
+        <button
+          onClick={() => {
+            setMode(mode === "login" ? "register" : "login");
+            setErr("");
+          }}
+          className="w-full mt-4 text-sm text-brand-600 hover:underline"
+        >
+          {mode === "login" ? t("registerNow") : t("login")}
+        </button>
+      </div>
+    </div>
+  );
+}

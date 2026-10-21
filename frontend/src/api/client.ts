@@ -4,9 +4,13 @@
  */
 import type {
   AdminStats,
+  AdminUser,
+  BalanceInfo,
+  BalanceTx,
   Game,
   Order,
   PaymentInit,
+  User,
 } from "../types";
 
 const BASE = "/api";
@@ -74,6 +78,10 @@ export const api = {
     player_id: string;
     player_nickname?: string;
     language: string;
+    /** 💳 Усули пардохт: dc_wallet | balance */
+    payment_method?: "dc_wallet" | "balance";
+    /** 🛡️ Идемпотентность — аз донати такрорӣ */
+    client_token?: string;
   }) =>
     request<PaymentInit>("/orders", {
       method: "POST",
@@ -84,7 +92,7 @@ export const api = {
   orderStatus: (id: number) =>
     request<{ order_id: number; status: string }>(`/orders/${id}/status`),
 
-  // ========================== АДМИН ==========================
+  // ========================== АВТОРИЗАТСИЯ ==========================
   login: async (phone: string, password: string) => {
     const res = await request<{ access_token: string; is_admin: boolean }>(
       "/auth/login",
@@ -94,6 +102,27 @@ export const api = {
     return res;
   },
 
+  register: async (data: {
+    phone: string;
+    password: string;
+    full_name?: string;
+    language?: string;
+  }) => {
+    const res = await request<{ access_token: string; is_admin: boolean }>(
+      "/auth/register",
+      { method: "POST", body: JSON.stringify(data) },
+    );
+    setToken(res.access_token);
+    return res;
+  },
+
+  me: () => request<User>("/auth/me"),
+
+  // ========================== 💰 БАЛАНС ==========================
+  myBalance: () => request<BalanceInfo>("/auth/me/balance"),
+  myOrders: (lang = "tj") => request<Order[]>(`/orders/my?lang=${lang}`),
+
+  // ========================== АДМИН ==========================
   stats: () => request<AdminStats>("/admin/stats"),
   adminOrders: (status?: string) =>
     request<Order[]>(`/admin/orders${status ? `?status=${status}` : ""}`),
@@ -102,6 +131,16 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify({ status }),
     }),
+
+  // 👥 Корбарон + баланс
+  adminUsers: () => request<AdminUser[]>("/admin/users"),
+  addBalance: (userId: number, amount: number, reason?: string) =>
+    request<AdminUser>(`/admin/users/${userId}/balance`, {
+      method: "POST",
+      body: JSON.stringify({ user_id: userId, amount, reason }),
+    }),
+  userTransactions: (userId: number) =>
+    request<BalanceTx[]>(`/admin/users/${userId}/transactions`),
   adminGames: () => request<Game[]>("/admin/games"),
   adminGame: (slug: string) => request<Game>(`/admin/games/${slug}`),
   createGame: (data: Record<string, unknown>) =>

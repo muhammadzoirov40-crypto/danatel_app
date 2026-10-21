@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import (
     AuditLog,
+    BalanceTransaction,
     Game,
     Order,
     OrderStatus,
@@ -19,6 +20,10 @@ from app.models import (
 from app.schemas import (
     AdminOrderUpdate,
     AdminStats,
+    AdminUserOut,
+    BalanceAdjustRequest,
+    BalanceOut,
+    BalanceTransactionOut,
     GameDetailOut,
     GameOut,
     GameUpsert,
@@ -28,7 +33,7 @@ from app.schemas import (
     ProductUpsert,
 )
 from app.security import require_admin
-from app.services import telegram_service
+from app.services import telegram_service, wallet
 
 router = APIRouter(
     prefix="/api/admin", tags=["admin"], dependencies=[Depends(require_admin)]
@@ -278,3 +283,143 @@ def delete_product(product_id: int, db: Session = Depends(get_db)):
     db.delete(product)
     db.commit()
     return {"ok": True}
+
+
+# =====================================================================
+# 💰 ИДОРАКУНИИ БАЛАНСИ КОРБАРОН (танҳо Admin)
+# =====================================================================
+
+
+@router.get("/users", response_model=list[AdminUserOut])
+def list_users(db: Session = Depends(get_db)):
+    """
+    📋 Рӯйхати корбарон бо баланси ҷорӣ.
+
+    Барои ҳар як корбар: телефон, ном, баланс, шумораи фармоишҳо.
+    """
+    orders_count = (
+        select(Order.user_id, func.count(Order.id).label("cnt"))
+        .group_by(Order.user_id)
+        .subquery()
+    )
+
+    rows = db.execute(
+        select(User, func.coalesce(orders_count.c.cnt, 0))
+        .outerjoin(orders_count, orders_count.c.user_id == User.id)
+        .order_by(User.id.desc())
+    ).all()
+
+    return [
+        AdminUserOut(
+            id=u.id,
+            phone=u.phone,
+            username=u.username,
+            full_name=u.full_name,
+            language=u.language,
+            is_admin=u.is_admin,
+            balance=u.balance or 0,
+            orders_count=int(cnt or 0),
+            created_at=u.created_at,
+        )
+        for u, cnt in rows
+    ]
+
+
+@router.post("/users/{user_id}/balance", response_model=AdminUserOut)
+def add_balance(
+    user_id: int,
+    payload: BalanceAdjustRequest,
+    admin: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """
+    ➕ Ба баланси корбар маблағ илова кардан.
+
+    Мисол: Admin ба User 50 сомонӣ медиҳад → баланс +50 сомонӣ.
+    Ҳамаи тағйирот дар як transaction сабт мешавад (таърих + баланс).
+    """
+    # Агар дархост бо path user_id номувофиқ бошад — аз body истифода мебарем
+    target_id = payload.user_id or user_id
+
+    try:
+        user, entry = wallet.credit_balance(
+            db,
+            user_id=target_id,
+            amount=payload.amount,
+            reason=payload.reason,
+            admin_id=admin.id,
+        )
+    except wallet.UserNotFound as exc:
+        raise HTTPException(status_code=404, detail="Корбар ёфт нашуд") from exc
+    except wallet.InvalidAmount as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    # 📜 Сабти audit-log
+    db.add(
+        AuditLog(
+            admin_id=admin.id,
+            action="balance_credit",
+            entity="user",
+            entity_id=str(user.id),
+            details=f"+{payload.amount} TJS | {payload.reason or '-'}",
+        )
+    )
+    db.commit()
+
+    orders_count = db.scalar(
+        select(func.count(Order.id)).where(Order.user_id == user.id)
+    ) or 0
+
+    return AdminUserOut(
+        id=user.id,
+        phone=user.phone,
+        username=user.username,
+        full_name=user.full_name,
+        language=user.language,
+        is_admin=user.is_admin,
+        balance=user.balance,
+        orders_count=orders_count,
+        created_at=user.created_at,
+    )
+
+
+@router.get("/users/{user_id}/transactions", response_model=list[BalanceTransactionOut])
+def user_transactions(user_id: int, db: Session = Depends(get_db)):
+    """
+    📜 Таърихи ҳамаи тағйироти баланси корбар.
+
+    Ҳар як сатр: User, маблағ, сана, Admin, сабаб.
+    """
+    user = db.get(User, user_id)
+    if user is None:
+        raise HTTPException(status_code=404, detail="Корбар ёфт нашуд")
+
+    rows = db.execute(
+        select(BalanceTransaction, User.full_name)
+        .outerjoin(User, User.id == BalanceTransaction.admin_id)
+        .where(BalanceTransaction.user_id == user_id)
+        .order_by(BalanceTransaction.id.desc())
+        .limit(200)
+    ).all()
+
+    return [
+        BalanceTransactionOut(
+            id=t.id,
+            user_id=t.user_id,
+            admin_id=t.admin_id,
+            kind=t.kind,
+            amount=t.amount,
+            balance_after=t.balance_after,
+            reason=t.reason,
+            order_id=t.order_id,
+            created_at=t.created_at,
+            admin_name=admin_name,
+        )
+        for t, admin_name in rows
+    ]
+
+
+@router.get("/me/balance", response_model=BalanceOut)
+def my_balance(admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    """💰 Баланси ҷории худи Admin (санҷишӣ)."""
+    return BalanceOut(user_id=admin.id, balance=admin.balance or 0)

@@ -5,6 +5,8 @@ import Home from "./pages/Home";
 import GameDetail from "./pages/GameDetail";
 import OrderPage from "./pages/OrderPage";
 import Admin from "./pages/admin/Admin";
+import Login from "./pages/Login";
+import Profile from "./pages/Profile";
 
 function NotFound() {
   return (
@@ -28,6 +30,8 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/game/:slug" element={<GameDetail />} />
             <Route path="/order/:id" element={<OrderPage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

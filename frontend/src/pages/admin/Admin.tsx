@@ -1,15 +1,15 @@
 import { useState, type FormEvent } from "react";
-import { api } from "../../api/client";
 import { useApp } from "../../context/AppContext";
 import Dashboard from "./Dashboard";
 import Orders from "./Orders";
 import Products from "./Products";
+import Users from "./Users";
 
-type Tab = "dashboard" | "orders" | "products";
+type Tab = "dashboard" | "orders" | "products" | "users";
 
 /** Панели идора — танҳо бо вуруди админ */
 export default function Admin() {
-  const { t, isAdmin, setAdmin } = useApp();
+  const { t, isAdmin, logout } = useApp();
   const [tab, setTab] = useState<Tab>("dashboard");
 
   if (!isAdmin) return <LoginGate />;
@@ -18,13 +18,14 @@ export default function Admin() {
     { id: "dashboard", label: t("dashboard"), icon: "📊" },
     { id: "orders", label: t("orders"), icon: "📦" },
     { id: "products", label: t("products"), icon: "💎" },
+    { id: "users", label: t("users"), icon: "👥" },
   ];
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
       <div className="flex items-center justify-between gap-3 mb-5 flex-wrap">
         <h1 className="text-xl font-bold">🛠️ {t("adminPanel")}</h1>
-        <button onClick={() => setAdmin(false)} className="btn-ghost text-sm">
+        <button onClick={logout} className="btn-ghost text-sm">
           ⎋ {t("logout")}
         </button>
       </div>
@@ -49,13 +50,14 @@ export default function Admin() {
       {tab === "dashboard" && <Dashboard />}
       {tab === "orders" && <Orders />}
       {tab === "products" && <Products />}
+      {tab === "users" && <Users />}
     </div>
   );
 }
 
 /** Дарвозаи вуруд */
 function LoginGate() {
-  const { t, setAdmin } = useApp();
+  const { t, login } = useApp();
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
@@ -65,14 +67,9 @@ function LoginGate() {
     e.preventDefault();
     setErr("");
     setLoading(true);
-    try {
-      await api.login(phone, password);
-      setAdmin(true);
-    } catch (ex) {
-      setErr((ex as Error)?.message || t("error"));
-    } finally {
-      setLoading(false);
-    }
+    const ok = await login(phone, password);
+    setLoading(false);
+    if (!ok) setErr(t("error"));
   };
 
   return (

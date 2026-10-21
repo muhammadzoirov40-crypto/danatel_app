@@ -7,6 +7,7 @@ import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
@@ -18,6 +19,14 @@ logging.basicConfig(
     format="%(asctime)s | %(levelname)-7s | %(name)s | %(message)s",
 )
 logger = logging.getLogger("danatel")
+
+# ========================== Роҳи React build ==========================
+# Муштарак барои SPA fallback ва Mount("/")
+_dist = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "frontend", "dist"
+)
+if not os.path.isdir(_dist):
+    _dist = ""
 
 app = FastAPI(
     title="danatel.tj — Донати бозиҳо",
@@ -73,8 +82,43 @@ async def on_startup() -> None:
         asyncio.create_task(run_bot())
 
 
+# ========================== SPA fallback (React Router) ==========================
+# Роутҳои клиентӣ, мисли /login, /profile, /admin, /game/free-fire,
+# дар сервер вуҷуд надоранд — бояд index.html баргардонем.
+#
+# ВАЖЕМ: ин бояд ПЕШ аз Mount("/") сабт шавад, вагарна Mount тамоми
+# роутҳоро мегирад ва fallback ҳеҷ гоҳ кор намекунад.
+@app.get("/{full_path:path}", include_in_schema=False)
+async def spa_fallback(full_path: str):
+    """Агар файли статикӣ набошад → index.html (React Router)."""
+    # Роутҳои /api/* набояд ҳамчун SPA сабт шаванд — онҳо бояд 404 баргардонанд
+    if full_path.startswith("api/"):
+        from fastapi import HTTPException
+
+        raise HTTPException(status_code=404, detail="API роут ёфт нашуд")
+
+    if not _dist:
+        from fastapi import HTTPException
+
+        raise HTTPException(status_code=404, detail="Файли статикӣ ёфт нашуд")
+
+    # Агар файли воқеӣ вуҷуд дошта бошад → ҳамонро бидиҳед
+    if full_path:
+        file_path = os.path.join(_dist, full_path.replace("/", os.sep))
+        if os.path.isfile(file_path):
+            return FileResponse(file_path)
+
+    # Вагарна → index.html (SPA routing)
+    index = os.path.join(_dist, "index.html")
+    if os.path.isfile(index):
+        return FileResponse(index, headers={"Cache-Control": "no-cache"})
+
+    from fastapi import HTTPException
+
+    raise HTTPException(status_code=404, detail="Файли статикӣ ёфт нашуд")
+
+
 # ========================== Файли статикӣ (React build) ==========================
-_dist = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "frontend", "dist")
-if os.path.isdir(_dist):
+if _dist:
     app.mount("/", StaticFiles(directory=_dist, html=True), name="frontend")
     logger.info("Сохтани React аз %s", _dist)

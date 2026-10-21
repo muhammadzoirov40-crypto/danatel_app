@@ -14,14 +14,19 @@ interface Props {
  * Responsive: дар мобилӣ якстона, дар десктоп ду сутун.
  */
 export default function OrderForm({ game, onCreated }: Props) {
-  const { t, lang } = useApp();
+  const { t, lang, user, balance, refreshUser } = useApp();
   const [playerId, setPlayerId] = useState("");
   const [nickname, setNickname] = useState("");
   const [selected, setSelected] = useState<Product | null>(null);
+  const [method, setMethod] = useState<"dc" | "balance">("dc");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  // 🛡️ Идемпотентность — ҳар як клик token-и ягона дорад
+  const [clientToken] = useState(() => crypto.randomUUID());
 
   const products = game.products ?? [];
+  const price = selected ? Number(selected.price_tjs) : 0;
+  const canUseBalance = !!user && balance >= price && price > 0;
 
   const submit = async () => {
     setError("");
@@ -33,6 +38,17 @@ export default function OrderForm({ game, onCreated }: Props) {
       setError(t("requiredField"));
       return;
     }
+    // 💰 Санҷиши пешакии баланс дар фронт (backend ҳатмо дубра месанҷад)
+    if (method === "balance") {
+      if (!user) {
+        setError(t("loginForBalance"));
+        return;
+      }
+      if (balance < price) {
+        setError(t("insufficientBalance"));
+        return;
+      }
+    }
 
     setLoading(true);
     try {
@@ -42,7 +58,11 @@ export default function OrderForm({ game, onCreated }: Props) {
         player_id: playerId.trim(),
         player_nickname: nickname.trim() || undefined,
         language: lang,
+        payment_method: method === "balance" ? "balance" : "dc_wallet",
+        client_token: clientToken,
       });
+      // 💰 Баланс кам шуд → навсозӣ кунед
+      if (method === "balance") await refreshUser();
       onCreated(res.order_id, res.payment_url);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : t("error"));
@@ -111,6 +131,59 @@ export default function OrderForm({ game, onCreated }: Props) {
         </div>
       </div>
 
+      {/* 💳 Усули пардохт */}
+      <div className="mb-5">
+        <label className="label">{t("choosePayment")}</label>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          {/* DC Wallet */}
+          <button
+            onClick={() => setMethod("dc")}
+            className={`rounded-xl border-2 p-3 text-left transition
+              ${
+                method === "dc"
+                  ? "border-brand-600 bg-brand-50 shadow-sm"
+                  : "border-slate-200 bg-white hover:border-slate-300"
+              }`}
+          >
+            <div className="font-semibold text-sm">💳 {t("dcPayment")}</div>
+            <div className="text-xs text-slate-500 mt-0.5">{t("payWithDC")}</div>
+          </button>
+
+          {/* Баланс */}
+          <button
+            onClick={() => setMethod("balance")}
+            className={`rounded-xl border-2 p-3 text-left transition
+              ${
+                method === "balance"
+                  ? "border-emerald-600 bg-emerald-50 shadow-sm"
+                  : "border-slate-200 bg-white hover:border-slate-300"
+              }`}
+          >
+            <div className="font-semibold text-sm">💰 {t("balancePayment")}</div>
+            <div className="text-xs text-slate-500 mt-0.5">
+              {user ? (
+                <>
+                  {t("currentBalance")}:{" "}
+                  <span className={balance >= price ? "text-emerald-600" : "text-rose-600"}>
+                    {balance.toLocaleString("tj-TJ")} {t("currency")}
+                  </span>
+                </>
+              ) : (
+                t("loginForBalance")
+              )}
+            </div>
+          </button>
+        </div>
+
+        {/* Огоҳиномаи баланс */}
+        {method === "balance" && user && price > 0 && !canUseBalance && (
+          <div className="mt-2 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
+            ⚠️ {t("insufficientBalance")} — {t("currentBalance")}: {balance.toLocaleString("tj-TJ")} /{" "}
+            {t("total")}: {price.toLocaleString("tj-TJ")} {t("currency")}
+          </div>
+        )}
+      </div>
+
       {error && (
         <div className="mb-4 rounded-xl bg-rose-50 border border-rose-200 px-4 py-3 text-sm text-rose-700">
           {error}
@@ -119,13 +192,15 @@ export default function OrderForm({ game, onCreated }: Props) {
 
       <button
         onClick={submit}
-        disabled={loading || !selected}
+        disabled={loading || !selected || (method === "balance" && !canUseBalance)}
         className="btn-primary w-full py-3.5 text-base"
       >
         {loading ? (
           <>
             <span className="animate-spin">⏳</span> {t("loading")}
           </>
+        ) : method === "balance" ? (
+          <>💰 {t("payFromBalance")}</>
         ) : (
           <>💳 {t("pay")}</>
         )}
