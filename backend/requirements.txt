@@ -1,0 +1,30 @@
+# ===== danatel.tj — Вобастагиҳо (Python 3.14) =====
+# Навиштан бо --only-binary то аз сохтани C/Rust худдорӣ шавад
+
+# Framework
+fastapi>=0.115.0
+uvicorn>=0.32.0
+
+# Database
+SQLAlchemy>=2.0.36
+# Агар PostgreSQL лозим бошад (тахминан):
+psycopg2-binary>=2.9.10 ; python_version < "3.14"
+
+# Validation
+pydantic>=2.10.0
+pydantic-settings>=2.7.0
+
+# Auth / Security
+python-jose[cryptography]>=3.3.0
+passlib>=1.7.4
+bcrypt>=4.0.1,<4.1.0
+
+# HTTP (DC Wallet + Telegram)
+httpx>=0.28.0
+
+# Telegram Bot
+aiogram>=3.15.0
+
+# Utils
+python-multipart>=0.0.20
+python-dotenv>=1.0.1
