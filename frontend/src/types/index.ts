@@ -26,6 +26,7 @@ export interface Game {
 
 export type OrderStatus =
   | "pending"
+  | "checking"
   | "paid"
   | "delivered"
   | "failed"
@@ -42,6 +43,13 @@ export interface Order {
   created_at: string;
   game_name?: string;
   product_name?: string;
+  /** 🧾 Чеки пардохт (расм/матн) аз корбар */
+  receipt_file?: string | null;
+  receipt_text?: string | null;
+  /** 💳 Маълумоти пардохти берунӣ */
+  payment_link?: string | null;
+  payment_card?: string | null;
+  payment_phone?: string | null;
 }
 
 export interface PaymentInit {
@@ -125,6 +133,7 @@ export const STATUS_META: Record<
   { label: string; cls: string; key: string }
 > = {
   pending: { label: "⏳", cls: "bg-amber-100 text-amber-800", key: "waitingPayment" },
+  checking: { label: "🧾", cls: "bg-indigo-100 text-indigo-800", key: "checkingReceipt" },
   paid: { label: "✅", cls: "bg-emerald-100 text-emerald-800", key: "paid" },
   delivered: { label: "🎮", cls: "bg-sky-100 text-sky-800", key: "delivered" },
   failed: { label: "❌", cls: "bg-rose-100 text-rose-800", key: "failed" },

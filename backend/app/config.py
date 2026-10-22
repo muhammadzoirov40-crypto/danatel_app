@@ -19,6 +19,13 @@ class Settings(BaseSettings):
     DC_API_URL: str = "https://api.dcpay.tj"
     DC_WEBHOOK_URL: str = ""
 
+    # 💳 ПАРДОХТИ БЕРУНӢ (линк + чек) — ҳамон усули боти Telegram
+    # Линки пардохт; {amount} бо маблағи фармоиш иваз мешавад
+    PAYMENT_LINK_URL: str = ""
+    PAYMENT_CARD_NUMBER: str = ""
+    PAYMENT_CARD_HOLDER: str = ""
+    PAYMENT_PHONE: str = ""
+
     # TELEGRAM
     TELEGRAM_BOT_TOKEN: str = ""
     TELEGRAM_ADMIN_CHAT_ID: str = ""

@@ -2,9 +2,12 @@
 from __future__ import annotations
 
 import logging
+import os
+import uuid
+from datetime import datetime
 from decimal import Decimal
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -17,6 +20,13 @@ from app.services import dc_service, telegram_service, wallet
 
 logger = logging.getLogger("orders")
 router = APIRouter(prefix="/api/orders", tags=["orders"])
+
+# 🧾 Ҷои нигоҳдории расмҳои чек (аз тарафи nginx/SPA дастрас)
+_RECEIPT_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+    "uploads",
+    "receipts",
+)
 
 # Паёми «Баланс нокифоя аст» (4 забон)
 _BALANCE_MSG = {
@@ -42,7 +52,23 @@ def _bal_msg(lang: str, zero: bool = False) -> str:
     return table.get(lang, table["tj"])
 
 
+def _payment_link(amount_tjs: float) -> str | None:
+    """Линки пардохти берунӣ (ҳамон усули бот: pay.dc.tj).
+
+    {amount} дар линк бо маблағи фармоиш иваз мешавад.
+    """
+    tpl = settings.PAYMENT_LINK_URL
+    if not tpl:
+        return None
+    # Миқдори пул: бе нуқта (100 → 100, 100.50 → 100.50)
+    amt = f"{float(amount_tjs):.2f}".rstrip("0").rstrip(".")
+    return tpl.replace("{amount}", amt)
+
+
 def _order_out(order: Order, lang: str = "tj") -> OrderOut:
+    link = order.dc_payment_url
+    if not link and order.payment_method == PaymentMethod.DC:
+        link = _payment_link(float(order.amount_tjs))
     return OrderOut(
         id=order.id,
         status=order.status,
@@ -53,6 +79,11 @@ def _order_out(order: Order, lang: str = "tj") -> OrderOut:
         created_at=order.created_at,
         game_name=order.game.get_name(lang),
         product_name=order.product.get_name(lang),
+        receipt_file=order.receipt_file,
+        receipt_text=order.receipt_text,
+        payment_link=link,
+        payment_card=settings.PAYMENT_CARD_NUMBER or None,
+        payment_phone=settings.PAYMENT_PHONE or None,
     )
 
 
@@ -139,7 +170,9 @@ async def create_order(
             client_token=payload.client_token,
         )
 
-    # ---------- 💳 ПАРДОХТ АЗ DC WALLET ----------
+    # ---------- 💳 ПАРДОХТ АЗ DC WALLET (линк + чек) ----------
+    # Ҳамон усули бот: корбар линкро мекушояд, пардохт мекунад,
+    # баъд чек (расм/матн) мефиристад → админ тасдиқ мекунад.
     order = Order(
         game_id=game.id,
         product_id=product.id,
@@ -152,27 +185,37 @@ async def create_order(
         status=OrderStatus.PENDING,
         client_token=payload.client_token,
     )
+
     db.add(order)
     db.commit()
     db.refresh(order)
 
-    # ---------- Оғози пардохти DC ----------
-    try:
-        inv = await dc_service.create_invoice(
-            order_id=order.id,
-            amount_tjs=float(price),
-            description=f"{game.get_name('tj')} - {product.get_name('tj')}",
-            lang=lang,
-            redirect_url=f"{settings.FRONTEND_URL}/order/{order.id}",
-        )
-    except Exception as exc:  # noqa: BLE001
-        logger.exception("Хатогии DC барои фармоиш %s", order.id)
-        order.status = OrderStatus.FAILED
-        db.commit()
-        raise HTTPException(status_code=502, detail=f"Хатогии DC: {exc}") from exc
+    # Линки пардохти берунӣ (бо маблағ) — ҳамон усули боти Telegram
+    link = _payment_link(float(price))
 
-    order.dc_invoice_id = inv.get("invoice_id")
-    order.dc_payment_url = inv.get("payment_url")
+    if link:
+        # ✅ Линки воқеии pay.dc.tj танзим аст → ҳамон «линк + чек».
+        # DC API даъват намешавад, то линки намоишӣ (demo) ба корбар дода нашавад.
+        order.dc_payment_url = link
+    elif settings.DC_MERCHANT_ID and settings.DC_SECRET_KEY:
+        # Оянда: DC API-и воқеӣ (агар линки оддӣ танзим нашуда бошад)
+        try:
+            inv = await dc_service.create_invoice(
+                order_id=order.id,
+                amount_tjs=float(price),
+                description=f"{game.get_name('tj')} - {product.get_name('tj')}",
+                lang=lang,
+                redirect_url=f"{settings.FRONTEND_URL}/order/{order.id}",
+            )
+            order.dc_payment_url = inv.get("payment_url")
+            order.dc_invoice_id = inv.get("invoice_id")
+        except Exception:  # noqa: BLE001
+            logger.exception("Хатогии DC — фармоиш бе линк мемонад")
+            order.dc_payment_url = None
+    else:
+        # Ҳеҷ усули пардохт танзим нашудааст
+        order.dc_payment_url = None
+
     db.commit()
     db.refresh(order)
 
@@ -347,3 +390,83 @@ async def order_status(order_id: int, db: Session = Depends(get_db)):
                 )
 
     return {"order_id": order.id, "status": order.status}
+
+
+# =====================================================================
+# 🧾 ФИРИСТОДАНИ ЧЕКИ ПАРДОХТ (линк + чек — ҳамон усули бот)
+# =====================================================================
+
+
+@router.post("/{order_id}/receipt", response_model=OrderOut)
+async def submit_receipt(
+    order_id: int,
+    file: UploadFile | None = File(default=None),
+    text: str | None = Form(default=None),
+    lang: str = Form(default="tj"),
+    db: Session = Depends(get_db),
+):
+    """Корбар чеки пардохтро мефиристад (расм ё матн).
+
+    Фармоиш → `checking` (интизори тасдиқи админ).
+    """
+    order = db.get(Order, order_id)
+    if order is None:
+        raise HTTPException(status_code=404, detail="Фармоиш ёфт нашуд")
+
+    if order.status not in (OrderStatus.PENDING, OrderStatus.CHECKING):
+        raise HTTPException(status_code=422, detail="Чек барои ин фармоиш қабул нест")
+
+    saved_path: str | None = None
+
+    if file is not None and file.filename:
+        # Санҷиши навъи файл — фақат расм
+        ext = os.path.splitext(file.filename)[1].lower()
+        if ext not in (".jpg", ".jpeg", ".png", ".webp", ".gif"):
+            raise HTTPException(
+                status_code=422,
+                detail="Файли расмӣ иҷозат дорад: jpg, png, webp, gif",
+            )
+        raw = await file.read()
+        if len(raw) > 5 * 1024 * 1024:  # 5 MB
+            raise HTTPException(status_code=422, detail="Аз 5 MB калон аст")
+        if not raw:
+            raise HTTPException(status_code=422, detail="Файл холӣ аст")
+
+        # Номи беназир + нигоҳдорӣ дар uploads/receipts
+        name = f"r{order.id}_{uuid.uuid4().hex[:10]}{ext}"
+        os.makedirs(_RECEIPT_DIR, exist_ok=True)
+        dest = os.path.join(_RECEIPT_DIR, name)
+        with open(dest, "wb") as fh:
+            fh.write(raw)
+        saved_path = f"/uploads/receipts/{name}"
+
+    txt = (text or "").strip()
+    if not saved_path and not txt:
+        raise HTTPException(
+            status_code=422, detail="Чекро (расм ё матн) фиристед"
+        )
+
+    if saved_path:
+        order.receipt_file = saved_path
+    if txt:
+        order.receipt_text = txt[:512]
+    order.receipt_at = datetime.utcnow()
+    order.status = OrderStatus.CHECKING
+    db.commit()
+    db.refresh(order)
+
+    logger.info("🧾 Чеки фармоиш #%s қабул шуд", order.id)
+
+    # Огоҳинома ба Telegram (админ)
+    try:
+        await telegram_service.notify_new_order(
+            order_id=order.id,
+            game=order.game.get_name("tj"),
+            product=order.product.get_name("tj"),
+            player_id=order.player_id,
+            amount=float(order.amount_tjs),
+        )
+    except Exception:  # noqa: BLE001
+        logger.exception("Огоҳиномаи Telegram ноком шуд")
+
+    return _order_out(order, _lang(lang))

@@ -92,6 +92,41 @@ export const api = {
   orderStatus: (id: number) =>
     request<{ order_id: number; status: string }>(`/orders/${id}/status`),
 
+  /**
+   * 🧾 Фиристодани чеки пардохт (расм ё матн) — multipart/form-data.
+   * Content-Type-ро дастӣ намегузорем, то браузер boundary-и худашро гузорад.
+   */
+  submitReceipt: async (
+    id: number,
+    data: { text?: string; file?: File | null; lang?: string },
+  ): Promise<Order> => {
+    const fd = new FormData();
+    if (data.text && data.text.trim()) fd.append("text", data.text.trim());
+    if (data.file) fd.append("file", data.file);
+    fd.append("lang", data.lang ?? "tj");
+
+    const headers: Record<string, string> = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+
+    const res = await fetch(`${BASE}/orders/${id}/receipt`, {
+      method: "POST",
+      headers,
+      body: fd,
+    });
+
+    if (!res.ok) {
+      let detail = res.statusText;
+      try {
+        const body = await res.json();
+        detail = body.detail ?? detail;
+      } catch {
+        /* ignore */
+      }
+      throw new ApiError(res.status, detail);
+    }
+    return (await res.json()) as Order;
+  },
+
   // ========================== АВТОРИЗАТСИЯ ==========================
   login: async (phone: string, password: string) => {
     const res = await request<{ access_token: string; is_admin: boolean }>(

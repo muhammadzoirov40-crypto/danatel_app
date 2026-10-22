@@ -119,7 +119,14 @@ def _ensure_missing_columns() -> None:
     # 2) Сутунҳои нав дар ҷадвалҳои мавҷуда
     wanted: dict[str, list[str]] = {
         "users": ["phone", "password_hash", "balance"],
-        "orders": ["client_token", "payment_method", "user_id"],
+        "orders": [
+            "client_token",
+            "payment_method",
+            "user_id",
+            "receipt_file",
+            "receipt_text",
+            "receipt_at",
+        ],
         "games": ["image_pad"],
     }
 
@@ -152,6 +159,9 @@ def _column_ddl(table: str, col: str) -> str | None:
         ("orders", "client_token"): "ALTER TABLE orders ADD COLUMN client_token VARCHAR(64)",
         ("orders", "payment_method"): "ALTER TABLE orders ADD COLUMN payment_method VARCHAR(32) DEFAULT 'dc_wallet'",
         ("orders", "user_id"): "ALTER TABLE orders ADD COLUMN user_id INTEGER",
+        ("orders", "receipt_file"): "ALTER TABLE orders ADD COLUMN receipt_file VARCHAR(512)",
+        ("orders", "receipt_text"): "ALTER TABLE orders ADD COLUMN receipt_text VARCHAR(512)",
+        ("orders", "receipt_at"): "ALTER TABLE orders ADD COLUMN receipt_at TIMESTAMP",
         ("games", "image_pad"): "ALTER TABLE games ADD COLUMN image_pad INTEGER NOT NULL DEFAULT 0",
     }
     return rules.get((table, col))

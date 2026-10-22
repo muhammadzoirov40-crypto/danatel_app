@@ -16,6 +16,14 @@ export default function OrderPage() {
   const [error, setError] = useState("");
   const [checking, setChecking] = useState(false);
 
+  // 🧾 Формаи фиристодани чек
+  const [receiptText, setReceiptText] = useState("");
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [sending, setSending] = useState(false);
+  const [sentOk, setSentOk] = useState(false);
+  const [sendErr, setSendErr] = useState("");
+  const [copied, setCopied] = useState(false);
+
   const load = useCallback(async () => {
     try {
       const o = await api.order(orderId, lang);
@@ -53,6 +61,38 @@ export default function OrderPage() {
 
     return () => clearInterval(timer);
   }, [order, orderId, load]);
+
+  // 🧾 Фиристодани чеки пардохт (расм ё матн)
+  const sendReceipt = async () => {
+    setSending(true);
+    setSendErr("");
+    try {
+      const updated = await api.submitReceipt(orderId, {
+        text: receiptText,
+        file: receiptFile,
+        lang,
+      });
+      setOrder(updated);
+      setSentOk(true);
+      setReceiptText("");
+      setReceiptFile(null);
+    } catch (e) {
+      setSendErr((e as Error)?.message ?? t("error"));
+    } finally {
+      setSending(false);
+    }
+  };
+
+  // 📋 Нусхабардории линки пардохт
+  const copyLink = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      /* иҷозат нест — нодида гирифта мешавад */
+    }
+  };
 
   if (loading) {
     return (
@@ -99,6 +139,131 @@ export default function OrderPage() {
             strong
           />
         </div>
+
+        {/* 💳 Пардохти берунӣ: линк + рақами корта (танҳо ҳоло pending) */}
+        {order.status === "pending" &&
+          order.payment_method === "dc_wallet" &&
+          (order.payment_link || order.dc_payment_url) && (
+            <div className="mt-5 rounded-2xl border border-slate-200 bg-white text-left overflow-hidden">
+              <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 text-sm font-semibold text-slate-700">
+                💳 {t("payLink")}
+              </div>
+              <div className="p-4 space-y-3">
+                {order.payment_card && (
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-sm text-slate-500">{t("cardNumber")}</span>
+                    <span className="font-mono font-bold text-slate-800">
+                      {order.payment_card}
+                    </span>
+                  </div>
+                )}
+                {order.payment_phone && (
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-sm text-slate-500">📱</span>
+                    <span className="font-mono font-semibold text-slate-800">
+                      {order.payment_phone}
+                    </span>
+                  </div>
+                )}
+
+                <div className="flex gap-2 pt-1">
+                  <a
+                    href={order.payment_link || order.dc_payment_url || "#"}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex-1 text-center rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold py-2.5 transition"
+                  >
+                    🔗 {t("openPayLink")}
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => copyLink(order.payment_link || order.dc_payment_url || "")}
+                    className="shrink-0 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-sm font-semibold text-slate-600 px-4 py-2.5 transition"
+                  >
+                    {copied ? t("copied") : `📋 ${t("copy")}`}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+        {/* 🧾 Формаи фиристодани чек (барои пардохти DC) */}
+        {order.status === "pending" && order.payment_method === "dc_wallet" && (
+          <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4 text-left">
+            <div className="font-semibold text-sm text-slate-800 mb-1">
+              🧾 {t("receiptTitle")}
+            </div>
+            <p className="text-xs text-slate-500 mb-3">{t("receiptNote")}</p>
+
+            <label className="block text-xs font-medium text-slate-600 mb-1">
+              {t("receiptPhoto")}
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setReceiptFile(e.target.files?.[0] ?? null)}
+              className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:text-brand-700 file:font-semibold hover:file:bg-brand-100"
+            />
+
+            <label className="block text-xs font-medium text-slate-600 mt-3 mb-1">
+              {t("receiptText")}
+            </label>
+            <input
+              type="text"
+              maxLength={512}
+              className="input"
+              placeholder={t("receiptText")}
+              value={receiptText}
+              onChange={(e) => setReceiptText(e.target.value)}
+            />
+
+            {sendErr && (
+              <div className="mt-3 rounded-xl bg-rose-50 border border-rose-200 px-3 py-2 text-xs text-rose-700">
+                {sendErr}
+              </div>
+            )}
+            {sentOk && !sendErr && (
+              <div className="mt-3 rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-2 text-xs text-emerald-700">
+                ✅ {t("receiptSent")}
+              </div>
+            )}
+
+            <button
+              onClick={sendReceipt}
+              disabled={sending || (!receiptFile && !receiptText.trim())}
+              className="btn-primary w-full mt-3 py-3"
+            >
+              {sending ? (
+                <>
+                  <span className="animate-spin">⏳</span> {t("loading")}
+                </>
+              ) : (
+                <>📤 {t("sendReceipt")}</>
+              )}
+            </button>
+          </div>
+        )}
+
+        {/* 🧾 Чеки фиристода — интизори тасдиқи админ */}
+        {order.status === "checking" && (
+          <div className="mt-5 rounded-2xl border border-indigo-200 bg-indigo-50 p-4 text-left">
+            <div className="text-sm font-semibold text-indigo-800 mb-1">
+              🧾 {t("receiptReview")}
+            </div>
+            {order.receipt_text && (
+              <div className="text-xs text-indigo-700 break-words">
+                {order.receipt_text}
+              </div>
+            )}
+            {order.receipt_file && (
+              <img
+                src={order.receipt_file}
+                alt="receipt"
+                className="mt-2 rounded-xl max-h-44 border border-indigo-100"
+              />
+            )}
+          </div>
+        )}
 
         {/* Амалҳо */}
         <div className="mt-6 space-y-3">

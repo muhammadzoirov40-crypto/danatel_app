@@ -7,6 +7,7 @@ import { useApp } from "../../context/AppContext";
 const FILTERS: (OrderStatus | "all")[] = [
   "all",
   "pending",
+  "checking",
   "paid",
   "delivered",
   "failed",
@@ -97,6 +98,7 @@ export default function Orders() {
                   <th className="text-left px-4 py-3">Player ID</th>
                   <th className="text-right px-4 py-3">{t("amount")}</th>
                   <th className="text-left px-4 py-3">{t("status")}</th>
+                  <th className="text-left px-4 py-3">🧾 {t("receiptPhoto")}</th>
                   <th className="text-right px-4 py-3">{t("actions")}</th>
                 </tr>
               </thead>
@@ -114,6 +116,9 @@ export default function Orders() {
                       <span className={`badge ${STATUS_META[o.status].cls}`}>
                         {STATUS_META[o.status].label} {t(STATUS_META[o.status].key ?? "status")}
                       </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <ReceiptCell order={o} t={t} />
                     </td>
                     <td className="px-4 py-3 text-right">
                       <RowActions order={o} busy={busy === o.id} onSet={setStatus} t={t} />
@@ -143,6 +148,9 @@ export default function Orders() {
                     {Number(o.amount_tjs).toLocaleString("tj-TJ")} {t("currency")}
                   </div>
                 </div>
+                <div className="mt-2">
+                  <ReceiptCell order={o} t={t} />
+                </div>
                 <div className="mt-3">
                   <RowActions order={o} busy={busy === o.id} onSet={setStatus} t={t} />
                 </div>
@@ -150,6 +158,30 @@ export default function Orders() {
             ))}
           </div>
         </>
+      )}
+    </div>
+  );
+}
+
+/** 🧾 Чеки пардохти корбар — линк ба расм + матн (барои админ) */
+function ReceiptCell({ order, t }: { order: Order; t: (k: string) => string }) {
+  if (!order.receipt_file && !order.receipt_text) {
+    return <span className="text-slate-300">—</span>;
+  }
+  return (
+    <div className="space-y-1 max-w-[220px]">
+      {order.receipt_file && (
+        <a
+          href={order.receipt_file}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-block text-brand-600 hover:text-brand-700 text-xs font-semibold underline"
+        >
+          🧾 {t("receiptPhoto")}
+        </a>
+      )}
+      {order.receipt_text && (
+        <div className="text-xs text-slate-500 break-words">{order.receipt_text}</div>
       )}
     </div>
   );
@@ -168,6 +200,26 @@ function RowActions({
 }) {
   return (
     <div className="flex gap-1.5 justify-end flex-wrap">
+      {/* 🧾 Чек расид — админ қабул ё рад мекунад */}
+      {order.status === "checking" && (
+        <>
+          <button
+            disabled={busy}
+            onClick={() => onSet(order.id, "paid")}
+            className="btn bg-emerald-600 text-white text-xs px-3 py-1.5 hover:bg-emerald-700"
+          >
+            ✅ {t("approve")}
+          </button>
+          <button
+            disabled={busy}
+            onClick={() => onSet(order.id, "cancelled")}
+            className="btn-danger text-xs px-3 py-1.5"
+          >
+            🚫 {t("reject")}
+          </button>
+        </>
+      )}
+
       {order.status !== "delivered" && (
         <button
           disabled={busy}

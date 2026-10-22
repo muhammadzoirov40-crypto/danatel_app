@@ -3,6 +3,7 @@ import { useApp } from "../context/AppContext";
 
 const MAP: Record<OrderStatus, { key: string; cls: string; icon: string }> = {
   pending: { key: "waitingPayment", cls: "bg-amber-100 text-amber-800", icon: "⏳" },
+  checking: { key: "checkingReceipt", cls: "bg-indigo-100 text-indigo-800", icon: "🧾" },
   paid: { key: "paid", cls: "bg-emerald-100 text-emerald-800", icon: "✅" },
   delivered: { key: "delivered", cls: "bg-sky-100 text-sky-800", icon: "🎮" },
   failed: { key: "failed", cls: "bg-rose-100 text-rose-800", icon: "❌" },

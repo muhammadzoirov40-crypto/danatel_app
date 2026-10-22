@@ -21,6 +21,9 @@ dist/
 .vscode/
 .DS_Store
 
+# ===== Расмҳои чеки пардохт (маълумоти корбар) =====
+uploads/
+
 # ===== Logs =====
 *.log
 npm-debug.log*

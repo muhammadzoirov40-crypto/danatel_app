@@ -192,17 +192,18 @@ class Product(Base):
 
 class OrderStatus:
     PENDING = "pending"          # ⏳ интизори пардохт
+    CHECKING = "checking"        # 🧾 чек расид — интизори тасдиқи админ
     PAID = "paid"                # ✅ пардохт шуд
     DELIVERED = "delivered"      # 🎮 маҳсулот расид
     FAILED = "failed"            # ❌ ноком
     REFUNDED = "refunded"        # 💰 пул баргардонида шуд
     CANCELLED = "cancelled"      # 🚫 бекор шуд
 
-    ALL = [PENDING, PAID, DELIVERED, FAILED, REFUNDED, CANCELLED]
+    ALL = [PENDING, CHECKING, PAID, DELIVERED, FAILED, REFUNDED, CANCELLED]
 
 
 class PaymentMethod:
-    DC = "dc_wallet"        # 💳 Пардохти берунии DC Wallet
+    DC = "dc_wallet"        # 💳 Пардохти берунии DC Wallet (линк + чек)
     BALANCE = "balance"     # 💰 Аз баланси дохилӣ (ҳамён)
     ALL = [DC, BALANCE]
 
@@ -231,6 +232,11 @@ class Order(Base):
     dc_invoice_id: Mapped[str | None] = mapped_column(String(128), index=True)
     dc_payment_url: Mapped[str | None] = mapped_column(String(512))
     transaction_id: Mapped[str | None] = mapped_column(String(128))
+
+    # 🧾 Чеки пардохт (линк + чек) — корбар расм/матн мефиристад
+    receipt_file: Mapped[str | None] = mapped_column(String(512))
+    receipt_text: Mapped[str | None] = mapped_column(String(512))
+    receipt_at: Mapped[datetime | None] = mapped_column(DateTime)
 
     # 🛡️ Идемпотентность — аз донати такрорӣ (дублировка) манъ мекунад
     client_token: Mapped[str | None] = mapped_column(String(64), unique=True, index=True)

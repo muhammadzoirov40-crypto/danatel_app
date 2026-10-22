@@ -114,6 +114,9 @@ def list_orders(
             created_at=o.created_at,
             game_name=o.game.get_name("tj"),
             product_name=o.product.get_name("tj"),
+            # 🧾 Чеки пардохти корбар (расм/матн)
+            receipt_file=o.receipt_file,
+            receipt_text=o.receipt_text,
         )
         for o in orders
     ]

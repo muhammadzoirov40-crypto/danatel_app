@@ -187,6 +187,19 @@ class OrderOut(BaseModel):
     created_at: datetime
     game_name: str = ""
     product_name: str = ""
+    # 🧾 Чеки пардохт
+    receipt_file: str | None = None
+    receipt_text: str | None = None
+    # 💳 Маълумоти пардохти берунӣ (линк + рақами корта)
+    payment_link: str | None = None
+    payment_card: str | None = None
+    payment_phone: str | None = None
+
+
+class ReceiptSubmit(BaseModel):
+    """Корбар чеки пардохтро мефиристад."""
+
+    text: str | None = Field(default=None, max_length=512)
 
 
 # =====================================================================

@@ -66,6 +66,28 @@ def health():
     return {"ok": True, "service": "danatel-api", "version": "1.0.0"}
 
 
+# ========================== 🧾 Расмҳои чеки пардохт ==========================
+# Бо _RECEIPT_DIR дар orders.py бояд якхела бошад (backend/uploads/receipts).
+_RECEIPTS = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "uploads",
+    "receipts",
+)
+
+
+@app.get("/uploads/receipts/{name}", include_in_schema=False)
+async def receipt_image(name: str):
+    """Нишон додани расми чеки пардохт барои админ."""
+    from fastapi import HTTPException
+
+    # Танҳо номи оддӣ (бе ../) — амният
+    safe = os.path.basename(name)
+    path = os.path.join(_RECEIPTS, safe)
+    if not os.path.isfile(path):
+        raise HTTPException(status_code=404, detail="Расм ёфт нашуд")
+    return FileResponse(path)
+
+
 # ========================== Оғоз ==========================
 @app.on_event("startup")
 async def on_startup() -> None:

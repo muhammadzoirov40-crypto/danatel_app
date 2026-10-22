@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { Game, Product } from "../types";
 import { api, ApiError } from "../api/client";
 import { useApp } from "../context/AppContext";
+import BankPicker from "./BankPicker";
 
 interface Props {
   game: Game;
@@ -23,10 +24,37 @@ export default function OrderForm({ game, onCreated }: Props) {
   const [error, setError] = useState("");
   // 🛡️ Идемпотентность — ҳар як клик token-и ягона дорад
   const [clientToken] = useState(() => crypto.randomUUID());
+  // 🏦 Кушодани интихоби банк (марҳилаи 2-юм пардохти DC)
+  const [showBank, setShowBank] = useState(false);
 
   const products = game.products ?? [];
   const price = selected ? Number(selected.price_tjs) : 0;
   const canUseBalance = !!user && balance >= price && price > 0;
+
+  /** Сохтани фармоиш дар сервер (муштарак барои баланс ва DC). */
+  const createOrder = async (): Promise<boolean> => {
+    setLoading(true);
+    try {
+      const res = await api.createOrder({
+        game_slug: game.slug,
+        product_id: selected!.id,
+        player_id: playerId.trim(),
+        player_nickname: nickname.trim() || undefined,
+        language: lang,
+        payment_method: method === "balance" ? "balance" : "dc_wallet",
+        client_token: clientToken,
+      });
+      // 💰 Баланс кам шуд → навсозӣ кунед
+      if (method === "balance") await refreshUser();
+      onCreated(res.order_id, res.payment_url);
+      return true;
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : t("error"));
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const submit = async () => {
     setError("");
@@ -48,30 +76,16 @@ export default function OrderForm({ game, onCreated }: Props) {
         setError(t("insufficientBalance"));
         return;
       }
+      await createOrder();
+      return;
     }
 
-    setLoading(true);
-    try {
-      const res = await api.createOrder({
-        game_slug: game.slug,
-        product_id: selected.id,
-        player_id: playerId.trim(),
-        player_nickname: nickname.trim() || undefined,
-        language: lang,
-        payment_method: method === "balance" ? "balance" : "dc_wallet",
-        client_token: clientToken,
-      });
-      // 💰 Баланс кам шуд → навсозӣ кунед
-      if (method === "balance") await refreshUser();
-      onCreated(res.order_id, res.payment_url);
-    } catch (e) {
-      setError(e instanceof ApiError ? e.message : t("error"));
-    } finally {
-      setLoading(false);
-    }
+    // 💳 DC Wallet → аввал интихоби банк (ҳамон усули rent_frow)
+    setShowBank(true);
   };
 
   return (
+    <>
     <div className="card p-4 sm:p-6">
       {/* ID */}
       <div className="mb-4">
@@ -210,5 +224,20 @@ export default function OrderForm({ game, onCreated }: Props) {
         🔒 {t("secureNote")}
       </p>
     </div>
+
+    {/* 🏦 Интихоби банк — танҳо барои пардохти DC */}
+    {showBank && (
+      <BankPicker
+        price={price}
+        loading={loading}
+        onConfirm={async () => {
+          const ok = await createOrder();
+          // Агар хато шуд → модалка мепӯшад, хато дар корт нишон дода мешавад
+          if (!ok) setShowBank(false);
+        }}
+        onClose={() => setShowBank(false)}
+      />
+    )}
+    </>
   );
 }
