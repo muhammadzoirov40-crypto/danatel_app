@@ -23,6 +23,7 @@ def list_games(
     lang = _lang(lang)
     games = db.scalars(
         select(Game)
+        .options(selectinload(Game.products))
         .where(Game.is_active.is_(True))
         .order_by(Game.sort_order, Game.id)
     ).all()
@@ -37,9 +38,19 @@ def list_games(
             player_id_label=g.get_player_label(lang),
             image_url=g.image_url,
             image_pad=g.image_pad,
+            # 📊 Маълумоти промо-картоҳои саҳифаи асосӣ
+            min_price_tjs=_min_price(g),
+            products_count=sum(1 for p in g.products if p.is_active),
+            is_popular=any(p.is_popular for p in g.products if p.is_active),
         )
         for g in games
     ]
+
+
+def _min_price(g: Game):
+    """Арзиши аз-рӯи арзонтарин маҳсулоти фаъоли бозӣ."""
+    prices = [p.price_tjs for p in g.products if p.is_active and p.price_tjs is not None]
+    return min(prices) if prices else None
 
 
 @router.get("/games/{slug}", response_model=GameDetailOut)

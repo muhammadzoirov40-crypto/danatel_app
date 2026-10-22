@@ -7,8 +7,33 @@
 }
 
 body {
-  @apply bg-slate-50 text-slate-900 antialiased;
-  font-family: Inter, system-ui, -apple-system, sans-serif;
+  /* Ранг ва фонти мисли persshop.com */
+  @apply antialiased;
+  background: #f4f7ff;
+  color: #0a0d14;
+  font-family: Onest, Inter, system-ui, -apple-system, sans-serif;
+}
+
+/* Hero-и aurora — ҳамон градиенти persshop */
+.aurora {
+  background:
+    radial-gradient(16rem 14rem at 100% 0%, rgba(84, 252, 255, 0.5), transparent 70%),
+    radial-gradient(18rem 15rem at -6% 120%, rgba(191, 52, 255, 0.42), transparent 70%),
+    linear-gradient(165deg, #2a55f5 0%, #3b6bff 38%, #5b4dff 72%, #1fb6e8 118%);
+}
+
+/* Сойаи кабуди кортҳо (мисли persshop --card-shadow) */
+.card {
+  box-shadow: 0 12px 30px -16px rgba(37, 99, 235, 0.35);
+}
+
+/* Навъи афтодаи амудии промо-картоҳо (мобилӣ) */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 @layer components {

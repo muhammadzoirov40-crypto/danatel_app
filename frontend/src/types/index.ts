@@ -22,6 +22,10 @@ export interface Game {
   /** Фазои дохилӣ барои лого (px) */
   image_pad?: number;
   products?: Product[];
+  /** 📊 Барои промо-картоҳои саҳифаи асосӣ */
+  min_price_tjs?: number | null;
+  products_count?: number;
+  is_popular?: boolean;
 }
 
 export type OrderStatus =

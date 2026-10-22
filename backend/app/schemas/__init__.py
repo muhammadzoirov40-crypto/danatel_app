@@ -73,6 +73,10 @@ class GameOut(BaseModel):
     player_id_label: str = "Player ID"
     image_url: str | None = None
     image_pad: int = 0
+    # 📊 Барои саҳифаи асосӣ (промо-картоҳо)
+    min_price_tjs: Decimal | None = None
+    products_count: int = 0
+    is_popular: bool = False
 
     @field_validator("requires_player_id", mode="before")
     @classmethod
