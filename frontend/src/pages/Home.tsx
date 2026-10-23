@@ -6,6 +6,14 @@ import GameCard from "../components/GameCard";
 import PromoCarousel from "../components/PromoCarousel";
 import TrustTicker from "../components/TrustTicker";
 import { useApp } from "../context/AppContext";
+import {
+  CreditCard3D,
+  Diamond3D,
+  Gamepad3D,
+  GiftBox3D,
+  IdBadge3D,
+  TajikFlag,
+} from "../components/Icons";
 
 /**
  * Саҳифаи асосӣ — тарҳи мисли persshop.com:
@@ -167,26 +175,27 @@ export default function Home() {
         {/* ===== 4) ПЛИТКАҲОИ РАҚАМ ===== */}
         {!loading && !error && (
           <section className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <Tile icon={<span className="text-2xl">🎮</span>} value={String(games.length || 8)} label={t("statGames")} />
             <Tile
-              icon={<span className="text-2xl">💎</span>}
-              value={totalProducts > 100 ? String(totalProducts) : "128"}
-              label={t("statProducts")}
-              color="text-brand-600"
+              icon={<Gamepad3D className="w-8 h-8" />}
+              value={String(games.length || 8)}
+              label={t("statGames")}
             />
             <Tile
-              icon={
-                <span className="grid place-items-center w-8 h-8 rounded-xl bg-purple-100 text-purple-600 text-sm font-black shadow-xs">
-                  🆔
-                </span>
-              }
+              icon={<Diamond3D className="w-8 h-8" />}
+              value={totalProducts > 100 ? String(totalProducts) : "128"}
+              label={t("statProducts")}
+              color="text-sky-600"
+            />
+            <Tile
+              icon={<IdBadge3D className="w-8 h-8" />}
               label={t("trustId")}
             />
             <Tile
               icon={
-                <span className="grid place-items-center px-2 py-1 rounded-xl bg-blue-50 text-blue-700 text-xs font-black ring-1 ring-blue-100">
-                  TJ
-                </span>
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-50 ring-1 ring-emerald-200/60 shadow-xs">
+                  <TajikFlag className="w-5 h-3.5 rounded-xs" />
+                  <span className="text-xs font-black text-emerald-800 tracking-wide">TJS</span>
+                </div>
               }
               label={t("trustSomoni")}
             />
@@ -200,13 +209,29 @@ export default function Home() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {[
-              { n: 1, icon: "🎮", bg: "bg-slate-100 text-slate-700" },
-              { n: 2, icon: "🆔", bg: "bg-purple-100 text-purple-700" },
-              { n: 3, icon: "💳", bg: "bg-amber-100 text-amber-700" },
-              { n: 4, icon: "🎁", bg: "bg-rose-100 text-rose-700" },
+              {
+                n: 1,
+                icon: <Gamepad3D className="w-8 h-8" />,
+                bg: "bg-blue-50 ring-1 ring-blue-100",
+              },
+              {
+                n: 2,
+                icon: <IdBadge3D className="w-8 h-8" />,
+                bg: "bg-purple-50 ring-1 ring-purple-100",
+              },
+              {
+                n: 3,
+                icon: <CreditCard3D className="w-8 h-8" />,
+                bg: "bg-amber-50 ring-1 ring-amber-100",
+              },
+              {
+                n: 4,
+                icon: <GiftBox3D className="w-8 h-8" />,
+                bg: "bg-rose-50 ring-1 ring-rose-100",
+              },
             ].map((s) => (
               <div key={s.n} className="card p-5 text-center flex flex-col items-center">
-                <div className={`grid place-items-center w-11 h-11 rounded-2xl ${s.bg} text-xl mb-3`}>
+                <div className={`grid place-items-center w-14 h-14 rounded-2xl ${s.bg} mb-3 shadow-xs`}>
                   {s.icon}
                 </div>
                 <div className="font-bold text-sm mb-1">{t(`step${s.n}`)}</div>

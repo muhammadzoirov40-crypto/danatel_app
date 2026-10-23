@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import { LANGS } from "../i18n";
+import { CatalogIcon, GoldCoin, OrdersIcon, TajikFlag } from "./Icons";
 
 /**
  * Сарлавҳа — тарҳи мисли persshop.com:
@@ -56,10 +57,12 @@ export default function Navbar() {
         {/* 🔗 Пайвандҳо (десктоп) */}
         <nav className="hidden md:flex items-center gap-1 ml-2">
           <Link to="/" className={linkCls}>
-            📖 {t("navCatalog")}
+            <CatalogIcon className="w-4 h-4 opacity-90 inline-block mr-1" />
+            <span>{t("navCatalog")}</span>
           </Link>
           <Link to={user ? "/profile" : "/login"} className={linkCls}>
-            📦 {t("navOrders")}
+            <OrdersIcon className="w-4 h-4 opacity-90 inline-block mr-1" />
+            <span>{t("navOrders")}</span>
           </Link>
           {isAdmin && (
             <Link to="/admin" className={linkCls}>
@@ -80,7 +83,11 @@ export default function Navbar() {
             aria-haspopup="listbox"
             aria-expanded={langOpen}
           >
-            <span>{cur.flag}</span>
+            {cur.code === "tj" ? (
+              <TajikFlag className="w-4 h-2.5 rounded-xs" />
+            ) : (
+              <span>{cur.flag}</span>
+            )}
             <span className="uppercase">{cur.code}</span>
             <span className="text-[10px] opacity-70">▾</span>
           </button>
@@ -107,7 +114,11 @@ export default function Navbar() {
                                   : "hover:bg-slate-50"
                               }`}
                 >
-                  <span>{l.flag}</span>
+                  {l.code === "tj" ? (
+                    <TajikFlag className="w-4 h-2.5 rounded-xs" />
+                  ) : (
+                    <span>{l.flag}</span>
+                  )}
                   <span>{l.label}</span>
                   {lang === l.code && <span className="ml-auto">✓</span>}
                 </button>
@@ -123,7 +134,7 @@ export default function Navbar() {
                      px-3 py-1.5 text-xs sm:text-sm font-black hover:bg-white/25 transition tabular-nums"
           title={t("balance")}
         >
-          <span>🪙</span>
+          <GoldCoin className="w-4 h-4" />
           <span>{user ? Number(balance || 0).toLocaleString("tj-TJ") : "0"}</span>
         </Link>
 
