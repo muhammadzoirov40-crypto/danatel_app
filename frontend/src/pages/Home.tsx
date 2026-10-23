@@ -60,19 +60,6 @@ export default function Home() {
     [games],
   );
 
-  /** Тикери далелҳо — воқеӣ, на ҷаълӣ */
-  const tickerItems = useMemo(
-    () => [
-      { icon: "🇹🇯", text: t("trustSomoni") },
-      { icon: "⚡", text: t("trustFast") },
-      { icon: "💳", text: "DC Wallet" },
-      { icon: "🎮", text: `${games.length || 8} ${t("statGames")}` },
-      { icon: "💎", text: `${totalProducts > 100 ? totalProducts : 128} ${t("statProducts")}` },
-      { icon: "🆔", text: t("trustId") },
-      { icon: "🇹🇯", text: t("trustSomoni") },
-    ],
-    [t, games.length, totalProducts],
-  );
 
   return (
     <div>
@@ -111,8 +98,8 @@ export default function Home() {
             )}
           </div>
 
-          {/* 🎚️ Тикери далелҳои воқеӣ */}
-          <TrustTicker items={tickerItems} />
+          {/* ⭐️ Сатри отзывҳо (мисли persshop) */}
+          <TrustTicker />
         </div>
       </section>
 
