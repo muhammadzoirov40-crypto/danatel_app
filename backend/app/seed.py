@@ -185,14 +185,14 @@ SEED_GAMES: list[dict] = [
 # 🖼️ РАСМҲОИ ЛОГО (аз маҳаллӣ: frontend/public/images/)
 # =====================================================================
 GAME_IMAGES: dict[str, str] = {
-    "free-fire": "/images/free-fire.png",
-    "pubg-mobile": "/images/pubg-mobile.png",
-    "blood-strike": "/images/blood-strike.png",
-    "arena-breakout": "/images/arena-breakout.png",
+    "free-fire": "/images/free-fire.webp",
+    "pubg-mobile": "/images/pubg-mobile.webp",
+    "blood-strike": "/images/blood-strike.webp",
+    "arena-breakout": "/images/arena-breakout.webp",
     "arena-breakout-infinite": "/images/arena-breakout-infinite.jpg",
-    "honor-of-kings": "/images/honor-of-kings.png",
+    "honor-of-kings": "/images/honor-of-kings.webp",
     "marvel-rivals": "/images/marvel-rivals.png",
-    "mobile-legends": "/images/mobile-legends.svg",
+    "mobile-legends": "/images/mobile-legends.webp",
 }
 
 # Ғафсии лого: баъзе расмҳо калимаҳои васеъ ҳастанд → фазои бештар

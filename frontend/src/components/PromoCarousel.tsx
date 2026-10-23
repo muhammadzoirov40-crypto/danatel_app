@@ -90,40 +90,42 @@ export default function PromoCarousel({ games }: { games: Game[] }) {
                           p-5 sm:p-8 max-w-[72%] sm:max-w-[58%]">
             {/* Chip */}
             <span
-              className="inline-flex w-fit items-center gap-1.5 rounded-full bg-white/15
-                         backdrop-blur px-3 py-1 text-[11px] font-bold uppercase
-                         tracking-wide ring-1 ring-white/25"
+              className="inline-flex w-fit items-center gap-1.5 rounded-full bg-black/40
+                         backdrop-blur px-3 py-1 text-[11px] font-extrabold uppercase
+                         tracking-wide ring-1 ring-white/20"
             >
-              ⚡ {g.name}
+              ✦ {g.name}
             </span>
 
             {/* Рақами калон — нархи аз */}
             {g.min_price_tjs != null ? (
-              <h3 className="mt-2.5 text-3xl sm:text-5xl font-extrabold leading-none tracking-tight">
-                <span className="text-sm sm:text-lg font-semibold opacity-80 align-middle mr-1.5">
+              <h3 className="mt-2 text-2xl sm:text-4xl font-extrabold leading-none tracking-tight">
+                <span className="text-sm sm:text-base font-bold opacity-85 align-middle mr-1.5">
                   {t("from")}
                 </span>
-                {Number(g.min_price_tjs).toLocaleString("tj-TJ")}
-                <span className="ml-1 text-base sm:text-2xl font-bold opacity-90">
+                <span className="text-3xl sm:text-5xl font-black">
+                  {Number(g.min_price_tjs).toLocaleString("tj-TJ")}
+                </span>
+                <span className="ml-1.5 text-base sm:text-xl font-bold opacity-90">
                   {t("currency")}
                 </span>
               </h3>
             ) : (
-              <h3 className="mt-2.5 text-3xl sm:text-5xl font-extrabold leading-none tracking-tight">
+              <h3 className="mt-2 text-2xl sm:text-4xl font-extrabold leading-none tracking-tight">
                 {g.currency}
               </h3>
             )}
 
             {/* Зерматн */}
-            <p className="mt-1.5 text-xs sm:text-sm font-semibold text-white/85">
+            <p className="mt-1 text-xs sm:text-sm font-medium text-white/80">
               {g.currency || t("tagline")}
             </p>
 
             {/* Тугма */}
             <span
-              className="mt-3.5 inline-flex w-fit items-center gap-2 rounded-xl bg-white
-                         px-4 py-2 sm:px-5 sm:py-2.5 text-xs sm:text-sm font-bold text-slate-900
-                         shadow-lg"
+              className="mt-3.5 inline-flex w-fit items-center gap-2 rounded-full bg-white
+                         px-4 py-2 sm:px-5 sm:py-2 text-xs sm:text-sm font-bold text-slate-900
+                         shadow-md hover:bg-slate-50 transition"
             >
               {t("pay")} →
             </span>
@@ -139,8 +141,8 @@ export default function PromoCarousel({ games }: { games: Game[] }) {
               key={gg.id}
               onClick={() => setI(idx)}
               aria-label={gg.name}
-              className={`h-2 rounded-full transition-all duration-300 ${
-                idx === i ? "w-6 bg-brand-600" : "w-2 bg-slate-300 hover:bg-slate-400"
+              className={`h-1.5 rounded-full transition-all duration-300 ${
+                idx === i ? "w-6 bg-brand-600" : "w-1.5 bg-slate-300 hover:bg-slate-400"
               }`}
             />
           ))}

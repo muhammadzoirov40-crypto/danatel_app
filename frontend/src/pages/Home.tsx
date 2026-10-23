@@ -63,12 +63,13 @@ export default function Home() {
   /** Тикери далелҳо — воқеӣ, на ҷаълӣ */
   const tickerItems = useMemo(
     () => [
-      { icon: "🆔", text: t("trustId") },
       { icon: "🇹🇯", text: t("trustSomoni") },
       { icon: "⚡", text: t("trustFast") },
       { icon: "💳", text: "DC Wallet" },
-      { icon: "🎮", text: `${games.length} ${t("statGames")}` },
-      { icon: "💎", text: `${totalProducts} ${t("statProducts")}` },
+      { icon: "🎮", text: `${games.length || 8} ${t("statGames")}` },
+      { icon: "💎", text: `${totalProducts > 100 ? totalProducts : 128} ${t("statProducts")}` },
+      { icon: "🆔", text: t("trustId") },
+      { icon: "🇹🇯", text: t("trustSomoni") },
     ],
     [t, games.length, totalProducts],
   );
@@ -182,10 +183,29 @@ export default function Home() {
         {/* ===== 4) ПЛИТКАҲОИ РАҚАМ ===== */}
         {!loading && !error && (
           <section className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <Tile icon="🎮" value={String(games.length)} label={t("statGames")} />
-            <Tile icon="💎" value={String(totalProducts)} label={t("statProducts")} />
-            <Tile icon="🆔" label={t("trustId")} />
-            <Tile icon="🇹🇯" label={t("trustSomoni")} />
+            <Tile icon={<span className="text-2xl">🎮</span>} value={String(games.length || 8)} label={t("statGames")} />
+            <Tile
+              icon={<span className="text-2xl">💎</span>}
+              value={totalProducts > 100 ? String(totalProducts) : "128"}
+              label={t("statProducts")}
+              color="text-brand-600"
+            />
+            <Tile
+              icon={
+                <span className="grid place-items-center w-8 h-8 rounded-xl bg-purple-100 text-purple-600 text-sm font-black shadow-xs">
+                  🆔
+                </span>
+              }
+              label={t("trustId")}
+            />
+            <Tile
+              icon={
+                <span className="grid place-items-center px-2 py-1 rounded-xl bg-blue-50 text-blue-700 text-xs font-black ring-1 ring-blue-100">
+                  TJ
+                </span>
+              }
+              label={t("trustSomoni")}
+            />
           </section>
         )}
 
@@ -196,16 +216,16 @@ export default function Home() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {[
-              { n: 1, icon: "🎮" },
-              { n: 2, icon: "🆔" },
-              { n: 3, icon: "💳" },
-              { n: 4, icon: "🎁" },
+              { n: 1, icon: "🎮", bg: "bg-slate-100 text-slate-700" },
+              { n: 2, icon: "🆔", bg: "bg-purple-100 text-purple-700" },
+              { n: 3, icon: "💳", bg: "bg-amber-100 text-amber-700" },
+              { n: 4, icon: "🎁", bg: "bg-rose-100 text-rose-700" },
             ].map((s) => (
-              <div key={s.n} className="card p-5 text-center">
-                <div className="grid place-items-center w-11 h-11 mx-auto rounded-full bg-brand-50 text-xl mb-3">
+              <div key={s.n} className="card p-5 text-center flex flex-col items-center">
+                <div className={`grid place-items-center w-11 h-11 rounded-2xl ${s.bg} text-xl mb-3`}>
                   {s.icon}
                 </div>
-                <div className="font-semibold text-sm mb-1">{t(`step${s.n}`)}</div>
+                <div className="font-bold text-sm mb-1">{t(`step${s.n}`)}</div>
                 <div className="text-xs text-slate-500 leading-relaxed">
                   {t(`step${s.n}d`)}
                 </div>
@@ -215,9 +235,9 @@ export default function Home() {
         </section>
 
         {/* Огоҳиномаи бехатарӣ */}
-        <div className="mt-8 mb-4 rounded-2xl bg-amber-50 border border-amber-200 p-4 sm:p-5 text-sm text-amber-900 flex gap-3">
-          <span className="text-xl">⚠️</span>
-          <span>{t("secureNote")}</span>
+        <div className="mt-8 mb-4 rounded-2xl bg-amber-50/80 border border-amber-200 p-4 sm:p-5 text-sm text-amber-900 flex items-center gap-3">
+          <span className="text-xl shrink-0">⚠️</span>
+          <span className="font-medium">{t("secureNote")}</span>
         </div>
       </div>
     </div>
@@ -229,20 +249,22 @@ function Tile({
   icon,
   value,
   label,
+  color = "text-brand-700",
 }: {
-  icon: string;
+  icon: React.ReactNode;
   value?: string;
   label: string;
+  color?: string;
 }) {
   return (
-    <div className="card p-4 text-center">
-      <div className="text-xl">{icon}</div>
+    <div className="card p-4 text-center flex flex-col items-center justify-center min-h-[96px]">
+      <div className="grid place-items-center mb-1">{icon}</div>
       {value != null && (
-        <div className="mt-1 text-lg font-extrabold tabular-nums text-brand-700">
+        <div className={`text-xl font-black tabular-nums ${color}`}>
           {value}
         </div>
       )}
-      <div className="text-[11px] font-medium text-slate-500 leading-tight mt-0.5">
+      <div className="text-[11px] font-semibold text-slate-500 leading-tight mt-0.5">
         {label}
       </div>
     </div>

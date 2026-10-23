@@ -40,29 +40,27 @@ export default function Navbar() {
     "hover:bg-white/12 transition";
 
   return (
-    <header className="sticky top-0 z-40 header-blue text-white shadow-[0_8px_24px_-16px_rgba(15,23,61,0.6)]">
+    <header className="sticky top-0 z-40 header-blue text-white">
       <div className="mx-auto max-w-6xl px-4 h-14 sm:h-16 flex items-center gap-2 sm:gap-3">
         {/* 💎 Логотип */}
         <Link
           to="/"
-          className="flex items-center gap-2 font-extrabold text-base sm:text-lg shrink-0 tracking-tight"
+          className="flex items-center gap-2 font-black text-base sm:text-lg shrink-0 tracking-tight"
         >
-          <span className="grid place-items-center w-9 h-9 rounded-xl bg-white/15 ring-1 ring-white/25 text-lg">
+          <span className="grid place-items-center w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/15 ring-1 ring-white/25 text-base sm:text-lg">
             💎
           </span>
-          <span className="hidden sm:inline">{t("brand")}</span>
+          <span>{t("brand")}</span>
         </Link>
 
         {/* 🔗 Пайвандҳо (десктоп) */}
-        <nav className="hidden md:flex items-center gap-1 ml-1">
+        <nav className="hidden md:flex items-center gap-1 ml-2">
           <Link to="/" className={linkCls}>
-            ▦ {t("navCatalog")}
+            📖 {t("navCatalog")}
           </Link>
-          {user && (
-            <Link to="/profile" className={linkCls}>
-              📦 {t("navOrders")}
-            </Link>
-          )}
+          <Link to={user ? "/profile" : "/login"} className={linkCls}>
+            📦 {t("navOrders")}
+          </Link>
           {isAdmin && (
             <Link to="/admin" className={linkCls}>
               ⚙️ {t("adminPanel")}
@@ -76,13 +74,14 @@ export default function Navbar() {
         <div className="relative" ref={langRef}>
           <button
             onClick={() => setLangOpen((v) => !v)}
-            className="flex items-center gap-1.5 rounded-xl bg-white/12 ring-1 ring-white/25
-                       px-2.5 py-2 text-sm font-semibold hover:bg-white/20 transition"
+            className="flex items-center gap-1.5 rounded-full bg-white/15 ring-1 ring-white/25
+                       px-3 py-1.5 text-xs sm:text-sm font-bold hover:bg-white/25 transition"
             title={t("language")}
             aria-haspopup="listbox"
             aria-expanded={langOpen}
           >
-            🌐 <span className="uppercase">{cur.code}</span>
+            <span>{cur.flag}</span>
+            <span className="uppercase">{cur.code}</span>
             <span className="text-[10px] opacity-70">▾</span>
           </button>
 
@@ -90,7 +89,7 @@ export default function Navbar() {
             <div
               role="listbox"
               className="absolute right-0 mt-2 w-40 rounded-2xl bg-white text-slate-800
-                         border border-slate-200 shadow-xl overflow-hidden p-1"
+                         border border-slate-200 shadow-xl overflow-hidden p-1 z-50"
             >
               {LANGS.map((l) => (
                 <button
@@ -117,50 +116,38 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* 💰 Баланс — танҳо барои корбари вурудкарда */}
-        {user && (
-          <Link
-            to="/profile"
-            className="flex items-center gap-1.5 rounded-xl bg-white/12 ring-1 ring-white/25
-                       px-2.5 py-2 text-sm font-bold hover:bg-white/20 transition"
-            title={t("balance")}
-          >
-            💰
-            <span className="tabular-nums">
-              {Number(balance || 0).toLocaleString("tj-TJ")}
-            </span>
-          </Link>
-        )}
+        {/* 🪙 Баланс (танга) */}
+        <Link
+          to={user ? "/profile" : "/login"}
+          className="flex items-center gap-1.5 rounded-full bg-white/15 ring-1 ring-white/25
+                     px-3 py-1.5 text-xs sm:text-sm font-black hover:bg-white/25 transition tabular-nums"
+          title={t("balance")}
+        >
+          <span>🪙</span>
+          <span>{user ? Number(balance || 0).toLocaleString("tj-TJ") : "0"}</span>
+        </Link>
 
-        {/* 👤 Профил / Вуруд */}
-        {user ? (
-          <div className="flex items-center gap-1.5">
-            <Link
-              to="/profile"
-              className="grid place-items-center w-9 h-9 rounded-full bg-white/20 ring-1 ring-white/30
-                         text-sm font-bold hover:bg-white/30 transition"
-              title={t("profile")}
-            >
-              {isAdmin ? "⚙" : "👤"}
-            </Link>
-            <button
-              onClick={onLogout}
-              className="hidden sm:grid place-items-center w-9 h-9 rounded-full
-                         bg-white/10 ring-1 ring-white/20 hover:bg-white/20 transition"
-              title={t("logout")}
-            >
-              ⎋
-            </button>
-          </div>
-        ) : (
-          <Link
-            to="/login"
-            className="rounded-xl bg-white px-3.5 py-2 text-sm font-bold text-brand-700
-                       hover:bg-white/90 transition shadow-sm"
-          >
-            {t("login")}
-          </Link>
-        )}
+        {/* 👤 Профил */}
+        <Link
+          to={user ? "/profile" : "/login"}
+          className="grid place-items-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/20 ring-1 ring-white/30
+                     text-xs sm:text-sm font-bold hover:bg-white/30 transition shrink-0"
+          title={user ? t("profile") : t("login")}
+        >
+          {isAdmin ? "⚙" : "👤"}
+        </Link>
+
+        {/* ☰ Меню (ҳамбиргар) */}
+        <Link
+          to="/"
+          className="grid place-items-center w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/15 ring-1 ring-white/25
+                     text-sm font-bold hover:bg-white/25 transition shrink-0"
+          title="Меню"
+        >
+          <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M3 5h14a1 1 0 010 2H3a1 1 0 010-2zm0 4h14a1 1 0 010 2H3a1 1 0 010-2zm0 4h14a1 1 0 010 2H3a1 1 0 010-2z" clipRule="evenodd" />
+          </svg>
+        </Link>
       </div>
     </header>
   );
