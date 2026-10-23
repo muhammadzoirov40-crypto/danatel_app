@@ -136,9 +136,9 @@ export default function Home() {
           </div>
 
           {loading && (
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-1.5 sm:gap-2">
+            <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-8 gap-2.5 sm:gap-3 max-w-5xl mx-auto">
               {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="card h-40 animate-pulse bg-slate-100" />
+                <div key={i} className="h-24 sm:h-28 animate-pulse bg-slate-100 rounded-2xl" />
               ))}
             </div>
           )}
@@ -172,7 +172,7 @@ export default function Home() {
           )}
 
           {!loading && !error && filtered.length > 0 && (
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-1.5 sm:gap-2">
+            <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-8 gap-2.5 sm:gap-3.5 max-w-5xl mx-auto">
               {filtered.map((g) => (
                 <GameCard key={g.id} game={g} />
               ))}

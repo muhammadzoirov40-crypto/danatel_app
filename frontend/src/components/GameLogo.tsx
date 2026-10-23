@@ -16,11 +16,10 @@ interface Props {
 export default function GameLogo({ game, size = "card" }: Props) {
   const [failed, setFailed] = useState(false);
 
-  // Тасвири бузургтар = камтар мудаввар (мисли persshop)
   const box =
     size === "hero"
-      ? "w-24 h-24 sm:w-32 sm:h-32 rounded-[26%]"
-      : "w-full aspect-square rounded-[24%]";
+      ? "w-20 h-20 sm:w-28 sm:h-28 rounded-[24%]"
+      : "w-full aspect-square rounded-[22%]";
 
   const showImage = !!game.image_url && !failed;
 
@@ -28,7 +27,7 @@ export default function GameLogo({ game, size = "card" }: Props) {
     <div
       className={`${box} relative grid place-items-center overflow-hidden
                   bg-gradient-to-br from-brand-100 to-brand-200
-                  ring-1 ring-white/70 shadow-[0_10px_25px_-12px_rgba(37,99,235,0.6)]
+                  ring-1 ring-white/60 shadow-[0_6px_16px_-8px_rgba(37,99,235,0.4)]
                   group-hover:scale-[1.03] transition-transform duration-200`}
     >
       {showImage ? (

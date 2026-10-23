@@ -15,28 +15,19 @@ export default function GameCard({ game }: { game: Game }) {
   return (
     <Link
       to={`/game/${game.slug}`}
-      className="group relative flex flex-col items-center text-center gap-1
-                 transition active:scale-[0.97]"
+      className="group relative flex flex-col items-center text-center gap-0.5
+                 w-full max-w-[80px] sm:max-w-[92px] md:max-w-[100px] mx-auto
+                 transition active:scale-[0.96]"
     >
-      {/* Нишонаи «Хит» — танҳо барои бозии машҳур */}
-      {game.is_popular && (
-        <span
-          className="absolute top-0.5 right-0.5 z-10 rounded-md bg-rose-500 px-1.5 py-0.5
-                     text-[10px] font-bold text-white shadow-sm"
-        >
-          {t("popular")}
-        </span>
-      )}
-
-      {/* Тасвир — пурра дар паҳноӣ, бидуни фосила */}
+      {/* Тасвир — паймон ва мудаввар */}
       <GameLogo game={game} size="card" />
 
       {/* Ном — то 2 сатр */}
-      <div className="w-full text-[11px] sm:text-xs font-semibold leading-tight line-clamp-2">
+      <div className="w-full text-[10px] sm:text-[11px] font-semibold leading-tight line-clamp-2 mt-1 text-slate-800">
         {game.name}
       </div>
 
-      {/* Нарх — хурд */}
+      {/* Нарх — хурд ва равшан */}
       {min != null && (
         <div className="text-[10px] sm:text-[11px] font-bold text-brand-600 tabular-nums">
           {t("from")} {Number(min).toLocaleString("tj-TJ")}
