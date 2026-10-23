@@ -9,8 +9,8 @@
 body {
   /* Ранг ва фонти мисли persshop.com */
   @apply antialiased;
-  background: #f4f7ff;
-  color: #0a0d14;
+  background: #f4f7ff; /* --background */
+  color: #0f1e3d; /* --foreground */
   font-family: Onest, Inter, system-ui, -apple-system, sans-serif;
 }
 
