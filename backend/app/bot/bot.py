@@ -23,6 +23,11 @@ from app.services import dc_service, telegram_service
 
 logger = logging.getLogger("bot")
 
+
+
+
+
+
 bot = Bot(
     token=settings.TELEGRAM_BOT_TOKEN,
     default=DefaultBotProperties(parse_mode=ParseMode.HTML),
