@@ -72,3 +72,42 @@ body {
            text-xs font-semibold;
   }
 }
+
+/* ============ 🎨 Сарлавҳаи мисли persshop ============ */
+/* Градиенти кабуд-нил (ҳамон header-и persshop) */
+.header-blue {
+  background:
+    radial-gradient(50rem 22rem at 88% -30%, rgba(129, 140, 248, 0.55), transparent 60%),
+    radial-gradient(40rem 20rem at 5% 120%, rgba(34, 211, 238, 0.3), transparent 60%),
+    linear-gradient(120deg, #1d4ed8 0%, #2563eb 45%, #4f46e5 100%);
+}
+
+/* Тикери ҳаракаткунанда (мисли строчканяи отзывҳои persshop) */
+.ticker {
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+.ticker-track {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.75rem;
+  white-space: nowrap;
+  will-change: transform;
+  animation: ticker-scroll 34s linear infinite;
+}
+.ticker:hover .ticker-track {
+  animation-play-state: paused;
+}
+@keyframes ticker-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track {
+    animation: none;
+  }
+}

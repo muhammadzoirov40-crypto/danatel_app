@@ -3,22 +3,24 @@ import { Link } from "react-router-dom";
 import { api } from "../api/client";
 import type { Game } from "../types";
 import GameCard from "../components/GameCard";
-import GameLogo from "../components/GameLogo";
+import PromoCarousel from "../components/PromoCarousel";
+import TrustTicker from "../components/TrustTicker";
 import { useApp } from "../context/AppContext";
 
 /**
- * Саҳифаи асосӣ — тарҳи мобилии мисли persshop.com:
- *   1) Hero бо aurora-градиент + чипҳои бехатарӣ
- *   2) Промо-картоҳои афтодаи амудӣ (бо нархи ҳақиқӣ)
- *   3) Рӯйхати бозиҳо (сетка) бо нишонаи «Хит»
+ * Саҳифаи асосӣ — тарҳи мисли persshop.com:
+ *   1) Сарлавҳаи кабуд: ҷустуҷӯ + тикери далелҳо (бо Navbar мепайвандад)
+ *   2) Баннери промо (карусел)
+ *   3) Рӯйхати бозиҳо (бо ҷустуҷӯи зинда)
  *   4) Плиткаҳои рақамҳо
- *   5) «Чӣ тавр кор мекунад» + огоҳиномаи бехатарӣ (нигоҳ дошта шуд)
+ *   5) «Чӣ тавр кор мекунад» + огоҳиномаи бехатарӣ
  */
 export default function Home() {
   const { t, lang } = useApp();
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     let alive = true;
@@ -33,7 +35,19 @@ export default function Home() {
     };
   }, [lang, t]);
 
-  /** Промо: аввал бозиҳои машҳур (аз рӯи маълумоти admin), баъд боқӣ — 6 та */
+  /** Ҷустуҷӯи зинда — аз рӯи ном ё slug */
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return games;
+    return games.filter(
+      (g) =>
+        g.name.toLowerCase().includes(q) ||
+        g.slug.toLowerCase().includes(q) ||
+        (g.currency ?? "").toLowerCase().includes(q),
+    );
+  }, [games, query]);
+
+  /** Промо-карусел: аввал машҳур, баъд боқӣ — 6 та */
   const promo = useMemo(() => {
     const pop = games.filter((g) => g.is_popular);
     const rest = games.filter((g) => !g.is_popular);
@@ -46,113 +60,82 @@ export default function Home() {
     [games],
   );
 
-  const trust = [
-    { i: "🆔", k: "trustId" },
-    { i: "🇹🇯", k: "trustSomoni" },
-    { i: "⚡", k: "trustFast" },
-  ];
+  /** Тикери далелҳо — воқеӣ, на ҷаълӣ */
+  const tickerItems = useMemo(
+    () => [
+      { icon: "🆔", text: t("trustId") },
+      { icon: "🇹🇯", text: t("trustSomoni") },
+      { icon: "⚡", text: t("trustFast") },
+      { icon: "💳", text: "DC Wallet" },
+      { icon: "🎮", text: `${games.length} ${t("statGames")}` },
+      { icon: "💎", text: `${totalProducts} ${t("statProducts")}` },
+    ],
+    [t, games.length, totalProducts],
+  );
 
   return (
     <div>
-      {/* ============ 1) HERO — aurora ============ */}
-      <section className="aurora text-white">
-        <div className="mx-auto max-w-6xl px-4 py-8 sm:py-14">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-semibold ring-1 ring-white/25">
-            🇹🇯 danatel.tj
-          </span>
-
-          <h1 className="mt-4 text-2xl sm:text-4xl font-extrabold tracking-tight leading-[1.15]">
+      {/* ===== 1) САРЛАВҲАИ КАБУД — бо Navbar мепайвандад ===== */}
+      <section className="header-blue text-white">
+        <div className="mx-auto max-w-6xl px-4 pt-4 pb-5 sm:pt-6 sm:pb-7">
+          <h1 className="text-xl sm:text-3xl font-extrabold tracking-tight leading-tight">
             {t("heroTitle")}
           </h1>
-          <p className="mt-2 text-sm sm:text-base text-white/85 max-w-xl">
-            {t("tagline")}
-          </p>
+          <p className="mt-1 text-sm text-white/80 max-w-xl">{t("tagline")}</p>
 
-          {/* Чипҳо — дар мобилӣ афтодаи амудӣ */}
-          <div className="mt-5 flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
-            {trust.map((c) => (
-              <span
-                key={c.k}
-                className="shrink-0 inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-3 py-1.5 text-xs font-semibold ring-1 ring-white/25"
+          {/* 🔍 Ҷустуҷӯ — мисли persshop */}
+          <div className="relative mt-4">
+            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg">
+              🔍
+            </span>
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={t("searchPlaceholder")}
+              aria-label={t("search")}
+              className="w-full rounded-2xl bg-white pl-11 pr-11 py-3.5 text-sm font-medium
+                         text-slate-800 placeholder:text-slate-400
+                         shadow-[0_10px_25px_-14px_rgba(15,23,61,0.5)]
+                         outline-none focus:ring-2 focus:ring-white/60 transition"
+            />
+            {query && (
+              <button
+                onClick={() => setQuery("")}
+                aria-label={t("cancel")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 grid place-items-center
+                           w-7 h-7 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition"
               >
-                {c.i} {t(c.k)}
-              </span>
-            ))}
+                ✕
+              </button>
+            )}
           </div>
 
-          <a
-            href="#games"
-            className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-white px-6 py-3.5
-                       text-sm font-bold text-brand-700 shadow-lg shadow-blue-900/20
-                       transition active:scale-[0.98]"
-          >
-            🎮 {t("chooseGame")} ↓
-          </a>
+          {/* 🎚️ Тикери далелҳои воқеӣ */}
+          <TrustTicker items={tickerItems} />
         </div>
       </section>
 
       <div className="mx-auto max-w-6xl px-4">
-        {/* ============ 2) ПРОМО-КАРТОҲО (афтодаи амудӣ) ============ */}
+        {/* ===== 2) БАННЕРИ ПРОМО (карусел) ===== */}
         {!loading && !error && promo.length > 0 && (
-          <section className="mt-6 sm:mt-8">
-            <div className="flex items-baseline justify-between mb-3">
-              <h2 className="text-lg sm:text-xl font-bold">✨ {t("featured")}</h2>
-            </div>
-
-            <div className="flex gap-3 overflow-x-auto no-scrollbar snap-x -mx-4 px-4 pb-1 sm:mx-0 sm:px-0">
-              {promo.map((g) => (
-                <Link
-                  key={g.id}
-                  to={`/game/${g.slug}`}
-                  className="aurora snap-start shrink-0 w-[72%] sm:w-[260px]
-                             rounded-3xl p-4 text-white relative overflow-hidden
-                             transition active:scale-[0.98] shadow-lg shadow-blue-900/20"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <div className="font-bold text-base leading-tight truncate">
-                        {g.name}
-                      </div>
-                      <div className="text-xs text-white/80 mt-0.5 truncate">
-                        {g.currency}
-                      </div>
-                    </div>
-                    <GameLogo game={g} size="card" />
-                  </div>
-
-                  <div className="mt-4 flex items-end justify-between gap-2">
-                    {g.min_price_tjs != null ? (
-                      <div>
-                        <div className="text-[11px] text-white/75">{t("from")}</div>
-                        <div className="text-xl font-extrabold tabular-nums">
-                          {Number(g.min_price_tjs).toLocaleString("tj-TJ")}{" "}
-                          <span className="text-sm font-semibold">{t("currency")}</span>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-xl font-extrabold">→</div>
-                    )}
-                    <span className="rounded-xl bg-white/20 px-3 py-1.5 text-xs font-bold">
-                      {t("pay")} →
-                    </span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </section>
+          <div className="mt-5 sm:mt-7">
+            <PromoCarousel games={promo} />
+          </div>
         )}
 
-        {/* ============ 3) РӮЙХАТИ БОЗИҲО ============ */}
+        {/* ===== 3) РӮЙХАТИ БОЗИҲО ===== */}
         <section id="games" className="mt-8 sm:mt-12 scroll-mt-20">
           <div className="flex items-baseline justify-between mb-3">
-            <h2 className="text-lg sm:text-xl font-bold">🎮 {t("chooseGame")}</h2>
-            <span className="text-xs text-slate-500">
-              {games.length} {t("statGames")}
+            <h2 className="text-lg sm:text-xl font-bold">
+              🎮 {query ? t("resultsFor") : t("chooseGame")}
+            </h2>
+            <span className="text-xs text-slate-500 tabular-nums">
+              {filtered.length} {t("statGames")}
             </span>
           </div>
 
           {loading && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-1.5 sm:gap-2.5">
               {Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className="card h-40 animate-pulse bg-slate-100" />
               ))}
@@ -171,16 +154,32 @@ export default function Home() {
             </div>
           )}
 
-          {!loading && !error && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-              {games.map((g) => (
+          {/* Ҳангами ҷустуҷӯ — натиҷа ёфт нашуд */}
+          {!loading && !error && filtered.length === 0 && (
+            <div className="card p-8 text-center">
+              <div className="text-4xl mb-2">🔍</div>
+              <div className="font-semibold">{t("noResults")}</div>
+              {query && (
+                <button
+                  onClick={() => setQuery("")}
+                  className="btn-ghost mt-4 text-sm"
+                >
+                  {t("cancel")}
+                </button>
+              )}
+            </div>
+          )}
+
+          {!loading && !error && filtered.length > 0 && (
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-1.5 sm:gap-2.5">
+              {filtered.map((g) => (
                 <GameCard key={g.id} game={g} />
               ))}
             </div>
           )}
         </section>
 
-        {/* ============ 4) ПЛИТКАҲОИ РАҚАМ ============ */}
+        {/* ===== 4) ПЛИТКАҲОИ РАҚАМ ===== */}
         {!loading && !error && (
           <section className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-3">
             <Tile icon="🎮" value={String(games.length)} label={t("statGames")} />
@@ -190,7 +189,7 @@ export default function Home() {
           </section>
         )}
 
-        {/* ============ 5) ЧӢ ТАВР КОР МЕКУНАД ============ */}
+        {/* ===== 5) ЧӢ ТАВР КОР МЕКУНАД ===== */}
         <section className="mt-10 sm:mt-14">
           <h2 className="text-xl sm:text-2xl font-bold text-center mb-6">
             {t("howItWorks")}

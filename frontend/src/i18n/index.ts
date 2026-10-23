@@ -106,6 +106,13 @@ const tj: Dict = {
   requiredField: "Ин майдон лозим аст",
   demo: "Ҳолати намоишӣ",
 
+  // 🎨 Сарлавҳа (мисли persshop)
+  searchPlaceholder: "Ҷустуҷӯи бозӣ ё хизматрасонӣ...",
+  navCatalog: "Каталог",
+  navOrders: "Фармоишҳои ман",
+  noResults: "Бозӣ ёфт нашуд",
+  resultsFor: "Натиҷаҳо",
+
   // 💰 Баланс / Ҳамён
   balance: "Баланс",
   yourBalance: "Баланси шумо",
@@ -270,6 +277,13 @@ const ru: Dict = {
   requiredField: "Это поле обязательно",
   invalidAmount: "Неверная сумма",
   demo: "Демо-режим",
+
+  // 🎨 Шапка (как persshop)
+  searchPlaceholder: "Найти игру или услугу...",
+  navCatalog: "Каталог",
+  navOrders: "Мои покупки",
+  noResults: "Игра не найдена",
+  resultsFor: "Результаты",
 
   // 💰 Баланс / Кошелёк
   balance: "Баланс",
@@ -436,6 +450,13 @@ const en: Dict = {
   invalidAmount: "Invalid amount",
   demo: "Demo mode",
 
+  // 🎨 Header (like persshop)
+  searchPlaceholder: "Find a game or service...",
+  navCatalog: "Catalog",
+  navOrders: "My orders",
+  noResults: "No game found",
+  resultsFor: "Results",
+
   // 💰 Balance / Wallet
   balance: "Balance",
   yourBalance: "Your balance",
@@ -600,6 +621,13 @@ const uz: Dict = {
   requiredField: "Bu maydon majburiy",
   invalidAmount: "Summa noto'g'ri",
   demo: "Demo rejim",
+
+  // 🎨 Sarlavha (persshop uslubida)
+  searchPlaceholder: "Oʻyin yoki xizmat qidiring...",
+  navCatalog: "Katalog",
+  navOrders: "Buyurtmalarim",
+  noResults: "Oʻyin topilmadi",
+  resultsFor: "Natijalar",
 
   // 💰 Balans / Hamyon
   balance: "Balans",
