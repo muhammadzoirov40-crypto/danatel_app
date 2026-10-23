@@ -71,13 +71,13 @@ export default function PromoCarousel({ games }: { games: Game[] }) {
               src={g.image_url}
               alt=""
               aria-hidden
-              className="pointer-events-none absolute right-0 top-0 h-full w-[52%] sm:w-[46%]
-                         object-cover object-center"
+              className="pointer-events-none absolute right-0 top-0 h-full w-[40%] sm:w-[32%] md:w-[28%]
+                         object-cover object-right"
               style={{
                 maskImage:
-                  "linear-gradient(to right,transparent 0%,#000 38%,#000 100%)",
+                  "linear-gradient(to right,transparent 0%,#000 45%,#000 100%)",
                 WebkitMaskImage:
-                  "linear-gradient(to right,transparent 0%,#000 38%,#000 100%)",
+                  "linear-gradient(to right,transparent 0%,#000 45%,#000 100%)",
               }}
             />
           )}
