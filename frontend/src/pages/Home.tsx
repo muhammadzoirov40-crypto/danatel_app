@@ -65,14 +65,11 @@ export default function Home() {
     <div>
       {/* ===== 1) САРЛАВҲАИ КАБУД — бо Navbar мепайвандад ===== */}
       <section className="header-blue text-white">
-        <div className="mx-auto max-w-6xl px-4 pt-4 pb-5 sm:pt-6 sm:pb-7">
-          <h1 className="text-xl sm:text-3xl font-extrabold tracking-tight leading-tight">
-            {t("heroTitle")}
-          </h1>
-          <p className="mt-1 text-sm text-white/80 max-w-xl">{t("tagline")}</p>
+        <div className="mx-auto max-w-6xl px-4 pt-3 pb-4 sm:pt-4 sm:pb-5">
+          <h1 className="sr-only">{t("heroTitle")}</h1>
 
           {/* 🔍 Ҷустуҷӯ — мисли persshop */}
-          <div className="relative mt-4">
+          <div className="relative">
             <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg">
               🔍
             </span>
