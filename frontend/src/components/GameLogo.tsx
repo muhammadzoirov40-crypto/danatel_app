@@ -8,26 +8,28 @@ interface Props {
 }
 
 /**
- * Логотипи бозӣ.
- * - Агар расм бошад → `object-contain` бо фазои мувафиқ
- * - Агар расм нобурд ё хатогӣ дошта бошад → emoji fallback
+ * Тасвири бозӣ — мисли persshop.com.
+ * - Чоркунҷаи мудаввар (squircle) бо тасвири пурра (`object-cover`)
+ * - Сурхи сафед + сояи кабуд
+ * - Агар расм нобурд → emoji fallback
  */
 export default function GameLogo({ game, size = "card" }: Props) {
   const [failed, setFailed] = useState(false);
 
+  // Тасвири бузургтар = камтар мудаввар (мисли persshop)
   const box =
     size === "hero"
-      ? "w-24 h-24 sm:w-32 sm:h-32 rounded-3xl"
-      : "w-full aspect-square rounded-2xl";
+      ? "w-24 h-24 sm:w-32 sm:h-32 rounded-[26%]"
+      : "w-full aspect-square rounded-[24%]";
 
-  const pad = Math.min(Math.max(game.image_pad ?? 0, 0), 40);
   const showImage = !!game.image_url && !failed;
 
   return (
     <div
       className={`${box} relative grid place-items-center overflow-hidden
-                  bg-gradient-to-br from-slate-100 to-slate-200
-                  group-hover:from-brand-50 group-hover:to-brand-100 transition`}
+                  bg-gradient-to-br from-brand-100 to-brand-200
+                  ring-1 ring-white/70 shadow-[0_10px_25px_-12px_rgba(37,99,235,0.6)]
+                  group-hover:scale-[1.03] transition-transform duration-200`}
     >
       {showImage ? (
         <img
@@ -35,15 +37,11 @@ export default function GameLogo({ game, size = "card" }: Props) {
           alt={game.name}
           loading="lazy"
           onError={() => setFailed(true)}
-          className="w-full h-full object-contain p-[var(--pad)]"
-          style={{ ["--pad" as string]: `${size === "hero" ? Math.round(pad * 1.4) : pad}px` }}
+          className="w-full h-full object-cover"
         />
       ) : (
-        <span
-          className={`${size === "hero" ? "text-6xl sm:text-7xl" : "text-4xl"} select-none`}
-          aria-hidden
-        >
-          {game.emoji}
+        <span className="text-4xl" aria-hidden>
+          🎮
         </span>
       )}
     </div>
