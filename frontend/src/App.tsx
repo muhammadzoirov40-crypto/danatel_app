@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AppProvider } from "./context/AppContext";
 import Navbar from "./components/Navbar";
+import BottomNav from "./components/BottomNav";
 import Home from "./pages/Home";
 import GameDetail from "./pages/GameDetail";
 import OrderPage from "./pages/OrderPage";
@@ -25,7 +26,7 @@ export default function App() {
     <AppProvider>
       <BrowserRouter>
         <Navbar />
-        <main className="min-h-[calc(100vh-4rem)]">
+        <main className="min-h-[calc(100vh-4rem)] pb-20 md:pb-0">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/game/:slug" element={<GameDetail />} />
@@ -36,6 +37,9 @@ export default function App() {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
+
+        {/* 📱 Навигатсияи поёнӣ дар телефон */}
+        <BottomNav />
 
         {/* Поён — responsive */}
         <footer className="border-t border-slate-200 bg-white mt-10">

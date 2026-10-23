@@ -118,13 +118,16 @@ export default function Home() {
 
         {/* ===== 3) РӮЙХАТИ БОЗИҲО ===== */}
         <section id="games" className="mt-8 sm:mt-12 scroll-mt-20">
-          <div className="flex items-baseline justify-between mb-3">
-            <h2 className="text-lg sm:text-xl font-bold">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base sm:text-xl font-extrabold tracking-tight">
               🎮 {query ? t("resultsFor") : t("chooseGame")}
             </h2>
-            <span className="text-xs text-slate-500 tabular-nums">
-              {filtered.length} {t("statGames")}
-            </span>
+            <Link
+              to="/#games"
+              className="text-xs sm:text-sm font-bold text-brand-600 hover:text-brand-700 transition shrink-0"
+            >
+              {lang === "ru" ? "Весь каталог →" : lang === "uz" ? "Barcha katalog →" : lang === "en" ? "All catalog →" : "Ҳамаи каталог →"}
+            </Link>
           </div>
 
           {loading && (
