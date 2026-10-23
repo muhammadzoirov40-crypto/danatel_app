@@ -1,18 +1,25 @@
-import { Link, useLocation } from "react-router-dom";
+import { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
+import TopUpModal from "./TopUpModal";
+import OrderSearchModal from "./OrderSearchModal";
 
 /**
  * 📱 Навигатсияи поёнӣ (Bottom Navigation Bar) — мисли persshop.com:
- *   1) 🏠 Асосӣ / Главная (бо заминаи кабуд ҳангоми фаъол будан)
- *   2) 㗊 Каталог
- *   3) ➕ Тугмаи калони мудаввари марказӣ «Пур кардан»
- *   4) 🛒 Фармоишҳо / Корзина
- *   5) 👤 Профил
+ *   1) 🏠 Асосӣ / Главная (ҳаракат ба боло)
+ *   2) 㗊 Каталог (ҳаракат ба рӯйхати бозиҳо)
+ *   3) ➕ «Пур кардан» (кушодани модали пуркунии баланс)
+ *   4) 🛒 Фармоишҳо / Корзина (кушодани фармоишҳо ё ҷустуҷӯ)
+ *   5) 👤 Профил (гузариш ба профил ё вуруд)
  *   + 💬 Тугмаи равони чати Telegram / кӯмак
  */
 export default function BottomNav() {
   const { pathname } = useLocation();
+  const nav = useNavigate();
   const { user, lang } = useApp();
+
+  const [topUpOpen, setTopUpOpen] = useState(false);
+  const [orderSearchOpen, setOrderSearchOpen] = useState(false);
 
   const isHome = pathname === "/";
   const isProfile = pathname === "/profile";
@@ -26,14 +33,54 @@ export default function BottomNav() {
     profile: lang === "ru" ? "Профиль" : lang === "uz" ? "Profil" : lang === "en" ? "Profile" : "Профил",
   };
 
-  const scrollToCatalog = () => {
-    if (pathname !== "/") return;
-    const el = document.getElementById("games");
-    if (el) el.scrollIntoView({ behavior: "smooth" });
+  /** 1) 🏠 Асосӣ — ба саҳифаи асосӣ ва баландтарин нуқта */
+  const handleHomeClick = (e: React.MouseEvent) => {
+    if (isHome) {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  /** 2) 㗊 Каталог — гузариш ба бахши бозиҳо (#games) */
+  const handleCatalogClick = (e: React.MouseEvent) => {
+    if (isHome) {
+      e.preventDefault();
+      const el = document.getElementById("games");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+      }
+    } else {
+      e.preventDefault();
+      nav("/");
+      setTimeout(() => {
+        const el = document.getElementById("games");
+        if (el) el.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    }
+  };
+
+  /** 3) ➕ Пур кардан — кушодани равзанаи пуркунии баланс */
+  const handleTopUpClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setTopUpOpen(true);
+  };
+
+  /** 4) 🛒 Фармоишҳо — агар вуруд карда бошад ба профил, вагарна ҷустуҷӯи рақами фармоиш */
+  const handleOrdersClick = (e: React.MouseEvent) => {
+    if (user) {
+      // Иҷозат медиҳад, ки мустақиман ба саҳифаи профил / фармоишҳо гузарад
+    } else {
+      e.preventDefault();
+      setOrderSearchOpen(true);
+    }
   };
 
   return (
     <>
+      {/* Модалҳо */}
+      <TopUpModal open={topUpOpen} onClose={() => setTopUpOpen(false)} />
+      <OrderSearchModal open={orderSearchOpen} onClose={() => setOrderSearchOpen(false)} />
+
       {/* 💬 Тугмаи шинокунандаи чат / дастгирӣ (Floating Chat Button) */}
       <a
         href="https://t.me/ONLAYN_ALMAZ_TJ_bot"
@@ -50,7 +97,7 @@ export default function BottomNav() {
         </svg>
       </a>
 
-      {/* 📱 Панели навигатсияи поёнӣ (Bottom Navigation Dock) — танҳо дар телефон/планшет */}
+      {/* 📱 Панели навигатсияи поёнӣ (Bottom Navigation Dock) — дар телефон/планшет */}
       <nav
         aria-label="Навигатсияи поёнӣ"
         className="md:hidden fixed bottom-3 inset-x-3 z-50 max-w-md mx-auto
@@ -61,6 +108,7 @@ export default function BottomNav() {
         {/* 1) 🏠 Асосӣ */}
         <Link
           to="/"
+          onClick={handleHomeClick}
           className={`flex flex-col items-center justify-center transition-all ${
             isHome
               ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl px-3.5 py-1.5 shadow-md shadow-blue-500/25"
@@ -76,10 +124,10 @@ export default function BottomNav() {
         </Link>
 
         {/* 2) 㗊 Каталог */}
-        <Link
-          to="/#games"
-          onClick={scrollToCatalog}
-          className="flex flex-col items-center justify-center text-slate-500 hover:text-slate-900 px-2 py-1 transition"
+        <button
+          type="button"
+          onClick={handleCatalogClick}
+          className="flex flex-col items-center justify-center text-slate-500 hover:text-slate-900 px-2 py-1 transition cursor-pointer"
         >
           <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
             <path d="M4 4h7v7H4zm9 0h7v7h-7zm0 9h7v7h-7zm-9 0h7v7H4z" />
@@ -87,12 +135,13 @@ export default function BottomNav() {
           <span className="text-[10px] font-bold leading-none mt-0.5">
             {t.catalog}
           </span>
-        </Link>
+        </button>
 
         {/* 3) ➕ Тугмаи калони марказӣ «Пур кардан» */}
-        <Link
-          to={user ? "/profile" : "/login"}
-          className="relative -mt-6 flex flex-col items-center group active:scale-95 transition-transform"
+        <button
+          type="button"
+          onClick={handleTopUpClick}
+          className="relative -mt-6 flex flex-col items-center group active:scale-95 transition-transform cursor-pointer"
         >
           <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600
                           text-white shadow-lg shadow-blue-600/35 flex items-center justify-center
@@ -109,11 +158,12 @@ export default function BottomNav() {
           <span className="text-[10px] font-extrabold text-slate-700 mt-1 leading-none">
             {t.topup}
           </span>
-        </Link>
+        </button>
 
         {/* 4) 🛒 Фармоишҳо / Корзина */}
         <Link
           to={user ? "/profile" : "/login"}
+          onClick={handleOrdersClick}
           className={`flex flex-col items-center justify-center transition-all ${
             isProfile && !isHome
               ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl px-3.5 py-1.5 shadow-md shadow-blue-500/25"
@@ -132,7 +182,7 @@ export default function BottomNav() {
         <Link
           to={user ? "/profile" : "/login"}
           className={`flex flex-col items-center justify-center transition-all ${
-            isLogin
+            (isProfile || isLogin) && !isHome
               ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl px-3.5 py-1.5 shadow-md shadow-blue-500/25"
               : "text-slate-500 hover:text-slate-900 px-2 py-1"
           }`}
