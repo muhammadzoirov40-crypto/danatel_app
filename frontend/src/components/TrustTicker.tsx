@@ -25,8 +25,8 @@ export default function TrustTicker({
   return (
     <div
       aria-hidden
-      className="mt-3 flex items-center gap-2.5 rounded-full bg-white/12 backdrop-blur-sm
-                 ring-1 ring-white/20 pl-2 pr-3 py-1.5 select-none"
+      className="mt-3 flex items-center gap-2.5 rounded-2xl bg-white/[0.16] backdrop-blur-sm
+                 h-[42px] pl-3 pr-1 select-none"
     >
       {/* ⭐ Бейҷаи доимӣ */}
       {badge && (
