@@ -200,12 +200,20 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
               )}
             </div>
           )}
-          {nickLookup?.found === false && !nickLoading && playerId.trim().length >= 3 && (
-            <div className="mt-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 px-3.5 py-2.5 rounded-2xl flex items-center gap-2">
-              <span>⚠️</span>
-              <span>{nickLookup.message || t("nicknameNotFound")}</span>
-            </div>
-          )}
+          {nickLookup?.found === false && !nickLoading && playerId.trim().length >= 3 && (() => {
+            // "ID дуруст ✓" → сабз (мусбат) | "Zone лозим" ё "ID ёфт нашуд" → амбер
+            const ok = /дуруст|✓/.test(nickLookup.message || "");
+            const cls = ok
+              ? "text-emerald-700 bg-emerald-50 border-emerald-200"
+              : "text-amber-700 bg-amber-50 border-amber-200";
+            const icon = ok ? "✅" : "⚠️";
+            return (
+              <div className={`mt-2 text-sm border px-3.5 py-2.5 rounded-2xl flex items-center gap-2 ${cls}`}>
+                <span>{icon}</span>
+                <span>{nickLookup.message || t("nicknameNotFound")}</span>
+              </div>
+            );
+          })()}
         </div>
 
         <div className="mb-6">

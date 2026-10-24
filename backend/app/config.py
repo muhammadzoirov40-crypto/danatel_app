@@ -34,6 +34,10 @@ class Settings(BaseSettings):
     # Масалан: postgresql+psycopg://postgres:pass@127.0.0.1:5432/fastapi
     BOT_DATABASE_URL: str = ""
 
+    # 🔍 ЛОГИНИ НИК (FireLoot partner API) — ҳамон калиди бот
+    FIRELOOT_API_URL: str = "https://partner.firelootshop.com/api/v1"
+    FIRELOOT_API_KEY: str = ""
+
     # БАРНАМА
     FRONTEND_URL: str = "http://localhost:5173"
     ADMIN_PHONE: str = "992000000000"

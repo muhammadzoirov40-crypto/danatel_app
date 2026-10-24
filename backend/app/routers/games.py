@@ -89,4 +89,8 @@ def game_detail(slug: str, lang: str = Query("tj"), db: Session = Depends(get_db
         image_url=game.image_url,
         image_pad=game.image_pad,
         products=products,
+        # 📊 Ҳамон маълумоти промо мисли рӯйхат (бо ҳамон манбаъ)
+        min_price_tjs=_min_price(game),
+        products_count=len(products),
+        is_popular=any(p.is_popular for p in game.products if p.is_active),
     )
