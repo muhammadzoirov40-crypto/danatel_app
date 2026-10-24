@@ -216,16 +216,6 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
           })()}
         </div>
 
-        <div className="mb-6">
-          <label className="label">{t("playerNickname")}</label>
-          <input
-            className="input"
-            placeholder={t("playerNickname")}
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-          />
-        </div>
-
         <div className="h-px bg-slate-100 mb-6" />
 
         {/* ============ 2. ВЫБЕРИТЕ НОМИНАЛ ============ */}
