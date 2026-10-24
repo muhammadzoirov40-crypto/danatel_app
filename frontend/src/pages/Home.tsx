@@ -121,8 +121,17 @@ export default function Home() {
           {/* ⭐️ Сатри далелҳо — мисли takrizhoi persshop (бо рейтингҳои воқеӣ) */}
           <TrustTicker items={tickerItems} badge={`⭐ ${games.length} ${t("statGames")}`} />
 
-          {/* ===== 2) БАННЕРИ ПРОМО — дар дохили кӯҳни кабуд (мисли persshop) ===== */}
-          {!loading && !error && promo.length > 0 && <PromoCarousel games={promo} />}
+          {/* ===== 2) БАННЕР + КОРТИ ТАРАФӢ — дар як сатр, миёни онҳо кабуд (мисли persshop) ===== */}
+          {!loading && !error && promo.length > 0 && (
+            <div className="flex flex-col sm:flex-row sm:items-start gap-2.5 sm:gap-3">
+              {/* 🎠 Баннери асосӣ */}
+              <div className="min-w-0 flex-1">
+                <PromoCarousel games={promo} />
+              </div>
+              {/* 🎴 Корти тарафӣ — далелҳои воқеӣ */}
+              <SideCard />
+            </div>
+          )}
         </div>
 
         {/* 🌗 Гузариши нарм: кабуд → сафед (паҳлӯйӣ, мисли persshop) */}
@@ -267,6 +276,59 @@ export default function Home() {
         </div>
       </div>
     </div>
+  );
+}
+
+/** 🎴 Корти тарафӣ — дар тарафи рости баннер, бо фосилаи кабуд миёни онҳо.
+ *  Танҳо далелҳои воқеӣ (бозии ҷаълӣ / рейтинги сохта нест). */
+function SideCard() {
+  const { t } = useApp();
+  return (
+    <Link
+      to="/#games"
+      className="group relative flex w-full flex-col justify-center overflow-hidden rounded-3xl
+                 bg-[linear-gradient(140deg,#0f172a_0%,#1e293b_55%,#334155_100%)]
+                 p-5 sm:w-[34%] sm:min-h-[300px] text-white
+                 shadow-[0_18px_40px_-22px_rgba(15,23,41,0.75)]
+                 transition active:scale-[0.995]"
+    >
+      {/* Диагоналии нозук — мисли баннер */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.10]"
+        style={{
+          backgroundImage:
+            "repeating-linear-gradient(45deg,#fff 0 2px,transparent 2px 14px)",
+        }}
+      />
+
+      {/* Chip */}
+      <span
+        className="relative inline-flex w-fit items-center gap-1.5 rounded-full bg-black/40
+                   backdrop-blur px-3 py-1 text-[11px] font-extrabold uppercase
+                   tracking-wide ring-1 ring-white/20"
+      >
+        🔒 {t("playerId")}
+      </span>
+
+      {/* Сарлавҳаи калон */}
+      <span className="relative mt-3 text-xl sm:text-2xl font-extrabold leading-tight tracking-tight">
+        {t("trustId")}
+      </span>
+
+      {/* Зерматн — паёми бехатарӣ */}
+      <p className="relative mt-1.5 text-xs sm:text-sm font-medium text-white/80 leading-relaxed">
+        {t("secureNote")}
+      </p>
+
+      {/* Тугма */}
+      <span
+        className="relative mt-4 inline-flex w-fit items-center gap-2 rounded-full bg-white
+                   px-4 py-2 text-xs sm:text-sm font-bold text-slate-900 shadow-md
+                   group-hover:bg-slate-50 transition"
+      >
+        {t("chooseGame")} →
+      </span>
+    </Link>
   );
 }
 
