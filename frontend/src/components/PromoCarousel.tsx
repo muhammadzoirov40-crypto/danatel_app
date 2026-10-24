@@ -86,7 +86,7 @@ export default function PromoCarousel({ games }: { games: Game[] }) {
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/45 via-black/20 to-transparent" />
 
           {/* Мундариҷа */}
-          <div className="relative z-10 flex min-h-[168px] sm:min-h-[236px] flex-col justify-center
+          <div className="relative z-10 flex min-h-[210px] sm:min-h-[300px] flex-col justify-center
                           p-5 sm:p-8 max-w-[72%] sm:max-w-[58%]">
             {/* Chip */}
             <span
