@@ -37,6 +37,10 @@ interface AppState {
   logout: () => void;
 
   setAdmin: (v: boolean) => void;
+
+  /** 🔍 Ҷустуҷӯи муштарак: Navbar (header) менависад → саҳифаи асосӣ филтр мекунад */
+  search: string;
+  setSearch: (q: string) => void;
 }
 
 const Ctx = createContext<AppState | null>(null);
@@ -54,6 +58,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     () => !!localStorage.getItem("danatel_token"),
   );
   const [balance, setBalance] = useState<number>(0);
+  const [search, setSearch] = useState<string>("");
 
   const setLang = useCallback((l: Lang) => {
     setLangState(l);
@@ -146,8 +151,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       register,
       logout,
       setAdmin: setIsAdmin,
+      search,
+      setSearch,
     }),
-    [lang, setLang, t, user, isAdmin, balance, refreshUser, login, register, logout],
+    [lang, setLang, t, user, isAdmin, balance, refreshUser, login, register, logout, search],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

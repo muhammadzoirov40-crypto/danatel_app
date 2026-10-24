@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import { LANGS } from "../i18n";
 import { CatalogIcon, GoldCoin, OrdersIcon, TajikFlag } from "./Icons";
@@ -10,8 +10,10 @@ import { CatalogIcon, GoldCoin, OrdersIcon, TajikFlag } from "./Icons";
  *   баланс, профил/вуруд.
  */
 export default function Navbar() {
-  const { lang, setLang, t, user, balance, isAdmin, logout } = useApp();
+  const { lang, setLang, t, user, balance, isAdmin, logout, search, setSearch } =
+    useApp();
   const nav = useNavigate();
+  const loc = useLocation();
   const [langOpen, setLangOpen] = useState(false);
   const langRef = useRef<HTMLDivElement>(null);
   const cur = LANGS.find((l) => l.code === lang) ?? LANGS[0];
@@ -34,6 +36,12 @@ export default function Navbar() {
   const onLogout = () => {
     logout();
     nav("/");
+  };
+
+  /** 🔍 Ҷустуҷӯ — аз ҳар саҳифа нависед → ба асосӣ мегузарем */
+  const onSearch = (v: string) => {
+    setSearch(v);
+    if (loc.pathname !== "/") nav("/");
   };
 
   const linkCls =
@@ -71,7 +79,34 @@ export default function Navbar() {
           )}
         </nav>
 
-        <div className="flex-1" />
+        {/* 🔍 Ҷустуҷӯ — дар header, мисли persshop (як сатр, миёна) */}
+        <div className="hidden md:block flex-1 min-w-0 max-w-md mx-2">
+          <div className="relative">
+            <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
+              🔍
+            </span>
+            <input
+              value={search}
+              onChange={(e) => onSearch(e.target.value)}
+              placeholder={t("searchPlaceholder")}
+              aria-label={t("search")}
+              className="w-full rounded-full bg-white pl-10 pr-9 py-2 text-sm font-medium
+                         text-slate-800 placeholder:text-slate-400
+                         shadow-[0_6px_16px_-12px_rgba(15,23,61,0.6)]
+                         outline-none focus:ring-2 focus:ring-white/60 transition"
+            />
+            {search && (
+              <button
+                onClick={() => setSearch("")}
+                aria-label={t("cancel")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 grid place-items-center
+                           w-6 h-6 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        </div>
 
         {/* 🌐 Забон */}
         <div className="relative" ref={langRef}>

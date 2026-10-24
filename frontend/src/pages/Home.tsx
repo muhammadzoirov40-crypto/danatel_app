@@ -24,11 +24,10 @@ import {
  *   5) «Чӣ тавр кор мекунад» + огоҳиномаи бехатарӣ
  */
 export default function Home() {
-  const { t, lang } = useApp();
+  const { t, lang, search: query, setSearch: setQuery } = useApp();
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [query, setQuery] = useState("");
 
   useEffect(() => {
     let alive = true;
@@ -88,8 +87,8 @@ export default function Home() {
         <div className="mx-auto max-w-6xl px-4 pt-3 pb-4 sm:pt-4 sm:pb-5">
           <h1 className="sr-only">{t("heroTitle")}</h1>
 
-          {/* 🔍 Ҷустуҷӯ — мисли persshop */}
-          <div className="relative">
+          {/* 🔍 Ҷустуҷӯ — дар мобил: ин ҷо; дар десктоп: дар header (Navbar) */}
+          <div className="relative md:hidden">
             <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg">
               🔍
             </span>
