@@ -67,17 +67,17 @@ export default function Home() {
     [games],
   );
 
-  /** Тикери далелҳо — воқеӣ, на ҷаълӣ */
+  /** Тикери далелҳо — воқеӣ, на ҷаълӣ (шумораи бозӣ → дар бейҷаи чап) */
   const tickerItems = useMemo(
     () => [
       { icon: "🆔", text: t("trustId") },
       { icon: "🇹🇯", text: t("trustSomoni") },
       { icon: "⚡", text: t("trustFast") },
       { icon: "💳", text: "DC Wallet" },
-      { icon: "🎮", text: `${games.length} ${t("statGames")}` },
       { icon: "💎", text: `${totalProducts} ${t("statProducts")}` },
+      { icon: "🔒", text: t("secureNote") },
     ],
-    [t, games.length, totalProducts],
+    [t, totalProducts],
   );
 
   return (
@@ -87,9 +87,10 @@ export default function Home() {
         <div className="mx-auto max-w-6xl px-4 pt-3 pb-4 sm:pt-4 sm:pb-5">
           <h1 className="sr-only">{t("heroTitle")}</h1>
 
-          {/* 🔍 Ҷустуҷӯ — дар мобил: ин ҷо; дар десктоп: дар header (Navbar) */}
-          <div className="relative md:hidden">
-            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg">
+          {/* 🔍 Ҷустуҷӯ — КАЛОН, мисли persshop (аз ҳар дастгоҳ кор мекунад) */}
+          <div className="relative">
+            <span className="pointer-events-none absolute left-4 sm:left-5 top-1/2 -translate-y-1/2
+                             text-white/70 text-lg sm:text-xl">
               🔍
             </span>
             <input
@@ -97,25 +98,29 @@ export default function Home() {
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t("searchPlaceholder")}
               aria-label={t("search")}
-              className="w-full rounded-2xl bg-white pl-11 pr-11 py-3.5 text-sm font-medium
-                         text-slate-800 placeholder:text-slate-400
-                         shadow-[0_10px_25px_-14px_rgba(15,23,61,0.5)]
-                         outline-none focus:ring-2 focus:ring-white/60 transition"
+              className="w-full rounded-2xl sm:rounded-3xl bg-white/12 backdrop-blur-sm
+                         border border-white/25
+                         pl-12 sm:pl-14 pr-12 py-4 sm:py-5
+                         text-sm sm:text-base font-medium text-white
+                         placeholder:text-white/70
+                         shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]
+                         outline-none focus:ring-2 focus:ring-white/50
+                         focus:bg-white/18 transition"
             />
             {query && (
               <button
                 onClick={() => setQuery("")}
                 aria-label={t("cancel")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 grid place-items-center
-                           w-7 h-7 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition"
+                className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 grid place-items-center
+                           w-7 h-7 rounded-full bg-white/20 text-white hover:bg-white/30 transition"
               >
                 ✕
               </button>
             )}
           </div>
 
-          {/* ⭐️ Сатри отзывҳо (мисли persshop) */}
-          <TrustTicker items={tickerItems} />
+          {/* ⭐️ Сатри далелҳо — мисли takrizhoi persshop (бо рейтингҳои воқеӣ) */}
+          <TrustTicker items={tickerItems} badge={`⭐ ${games.length} ${t("statGames")}`} />
         </div>
       </section>
 
