@@ -18,7 +18,7 @@ export default function GameCard({ game }: { game: Game }) {
     <Link
       to={`/game/${game.slug}`}
       className="group relative flex flex-col items-center text-center gap-1.5
-                 w-full max-w-[112px] sm:max-w-[124px] md:max-w-[132px] mx-auto
+                 w-full max-w-[100px] sm:max-w-[110px] md:max-w-[118px] mx-auto
                  transition active:scale-[0.96]"
     >
       {/* 🏷️ «ХИТ» — танҳо аз рӯи маълумоти сервер (0/128 ҳоло) */}
