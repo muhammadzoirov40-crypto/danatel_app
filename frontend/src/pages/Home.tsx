@@ -68,6 +68,18 @@ export default function Home() {
     [games],
   );
 
+  /** Тикери далелҳо — воқеӣ, на ҷаълӣ */
+  const tickerItems = useMemo(
+    () => [
+      { icon: "🆔", text: t("trustId") },
+      { icon: "🇹🇯", text: t("trustSomoni") },
+      { icon: "⚡", text: t("trustFast") },
+      { icon: "💳", text: "DC Wallet" },
+      { icon: "🎮", text: `${games.length} ${t("statGames")}` },
+      { icon: "💎", text: `${totalProducts} ${t("statProducts")}` },
+    ],
+    [t, games.length, totalProducts],
+  );
 
   return (
     <div>
@@ -104,7 +116,7 @@ export default function Home() {
           </div>
 
           {/* ⭐️ Сатри отзывҳо (мисли persshop) */}
-          <TrustTicker />
+          <TrustTicker items={tickerItems} />
         </div>
       </section>
 
@@ -131,7 +143,7 @@ export default function Home() {
           </div>
 
           {loading && (
-            <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-8 gap-2.5 sm:gap-3 max-w-5xl mx-auto">
+            <div className="grid grid-cols-6 sm:grid-cols-6 md:grid-cols-8 gap-0.5 sm:gap-1 max-w-5xl mx-auto">
               {Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className="h-24 sm:h-28 animate-pulse bg-slate-100 rounded-2xl" />
               ))}
@@ -167,7 +179,7 @@ export default function Home() {
           )}
 
           {!loading && !error && filtered.length > 0 && (
-            <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-8 gap-2.5 sm:gap-3.5 max-w-5xl mx-auto">
+            <div className="grid grid-cols-6 sm:grid-cols-6 md:grid-cols-8 gap-0.5 sm:gap-1 max-w-5xl mx-auto">
               {filtered.map((g) => (
                 <GameCard key={g.id} game={g} />
               ))}

@@ -10,6 +10,7 @@ import type {
   Game,
   Order,
   PaymentInit,
+  PlayerLookupResponse,
   User,
 } from "../types";
 
@@ -70,6 +71,12 @@ export const api = {
   games: (lang: string) => request<Game[]>(`/games?lang=${lang}`),
   game: (slug: string, lang: string) =>
     request<Game>(`/games/${encodeURIComponent(slug)}?lang=${lang}`),
+
+  // ========================== 🔍 ЛОГИНИ НИК ==========================
+  lookupPlayer: (slug: string, uid: string) =>
+    request<PlayerLookupResponse>(
+      `/games/${encodeURIComponent(slug)}/lookup?uid=${encodeURIComponent(uid)}`,
+    ),
 
   // ========================== ФАРМОИШ ==========================
   createOrder: (data: {

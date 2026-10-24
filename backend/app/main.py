@@ -12,7 +12,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.database import init_db
-from app.routers import admin, auth, games, orders, webhook
+from app.routers import admin, auth, games, lookup, orders, webhook
 
 logging.basicConfig(
     level=logging.INFO,
@@ -57,6 +57,7 @@ app.include_router(auth.router)
 app.include_router(games.router)
 app.include_router(orders.router)
 app.include_router(webhook.router)
+app.include_router(lookup.router)
 app.include_router(admin.router)
 
 

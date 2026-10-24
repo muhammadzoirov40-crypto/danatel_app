@@ -1,5 +1,5 @@
-import { useState } from "react";
-import type { Game, Product } from "../types";
+import { useEffect, useRef, useState } from "react";
+import type { Game, Product, PlayerLookupResponse } from "../types";
 import { api, ApiError } from "../api/client";
 import { useApp } from "../context/AppContext";
 import BankPicker from "./BankPicker";
@@ -11,7 +11,7 @@ interface Props {
 
 /**
  * Формаи фармоиш:
- *   Player ID + интихоби маҳсулот + тугмаи пардохт
+ *   Player ID + логини автматик ник + интихоби маҳсулот + тугмаи пардохт
  * Responsive: дар мобилӣ якстона, дар десктоп ду сутун.
  */
 export default function OrderForm({ game, onCreated }: Props) {
@@ -22,6 +22,9 @@ export default function OrderForm({ game, onCreated }: Props) {
   const [method, setMethod] = useState<"dc" | "balance">("dc");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  // 🔍 Логини ник
+  const [nickLookup, setNickLookup] = useState<PlayerLookupResponse | null>(null);
+  const [nickLoading, setNickLoading] = useState(false);
   // 🛡️ Идемпотентность — ҳар як клик token-и ягона дорад
   const [clientToken] = useState(() => crypto.randomUUID());
   // 🏦 Кушодани интихоби банк (марҳилаи 2-юм пардохти DC)
@@ -30,6 +33,36 @@ export default function OrderForm({ game, onCreated }: Props) {
   const products = game.products ?? [];
   const price = selected ? Number(selected.price_tjs) : 0;
   const canUseBalance = !!user && balance >= price && price > 0;
+
+  // 🔍 Дебаунсинг логини ник (500мс пас аз гузашт навишт)
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  useEffect(() => {
+    const uid = playerId.trim();
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    if (uid.length >= 8 && /^\d+$/.test(uid)) {
+      setNickLoading(true);
+      debounceRef.current = setTimeout(async () => {
+        try {
+          const res = await api.lookupPlayer(game.slug, uid);
+          setNickLookup(res);
+          if (res.found && res.nickname && !nickname) {
+            // Агар корисвач ник ворид накарда бошад -> автозаполни
+            setNickname(res.nickname);
+          }
+        } catch {
+          setNickLookup({ found: false, uid, game: game.slug, nickname: "", region: "", message: "" });
+        } finally {
+          setNickLoading(false);
+        }
+      }, 500);
+    } else {
+      setNickLookup(null);
+    }
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [playerId, game.slug]);
 
   /** Сохтани фармоиш дар сервер (муштарак барои баланс ва DC). */
   const createOrder = async (): Promise<boolean> => {
@@ -88,17 +121,42 @@ export default function OrderForm({ game, onCreated }: Props) {
     <>
     <div className="card p-4 sm:p-6">
       {/* ID */}
-      <div className="mb-4">
+      <div className="mb-4 relative">
         <label className="label">
           {game.player_id_label || t("playerId")} <span className="text-rose-500">*</span>
         </label>
-        <input
-          className="input font-mono"
-          inputMode="numeric"
-          placeholder={t("enterPlayerId")}
-          value={playerId}
-          onChange={(e) => setPlayerId(e.target.value)}
-        />
+        <div className="relative">
+          <input
+            className="input font-mono pr-10"
+            inputMode="numeric"
+            placeholder={t("enterPlayerId")}
+            value={playerId}
+            onChange={(e) => setPlayerId(e.target.value)}
+          />
+          {/* Индикатори логини ник */}
+          {nickLoading && (
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sky-500 animate-pulse" title={t("loading")}>
+              🔍
+            </span>
+          )}
+          {nickLookup?.found && !nickLoading && (
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-600" title={nickLookup.nickname}>
+              ✅
+            </span>
+          )}
+          {nickLookup?.found === false && !nickLoading && playerId.trim().length >= 8 && (
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-600" title={nickLookup.message || t("nicknameNotFound")}>
+              ⚠️
+            </span>
+          )}
+        </div>
+        {nickLookup?.found && nickLookup.nickname && (
+          <div className="mt-1.5 text-xs text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
+            <span>👤</span>
+            <span className="font-mono">{nickLookup.nickname}</span>
+            {nickLookup.region && <span className="text-emerald-500">({nickLookup.region})</span>}
+          </div>
+        )}
       </div>
 
       <div className="mb-5">
@@ -109,6 +167,11 @@ export default function OrderForm({ game, onCreated }: Props) {
           value={nickname}
           onChange={(e) => setNickname(e.target.value)}
         />
+        {nickLookup?.found && (
+          <p className="mt-1 text-xs text-slate-500">
+            {t("nicknameFound")}: <strong>{nickLookup.nickname}</strong>
+          </p>
+        )}
       </div>
 
       {/* Маҳсулотҳо — сеткаи responsive */}
@@ -240,4 +303,9 @@ export default function OrderForm({ game, onCreated }: Props) {
     )}
     </>
   );
+}
+
+// 🔧 Helper: рақам ёки не?
+function isDigitString(s: string): boolean {
+  return /^\d+$/.test(s);
 }

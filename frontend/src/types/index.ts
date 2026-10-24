@@ -144,3 +144,13 @@ export const STATUS_META: Record<
   refunded: { label: "💰", cls: "bg-slate-100 text-slate-700", key: "refunded" },
   cancelled: { label: "🚫", cls: "bg-slate-100 text-slate-600", key: "cancelled" },
 };
+
+/** 🔍 Натиҷаи логини Player ID */
+export interface PlayerLookupResponse {
+  found: boolean;
+  uid: string;
+  game: string;
+  nickname: string;
+  region: string;
+  message: string;
+}

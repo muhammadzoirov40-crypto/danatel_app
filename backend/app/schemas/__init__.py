@@ -207,6 +207,28 @@ class ReceiptSubmit(BaseModel):
 
 
 # =====================================================================
+# 🔍 ЛОГИНИ PLAYER ID / НИК
+# =====================================================================
+
+
+class PlayerLookupRequest(BaseModel):
+    """Запрос на поиск ника по Player ID."""
+
+    uid: str = Field(min_length=3, max_length=64, description="Player ID / UID")
+
+
+class PlayerLookupResponse(BaseModel):
+    """Ответ с найденным ником."""
+
+    found: bool
+    uid: str
+    game: str
+    nickname: str = ""
+    region: str = ""
+    message: str = ""
+
+
+# =====================================================================
 # 🛠️ АДМИН
 # =====================================================================
 
