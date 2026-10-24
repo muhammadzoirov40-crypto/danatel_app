@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AppProvider } from "./context/AppContext";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Navbar from "./components/Navbar";
@@ -9,18 +9,6 @@ import OrderPage from "./pages/OrderPage";
 import Admin from "./pages/admin/Admin";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
-
-function NotFound() {
-  return (
-    <div className="mx-auto max-w-2xl px-4 py-24 text-center">
-      <div className="text-6xl mb-4">🧭</div>
-      <h1 className="text-2xl font-bold mb-2">404</h1>
-      <a href="/" className="btn-primary mt-4 inline-flex">
-        🏠 danatel.tj
-      </a>
-    </div>
-  );
-}
 
 export default function App() {
   return (
@@ -36,7 +24,15 @@ export default function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/admin" element={<Admin />} />
-              <Route path="*" element={<NotFound />} />
+
+              {/* 🔁 Роҳҳои нопурра → ба саҳифаи асосӣ */}
+              <Route path="/index.html" element={<Navigate to="/" replace />} />
+              <Route path="/game" element={<Navigate to="/" replace />} />
+              <Route path="/game/" element={<Navigate to="/" replace />} />
+              <Route path="/catalog" element={<Navigate to="/" replace />} />
+
+              {/* 🔁 Ҳар роҳи номаълум → ба асосӣ (ба ҷои 404) */}
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </ErrorBoundary>
         </main>
