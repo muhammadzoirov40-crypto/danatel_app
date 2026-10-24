@@ -87,11 +87,13 @@ export default function GameDetail() {
   if (error || !game) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <div className="text-5xl mb-3">😕</div>
-        <p className="text-slate-600 mb-6">{error || t("notFound")}</p>
-        <Link to="/" className="btn-primary">
-          {t("goHome")}
-        </Link>
+        <div className="card p-6">
+          <div className="text-5xl mb-3">😕</div>
+          <p className="text-slate-600 mb-6">{error || t("notFound")}</p>
+          <Link to="/" className="btn-primary">
+            {t("goHome")}
+          </Link>
+        </div>
       </div>
     );
   }

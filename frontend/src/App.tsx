@@ -15,7 +15,9 @@ export default function App() {
     <AppProvider>
       <BrowserRouter>
         <Navbar />
-        <main className="min-h-[calc(100vh-4rem)] pb-20 md:pb-0">
+        <main className="relative min-h-[calc(100vh-4rem)] pb-20 md:pb-0">
+          {/* 🌅 Камарбанди кабуди ягона — дар ҳамаи саҳифаҳо якхела */}
+          <div className="page-band" aria-hidden />
           <ErrorBoundary>
             <Routes>
               <Route path="/" element={<Home />} />

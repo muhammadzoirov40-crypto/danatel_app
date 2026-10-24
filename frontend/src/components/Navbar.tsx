@@ -41,7 +41,7 @@ export default function Navbar() {
     "hover:bg-white/12 transition";
 
   return (
-    <header className="sticky top-0 z-40 header-blue text-white">
+    <header className="sticky top-0 z-40 nav-blue text-white">
       <div className="mx-auto max-w-6xl px-4 h-14 sm:h-16 flex items-center gap-2 sm:gap-3">
         {/* 💎 Логотип */}
         <Link

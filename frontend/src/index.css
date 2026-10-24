@@ -73,13 +73,57 @@ body {
   }
 }
 
-/* ============ 🎨 Сарлавҳаи мисли persshop ============ */
-/* Градиенти кабуд-нил (ҳамон header-и persshop) */
-.header-blue {
+/* ============ 🎨 ЗАМИНАИ ЯГОНАИ САЙТ (мисли расми намунавӣ) ============ */
+
+/* 🌌 ҚАТТИ АЛБЕРӢ — дар ҳамаи саҳифаҳо якхела, ҷойгиршуда.
+   position: fixed → ҳангами ҳаракат ТАКРОР намешавад ва рах пайдо намекунад.
+   🩷 боло-рост: бунафши равшан · 🩵 поён-рост: кабуди осмонӣ · поён: сафед */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
   background:
-    radial-gradient(50rem 22rem at 88% -30%, rgba(147, 197, 253, 0.6), transparent 60%),
-    radial-gradient(40rem 20rem at 5% 120%, rgba(34, 211, 238, 0.38), transparent 60%),
-    linear-gradient(120deg, #1e56e0 0%, #2f74ee 48%, #4f95f5 100%);
+    radial-gradient(46rem 30rem at 108% -10%, rgba(247, 172, 209, 0.6), transparent 62%),
+    radial-gradient(54rem 36rem at 108% 108%, rgba(125, 190, 255, 0.7), transparent 58%),
+    radial-gradient(42rem 30rem at -12% 104%, rgba(165, 210, 255, 0.5), transparent 62%),
+    linear-gradient(180deg, #e9f1ff 0%, #f5f9ff 40%, #ffffff 76%, #ffffff 100%);
+}
+
+/* 🌅 КАМАРБАНДИ КАБУД — қисми болои ҲАМАИ саҳифаҳо, ҳамон услуб:
+   кабуди шадид + кабуди равшан (чап) → бунафши равшан (рост) →
+   ба сафеди мулоим поён меравад, бе хати ҷудокунанда */
+.page-band {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: min(620px, 66vh);
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(40rem 24rem at 106% -8%, rgba(250, 168, 208, 0.8), transparent 60%),
+    radial-gradient(34rem 20rem at -8% 0%, rgba(96, 165, 250, 0.8), transparent 60%),
+    radial-gradient(46rem 26rem at 88% 6%, rgba(129, 140, 248, 0.4), transparent 66%),
+    linear-gradient(
+      180deg,
+      #1546dd 0%,
+      #1f5fea 14%,
+      #3b82f6 32%,
+      #7db0f8 50%,
+      #b7d4fd 66%,
+      #dceafd 80%,
+      rgba(244, 247, 255, 0.72) 92%,
+      rgba(244, 247, 255, 0) 100%
+    );
+}
+
+/* 📌 Навбари часбандо — ҳамон кабуди болои камарбанд */
+.nav-blue {
+  background: rgba(21, 70, 221, 0.94);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
 }
 
 /* Тикери ҳаракаткунанда (мисли строчканяи отзывҳои persshop) */

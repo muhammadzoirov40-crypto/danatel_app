@@ -92,7 +92,7 @@ export default function Home() {
   return (
     <div>
       {/* ===== 1) САРЛАВҲАИ КАБУД — бо Navbar мепайвандад ===== */}
-      <section className="header-blue text-white">
+      <section className="text-white">
         <div className="mx-auto max-w-6xl flex flex-col gap-3 px-4 pt-2 pb-0 sm:pt-5">
           <h1 className="sr-only">{t("heroTitle")}</h1>
 
@@ -133,9 +133,6 @@ export default function Home() {
           {/* ===== 2) 🪙 КОРТИ БАЛАНС — охирин чиз дар кабуд ===== */}
           <BalanceCard />
         </div>
-
-        {/* 🌗 Кабуд → сафед: танҳо 4px */}
-        <div className="h-1 bg-gradient-to-b from-transparent to-[#f4f7ff]" />
       </section>
 
       <div className="mx-auto max-w-6xl px-4">
