@@ -86,6 +86,11 @@ export const api = {
     order_id?: number | null;
     author_name?: string;
   }) => request<Review>("/reviews", { method: "POST", body: JSON.stringify(data) }),
+  /** 👥 Рӯйхати муштариёни воқеӣ (бо фармоиши иҷрочуда) */
+  customers: (limit = 24) =>
+    request<{ customers_total: number; items: { name: string; delivered: number }[] }>(
+      `/customers?limit=${limit}`,
+    ),
   adminReviews: () => request<AdminReviewList>("/admin/reviews"),
   moderateReview: (id: number, is_approved: boolean) =>
     request<Review>(`/admin/reviews/${id}`, {

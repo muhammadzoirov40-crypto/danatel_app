@@ -7,6 +7,7 @@ import PromoCarousel from "../components/PromoCarousel";
 import TrustTicker from "../components/TrustTicker";
 import SeoBlock from "../components/SeoBlock";
 import Reviews from "../components/Reviews";
+import Customers from "../components/Customers";
 import { useApp } from "../context/AppContext";
 import {
   CreditCard3D,
@@ -302,6 +303,9 @@ export default function Home() {
           <span className="text-xl shrink-0">⚠️</span>
           <span className="font-medium">{t("secureNote")}</span>
         </div>
+
+        {/* 👥 Муштариёни воқеӣ — аз фармоишҳои иҷрочуда */}
+        {!loading && !error && <Customers />}
 
         {/* ⭐ Отзывҳои воқеӣ — танҳо аз муштариён, админ тасдиқ мекунад */}
         {!loading && !error && <Reviews />}

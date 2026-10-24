@@ -59,6 +59,63 @@ def public_stats(db: Session = Depends(get_db)):
     return PublicStats(orders_delivered=delivered, users_total=users)
 
 
+@router.get("/customers")
+def list_customers(
+    limit: int = Query(24, ge=1, le=60),
+    db: Session = Depends(get_db),
+):
+    """👥 Муштариёни воқеӣ — танҳо онҳое, ки фармоиши иҷрочуда доранд.
+
+    Маълумоти шахсӣ пинҳон карда мешавад (nom кӯтоҳ / телефон ниқобшуда).
+    Ҳеҷ рейтинги сохта нест — танҳо шумораи фармоишҳои иҷрочуда.
+    """
+    rows = db.execute(
+        select(
+            User.id,
+            User.full_name,
+            User.username,
+            User.phone,
+            func.count(Order.id).label("delivered"),
+            func.max(Order.updated_at).label("last_at"),
+        )
+        .join(Order, Order.user_id == User.id)
+        .where(Order.status == OrderStatus.DELIVERED)
+        .group_by(User.id, User.full_name, User.username, User.phone)
+        .order_by(func.count(Order.id).desc(), func.max(Order.updated_at).desc())
+        .limit(limit)
+    ).all()
+
+    def short_name(r) -> str:
+        if r.full_name and r.full_name.strip():
+            return r.full_name.strip()[:24]
+        if r.username and r.username.strip():
+            return r.username.strip()[:24]
+        if r.phone:
+            # 🔒 ниқоб: 992XXXXX5678 → ****5678
+            digits = "".join(c for c in r.phone if c.isdigit())
+            return f"•••{digits[-4:]}" if len(digits) >= 4 else "Муштарӣ"
+        return "Муштарӣ"
+
+    return {
+        "customers_total": int(
+            db.scalar(
+                select(func.count(func.distinct(Order.user_id))).where(
+                    Order.status == OrderStatus.DELIVERED,
+                    Order.user_id.is_not(None),
+                )
+            )
+            or 0
+        ),
+        "items": [
+            {
+                "name": short_name(r),
+                "delivered": int(r.delivered),
+            }
+            for r in rows
+        ],
+    }
+
+
 def _min_price(g: Game):
     """Арзиши аз-рӯи арзонтарин маҳсулоти фаъоли бозӣ."""
     prices = [p.price_tjs for p in g.products if p.is_active and p.price_tjs is not None]

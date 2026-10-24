@@ -38,6 +38,10 @@ const tj: Dict = {
   reviewModerated: "Пеш аз намоиш админ тасдиқ мекунад",
   reviewSent: "Отзив фиристода шуд — пас аз тасдиқ намоиш дода мешавад",
   send: "Фиристодан",
+  // 👥 Муштариёни воқеӣ
+  customersTitle: "Муштариёни мо",
+  customersTotal: "муштарӣ бо фармоиш",
+  customersOrders: "фармоиш",
   // 🛡️ Панели админ — санҷиши отзывҳо
   reviews: "Отзывҳо",
   rating: "Рейтинг",
@@ -266,6 +270,10 @@ const ru: Dict = {
   reviewModerated: "Публикуется после проверки администратором",
   reviewSent: "Отзыв отправлен — появится после подтверждения",
   send: "Отправить",
+  // 👥 Реальные клиенты
+  customersTitle: "Наши клиенты",
+  customersTotal: "клиентов с заказами",
+  customersOrders: "заказов",
   // 🛡️ Панель админа — модерация отзывов
   reviews: "Отзывы",
   rating: "Рейтинг",
@@ -494,6 +502,10 @@ const en: Dict = {
   reviewModerated: "Published after admin approval",
   reviewSent: "Review sent — it will appear after approval",
   send: "Send",
+  // 👥 Real customers
+  customersTitle: "Our customers",
+  customersTotal: "customers with orders",
+  customersOrders: "orders",
   // 🛡️ Admin panel — review moderation
   reviews: "Reviews",
   rating: "Rating",
@@ -722,6 +734,10 @@ const uz: Dict = {
   reviewModerated: "Admin tasdiqlaganidan keyin chiqadi",
   reviewSent: "Yuborildi — tasdiqlangach chiqadi",
   send: "Yuborish",
+  // 👥 Haqiqiy mijozlar
+  customersTitle: "Mijozlarimiz",
+  customersTotal: "buyurtmali mijoz",
+  customersOrders: "buyurtma",
   // 🛡️ Admin panel — sharhlarni moderatsiya qilish
   reviews: "Sharhlar",
   rating: "Reyting",
