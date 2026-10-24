@@ -4,8 +4,9 @@ import Dashboard from "./Dashboard";
 import Orders from "./Orders";
 import Products from "./Products";
 import Users from "./Users";
+import Reviews from "./Reviews";
 
-type Tab = "dashboard" | "orders" | "products" | "users";
+type Tab = "dashboard" | "orders" | "products" | "users" | "reviews";
 
 /** Панели идора — танҳо бо вуруди админ */
 export default function Admin() {
@@ -19,6 +20,7 @@ export default function Admin() {
     { id: "orders", label: t("orders"), icon: "📦" },
     { id: "products", label: t("products"), icon: "💎" },
     { id: "users", label: t("users"), icon: "👥" },
+    { id: "reviews", label: t("reviews"), icon: "⭐" },
   ];
 
   return (
@@ -51,6 +53,7 @@ export default function Admin() {
       {tab === "orders" && <Orders />}
       {tab === "products" && <Products />}
       {tab === "users" && <Users />}
+      {tab === "reviews" && <Reviews />}
     </div>
   );
 }

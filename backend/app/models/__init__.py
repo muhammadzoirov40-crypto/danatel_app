@@ -261,6 +261,37 @@ class Order(Base):
 
 
 # =====================================================================
+# ⭐ ОТЗЫВҲО (рейтинги воқеӣ — танҳо аз муштариёни бо фармоиш)
+# =====================================================================
+
+
+class Review(Base):
+    __tablename__ = "reviews"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    # 🔗 Танҳо муштарие, ки фармоиши иҷрочуда дорад, метавонад нависад
+    order_id: Mapped[int | None] = mapped_column(
+        ForeignKey("orders.id", ondelete="SET NULL"), index=True
+    )
+
+    rating: Mapped[int] = mapped_column(Integer, default=5)  # 1..5
+    text: Mapped[str] = mapped_column(Text)
+    # Номи намоишӣ (аз профил, вале метавонад танқатӣ бошад)
+    author_name: Mapped[str | None] = mapped_column(String(64))
+
+    # 🛡️ Пеш аз намоиш дар саҳифа бояд админ тасдиқ кунад
+    is_approved: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    user: Mapped["User"] = relationship()
+    order: Mapped["Order | None"] = relationship()
+
+
+# =====================================================================
 # 📜 ЛОГИ АМАЛИЁТҲО (барои admin)
 # =====================================================================
 

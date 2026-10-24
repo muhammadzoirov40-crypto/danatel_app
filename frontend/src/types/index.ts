@@ -118,6 +118,40 @@ export const TX_META: Record<TxKind, { cls: string; icon: string; key: string }>
   refund: { cls: "bg-sky-100 text-sky-800", icon: "🔄", key: "refund" },
 };
 
+/** ⭐ Отзиви воқеӣ (танҳо тасдиқшуда нишон дода мешавад) */
+export interface Review {
+  id: number;
+  author_name: string;
+  rating: number;
+  text: string;
+  created_at: string;
+}
+
+export interface ReviewSummary {
+  rating_avg: number;
+  reviews_total: number;
+  can_review: boolean;
+  my_review_id: number | null;
+}
+
+/** Маълумоти админ барои санҷиши отзывҳо */
+export interface AdminReview {
+  id: number;
+  author_name: string;
+  rating: number;
+  text: string;
+  is_approved: boolean;
+  order_id: number | null;
+  created_at: string | null;
+}
+
+export interface AdminReviewList {
+  rating_avg: number;
+  reviews_total: number;
+  pending: number;
+  items: AdminReview[];
+}
+
 export interface AdminStats {
   orders_total: number;
   orders_today: number;

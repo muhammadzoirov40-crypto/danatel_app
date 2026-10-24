@@ -67,6 +67,45 @@ class PublicStats(BaseModel):
     users_total: int = 0
 
 
+# =====================================================================
+# ⭐ ОТЗЫВҲО / РЕЙТИНГИ ВОҚЕӢ
+# =====================================================================
+
+
+class ReviewCreate(BaseModel):
+    """Навиштани отзыв — танҳо барои муштарии бо фармоиши иҷрочуда."""
+
+    rating: int = Field(ge=1, le=5)
+    text: str = Field(min_length=5, max_length=600)
+    order_id: int | None = None
+    author_name: str | None = Field(default=None, max_length=64)
+
+
+class ReviewOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    author_name: str
+    rating: int
+    text: str
+    created_at: datetime
+
+    @field_validator("author_name", mode="before")
+    @classmethod
+    def _anon(cls, v):
+        return v or "Муштарӣ"
+
+
+class ReviewSummary(BaseModel):
+    """Ҳисобот барои саҳифаи асосӣ."""
+
+    rating_avg: float = 0.0
+    reviews_total: int = 0
+    # Оё корбари ҷорӣ ҳуқуқи навиштани отзыв дорад (фармоиши иҷрочуда)
+    can_review: bool = False
+    my_review_id: int | None = None
+
+
 class GameOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

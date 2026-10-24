@@ -3,6 +3,8 @@
  * Ҳамаи дархостҳо ба /api мераванд (Vite proxy).
  */
 import type {
+  AdminReview,
+  AdminReviewList,
   AdminStats,
   AdminUser,
   BalanceInfo,
@@ -11,6 +13,8 @@ import type {
   Order,
   PaymentInit,
   PlayerLookupResponse,
+  Review,
+  ReviewSummary,
   User,
 } from "../types";
 
@@ -72,6 +76,24 @@ export const api = {
   /** 📊 Омори воқеӣ: фармоишҳои иҷрочуда + муштариён */
   publicStats: () =>
     request<{ orders_delivered: number; users_total: number }>("/stats"),
+
+  // ========================== ⭐ ОТЗЫВҲО ==========================
+  reviews: (limit = 12) => request<Review[]>(`/reviews?limit=${limit}`),
+  reviewSummary: () => request<ReviewSummary>("/reviews/summary"),
+  createReview: (data: {
+    rating: number;
+    text: string;
+    order_id?: number | null;
+    author_name?: string;
+  }) => request<Review>("/reviews", { method: "POST", body: JSON.stringify(data) }),
+  adminReviews: () => request<AdminReviewList>("/admin/reviews"),
+  moderateReview: (id: number, is_approved: boolean) =>
+    request<Review>(`/admin/reviews/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ is_approved }),
+    }),
+  deleteReview: (id: number) =>
+    request<void>(`/admin/reviews/${id}`, { method: "DELETE" }),
   game: (slug: string, lang: string) =>
     request<Game>(`/games/${encodeURIComponent(slug)}?lang=${lang}`),
 
