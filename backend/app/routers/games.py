@@ -1,11 +1,11 @@
 """Роутери рӯйхати бозиҳо ва маҳсулотҳо."""
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
-from app.models import Game, Product
-from app.schemas import GameDetailOut, GameOut, ProductOut
+from app.models import Game, Order, OrderStatus, Product, User
+from app.schemas import GameDetailOut, GameOut, ProductOut, PublicStats
 
 router = APIRouter(prefix="/api", tags=["games"])
 
@@ -45,6 +45,18 @@ def list_games(
         )
         for g in games
     ]
+
+
+@router.get("/stats", response_model=PublicStats)
+def public_stats(db: Session = Depends(get_db)):
+    """📊 Омори умумӣ барои саҳифаи асосӣ — танҳо рақамҳои воқеӣ."""
+    delivered = db.scalar(
+        select(func.count())
+        .select_from(Order)
+        .where(Order.status == OrderStatus.DELIVERED)
+    ) or 0
+    users = db.scalar(select(func.count()).select_from(User)) or 0
+    return PublicStats(orders_delivered=delivered, users_total=users)
 
 
 def _min_price(g: Game):

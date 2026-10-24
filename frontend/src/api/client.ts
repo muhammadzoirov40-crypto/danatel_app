@@ -69,6 +69,9 @@ async function request<T>(
 // ========================== БОЗИҲО ==========================
 export const api = {
   games: (lang: string) => request<Game[]>(`/games?lang=${lang}`),
+  /** 📊 Омори воқеӣ: фармоишҳои иҷрочуда + муштариён */
+  publicStats: () =>
+    request<{ orders_delivered: number; users_total: number }>("/stats"),
   game: (slug: string, lang: string) =>
     request<Game>(`/games/${encodeURIComponent(slug)}?lang=${lang}`),
 

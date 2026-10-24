@@ -60,6 +60,13 @@ class ProductOut(BaseModel):
     is_active: bool = True
 
 
+class PublicStats(BaseModel):
+    """📊 Омори умумӣ барои саҳифаи асосӣ (рафтори воқеӣ, ҳассос нест)."""
+
+    orders_delivered: int = 0
+    users_total: int = 0
+
+
 class GameOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

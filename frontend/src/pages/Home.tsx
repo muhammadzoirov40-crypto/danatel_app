@@ -30,6 +30,8 @@ export default function Home() {
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  /** 📊 Омори воқеӣ аз база (танҳо рақамҳо — ҷаълӣ нест) */
+  const [stats, setStats] = useState({ orders_delivered: 0, users_total: 0 });
 
   useEffect(() => {
     let alive = true;
@@ -39,6 +41,10 @@ export default function Home() {
       .then((d) => alive && setGames(d))
       .catch((e) => alive && setError(e?.message ?? t("error")))
       .finally(() => alive && setLoading(false));
+    api
+      .publicStats()
+      .then((d) => alive && setStats(d))
+      .catch(() => {});
     return () => {
       alive = false;
     };
@@ -77,9 +83,12 @@ export default function Home() {
       { icon: "⚡", text: t("trustFast") },
       { icon: "💳", text: "DC Wallet" },
       { icon: "💎", text: `${totalProducts} ${t("statProducts")}` },
+      // 📊 Рақамҳои воқеӣ аз база — ба ҷои рейтинг/отзыви сохта
+      { icon: "✅", text: `${stats.orders_delivered} ${t("statDelivered")}` },
+      { icon: "👥", text: `${stats.users_total} ${t("statCustomers")}` },
       { icon: "🔒", text: t("secureNote") },
     ],
-    [t, totalProducts],
+    [t, totalProducts, stats],
   );
 
   return (
