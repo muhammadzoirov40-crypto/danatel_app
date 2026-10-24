@@ -85,7 +85,7 @@ export default function Home() {
     <div>
       {/* ===== 1) САРЛАВҲАИ КАБУД — бо Navbar мепайвандад ===== */}
       <section className="header-blue text-white">
-        <div className="mx-auto max-w-6xl flex flex-col gap-3 px-4 pt-2 pb-0 sm:pt-5">
+        <div className="mx-auto max-w-6xl flex flex-col gap-3 px-4 pt-2 pb-4 sm:pt-5 sm:pb-5">
           <h1 className="sr-only">{t("heroTitle")}</h1>
 
           {/* 🔍 Ҷустуҷӯ — КАЛОН, мисли persshop (аз ҳар дастгоҳ кор мекунад) */}
@@ -122,20 +122,24 @@ export default function Home() {
           {/* ⭐️ Сатри далелҳо — мисли takrizhoi persshop (бо рейтингҳои воқеӣ) */}
           <TrustTicker items={tickerItems} badge={`⭐ ${games.length} ${t("statGames")}`} />
 
-          {/* ===== 2) 🪙 КОРТИ БАЛАНС — пурра, мисли «Pers Coins» ===== */}
+          {/* ===== 2) 🪙 КОРТИ БАЛАНС — охирин чиз дар кабуд ===== */}
           <BalanceCard />
-
-          {/* ===== 3) 🎠 БАННЕР — пурра аз чап то рост (мисли persshop) ===== */}
-          {!loading && !error && promo.length > 0 && <PromoCarousel games={promo} />}
         </div>
 
-        {/* 🌗 Гузариши нарм: кабуд → сафед (паҳлӯйӣ, то худи бозиҳо) */}
-        <div className="h-40 sm:h-60 bg-gradient-to-b from-transparent to-[#f4f7ff]" />
+        {/* 🌗 Кабуд → сафед: кабуд танҳо ТО баъди корти баланс */}
+        <div className="h-16 sm:h-24 bg-gradient-to-b from-transparent to-[#f4f7ff]" />
       </section>
 
       <div className="mx-auto max-w-6xl px-4">
-        {/* ===== 3) РӮЙХАТИ БОЗИҲО ===== */}
-        <section id="games" className="mt-4 sm:mt-6 scroll-mt-20">
+        {/* ===== 3) 🎠 БАННЕР — дар заминаи сафед (кабуд аз боло поён рафт) ===== */}
+        {!loading && !error && promo.length > 0 && (
+          <div className="mt-4 sm:mt-6">
+            <PromoCarousel games={promo} />
+          </div>
+        )}
+
+        {/* ===== 4) РӮЙХАТИ БОЗИҲО ===== */}
+        <section id="games" className="mt-8 sm:mt-12 scroll-mt-20">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-base sm:text-xl font-extrabold tracking-tight">
               🎮 {query ? t("resultsFor") : t("chooseGame")}
