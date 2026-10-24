@@ -33,6 +33,11 @@ export default function Home() {
   const [error, setError] = useState("");
   /** 📊 Омори воқеӣ аз база (танҳо рақамҳо — ҷаълӣ нест) */
   const [stats, setStats] = useState({ orders_delivered: 0, users_total: 0 });
+  /** ⭐ Рейтинги воқеӣ аз ҷадвали отзывҳо (админ тасдиқкардаҳо) */
+  const [reviewSum, setReviewSum] = useState<{
+    rating_avg: number;
+    reviews_total: number;
+  } | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -45,6 +50,10 @@ export default function Home() {
     api
       .publicStats()
       .then((d) => alive && setStats(d))
+      .catch(() => {});
+    api
+      .reviewSummary()
+      .then((d) => alive && setReviewSum(d))
       .catch(() => {});
     return () => {
       alive = false;
@@ -75,6 +84,15 @@ export default function Home() {
     () => games.reduce((s, g) => s + (g.products_count ?? 0), 0),
     [games],
   );
+
+  /** ⭐ Бейҷаи чап: рейтинг + шумораи отзывҳои воқеӣ.
+   *  Агар ҳанӯз отзыв набошад → шумораи бозиҳо ( рақами воқеӣ ). */
+  const ratingBadge = useMemo(() => {
+    if (reviewSum && reviewSum.reviews_total > 0) {
+      return `⭐ ${reviewSum.rating_avg.toFixed(1)} (${reviewSum.reviews_total} ${t("reviewsCount")})`;
+    }
+    return `⭐ ${games.length} ${t("statGames")}`;
+  }, [reviewSum, games.length, t]);
 
   /** Тикери далелҳо — воқеӣ, на ҷаълӣ (шумораи бозӣ → дар бейҷаи чап) */
   const tickerItems = useMemo(
@@ -131,7 +149,7 @@ export default function Home() {
           </div>
 
           {/* ⭐️ Сатри далелҳо — мисли takrizhoi persshop (бо рейтингҳои воқеӣ) */}
-          <TrustTicker items={tickerItems} badge={`⭐ ${games.length} ${t("statGames")}`} />
+          <TrustTicker items={tickerItems} badge={ratingBadge} />
 
           {/* ===== 2) 🪙 КОРТИ БАЛАНС — охирин чиз дар кабуд ===== */}
           <BalanceCard />
