@@ -129,13 +129,13 @@ export default function Home() {
           {!loading && !error && promo.length > 0 && <PromoCarousel games={promo} />}
         </div>
 
-        {/* 🌗 Гузариши нарм: кабуд → сафед (паҳлӯйӣ, мисли persshop) */}
-        <div className="h-24 sm:h-36 bg-gradient-to-b from-transparent to-[#f4f7ff]" />
+        {/* 🌗 Гузариши нарм: кабуд → сафед (паҳлӯйӣ, то худи бозиҳо) */}
+        <div className="h-40 sm:h-60 bg-gradient-to-b from-transparent to-[#f4f7ff]" />
       </section>
 
       <div className="mx-auto max-w-6xl px-4">
         {/* ===== 3) РӮЙХАТИ БОЗИҲО ===== */}
-        <section id="games" className="mt-8 sm:mt-12 scroll-mt-20">
+        <section id="games" className="mt-4 sm:mt-6 scroll-mt-20">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-base sm:text-xl font-extrabold tracking-tight">
               🎮 {query ? t("resultsFor") : t("chooseGame")}
