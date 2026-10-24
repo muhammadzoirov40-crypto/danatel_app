@@ -77,9 +77,8 @@ export default function GameDetail() {
     return (
       <div className="mx-auto max-w-6xl px-4 py-6 sm:py-10">
         <div className="rounded-3xl h-56 sm:h-72 animate-pulse" style={{ background: FALLBACK_BG }} />
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-5 mt-5">
-          <div className="lg:col-span-3 rounded-3xl h-96 animate-pulse bg-white" />
-          <div className="lg:col-span-2 rounded-3xl h-64 animate-pulse bg-white/40" />
+        <div className="grid grid-cols-1 gap-5 mt-5">
+          <div className="rounded-3xl h-96 animate-pulse bg-white" />
         </div>
       </div>
     );
@@ -174,9 +173,9 @@ export default function GameDetail() {
       </div>
 
       {/* ============ МАЗМУН — 2 СУТУН ============ */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
-        {/* Чап: формаи фармоиш */}
-        <div className="lg:col-span-3">
+      <div className="grid grid-cols-1 gap-5">
+        {/* Формаи фармоиш — паҳлӯйӣ */}
+        <div>
           <OrderForm
             game={game}
             selected={selected}
@@ -184,78 +183,6 @@ export default function GameDetail() {
             onCreated={(id) => nav(`/order/${id}`)}
           />
         </div>
-
-        {/* Рост: sticky-сумма + роҳнамо (glassmorphism) */}
-        <aside className="lg:col-span-2">
-          <div className="lg:sticky lg:top-24 space-y-4">
-            {/* 🛒 Фармоиш — ҳамеша дида мешавад */}
-            <div className="rounded-3xl bg-white/10 backdrop-blur-md ring-1 ring-white/20 p-5 text-white shadow-lg">
-              <h3 className="font-bold text-base mb-4 flex items-center gap-2">
-                🛒 {t("yourOrder")}
-              </h3>
-
-              <div className="space-y-3 text-sm">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-white/70">{t("playerId")}</span>
-                  <span className="font-mono font-semibold truncate max-w-[55%] text-right">
-                    {game.name}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-white/70">{t("chooseAmount")}</span>
-                  <span className="font-semibold text-right truncate max-w-[55%]">
-                    {selected ? selected.name : "—"}
-                  </span>
-                </div>
-
-                <div className="h-px bg-white/20 my-1" />
-
-                <div className="flex items-center justify-between">
-                  <span className="text-white/70">{t("total")}</span>
-                  <span className="text-xl font-extrabold">
-                    {selected
-                      ? Number(selected.price_tjs).toLocaleString("tj-TJ")
-                      : (minPrice ?? 0).toLocaleString("tj-TJ")}{" "}
-                    <span className="text-sm font-semibold text-white/80">
-                      {t("currency")}
-                    </span>
-                  </span>
-                </div>
-              </div>
-
-              {!selected && (
-                <p className="mt-3 text-xs text-white/70 bg-white/10 rounded-xl px-3 py-2">
-                  💡 {t("selectToContinue")}
-                </p>
-              )}
-
-              <div className="mt-4 rounded-xl bg-white/10 px-3 py-2.5 text-xs text-white/90 flex gap-2">
-                <span>🔒</span>
-                <span>{t("secureNote")}</span>
-              </div>
-            </div>
-
-            {/* 💡 Роҳнамо */}
-            <div className="rounded-3xl bg-white/10 backdrop-blur-md ring-1 ring-white/20 p-5 text-white">
-              <h3 className="font-semibold text-sm mb-3">💡 {t("howItWorks")}</h3>
-              <ol className="space-y-3 text-sm">
-                {[
-                  { i: "🆔", txt: t("step2d") },
-                  { i: "💎", txt: t("chooseAmount") },
-                  { i: "💳", txt: t("step3d") },
-                  { i: "🎁", txt: t("step4d") },
-                ].map((s, idx) => (
-                  <li key={idx} className="flex gap-3">
-                    <span className="shrink-0 w-6 h-6 rounded-full bg-white/20 text-xs font-bold flex items-center justify-center">
-                      {idx + 1}
-                    </span>
-                    <span className="text-white/90">{s.txt}</span>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          </div>
-        </aside>
       </div>
     </div>
   );
