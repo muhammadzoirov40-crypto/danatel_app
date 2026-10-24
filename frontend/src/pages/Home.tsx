@@ -11,6 +11,7 @@ import {
   Diamond3D,
   Gamepad3D,
   GiftBox3D,
+  GoldCoin,
   IdBadge3D,
   TajikFlag,
 } from "../components/Icons";
@@ -121,17 +122,11 @@ export default function Home() {
           {/* ⭐️ Сатри далелҳо — мисли takrizhoi persshop (бо рейтингҳои воқеӣ) */}
           <TrustTicker items={tickerItems} badge={`⭐ ${games.length} ${t("statGames")}`} />
 
-          {/* ===== 2) БАННЕР + КОРТИ ТАРАФӢ — дар як сатр, миёни онҳо кабуд (мисли persshop) ===== */}
-          {!loading && !error && promo.length > 0 && (
-            <div className="flex flex-col sm:flex-row sm:items-start gap-2.5 sm:gap-3">
-              {/* 🎠 Баннери асосӣ */}
-              <div className="min-w-0 flex-1">
-                <PromoCarousel games={promo} />
-              </div>
-              {/* 🎴 Корти тарафӣ — далелҳои воқеӣ */}
-              <SideCard />
-            </div>
-          )}
+          {/* ===== 2) 🪙 КОРТИ БАЛАНС — пурра, мисли «Pers Coins» ===== */}
+          <BalanceCard />
+
+          {/* ===== 3) 🎠 БАННЕР — пурра аз чап то рост (мисли persshop) ===== */}
+          {!loading && !error && promo.length > 0 && <PromoCarousel games={promo} />}
         </div>
 
         {/* 🌗 Гузариши нарм: кабуд → сафед (паҳлӯйӣ, мисли persshop) */}
@@ -279,54 +274,38 @@ export default function Home() {
   );
 }
 
-/** 🎴 Корти тарафӣ — дар тарафи рости баннер, бо фосилаи кабуд миёни онҳо.
- *  Танҳо далелҳои воқеӣ (бозии ҷаълӣ / рейтинги сохта нест). */
-function SideCard() {
-  const { t } = useApp();
+/** 🪙 Корти баланс — пурра аз чап то рост, мисли «Pers Coins» дар persshop.
+ *  Маълумоти воқеӣ аз backend (баланси корбар). */
+function BalanceCard() {
+  const { t, user, balance } = useApp();
   return (
     <Link
-      to="/#games"
-      className="group relative flex w-full flex-col justify-center overflow-hidden rounded-3xl
-                 bg-[linear-gradient(140deg,#0f172a_0%,#1e293b_55%,#334155_100%)]
-                 p-5 sm:w-[34%] sm:min-h-[300px] text-white
-                 shadow-[0_18px_40px_-22px_rgba(15,23,41,0.75)]
-                 transition active:scale-[0.995]"
+      to={user ? "/profile" : "/login"}
+      className="group flex items-center gap-3 sm:gap-4 rounded-3xl bg-white/85 backdrop-blur-sm
+                 ring-1 ring-white/60 px-4 py-3 sm:px-5 sm:py-4
+                 shadow-[0_12px_30px_-18px_rgba(15,23,61,0.7)]
+                 transition hover:bg-white active:scale-[0.995]"
     >
-      {/* Диагоналии нозук — мисли баннер */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.10]"
-        style={{
-          backgroundImage:
-            "repeating-linear-gradient(45deg,#fff 0 2px,transparent 2px 14px)",
-        }}
-      />
+      <GoldCoin className="w-9 h-9 sm:w-11 sm:h-11 shrink-0" />
 
-      {/* Chip */}
+      <div className="min-w-0 flex-1">
+        <div className="font-extrabold text-slate-900 text-sm sm:text-base leading-tight">
+          {t("balance")}:{" "}
+          {Number(user ? balance : 0).toLocaleString("tj-TJ")}{" "}
+          <span className="text-slate-500 font-bold text-xs sm:text-sm">
+            {t("currency")}
+          </span>
+        </div>
+        <div className="text-[11px] sm:text-xs text-slate-500 font-medium truncate">
+          {t("balanceHint")}
+        </div>
+      </div>
+
       <span
-        className="relative inline-flex w-fit items-center gap-1.5 rounded-full bg-black/40
-                   backdrop-blur px-3 py-1 text-[11px] font-extrabold uppercase
-                   tracking-wide ring-1 ring-white/20"
+        className="shrink-0 rounded-full bg-brand-600 text-white text-[11px] sm:text-sm
+                   font-bold px-3 sm:px-4 py-2 group-hover:bg-brand-700 transition"
       >
-        🔒 {t("playerId")}
-      </span>
-
-      {/* Сарлавҳаи калон */}
-      <span className="relative mt-3 text-xl sm:text-2xl font-extrabold leading-tight tracking-tight">
-        {t("trustId")}
-      </span>
-
-      {/* Зерматн — паёми бехатарӣ */}
-      <p className="relative mt-1.5 text-xs sm:text-sm font-medium text-white/80 leading-relaxed">
-        {t("secureNote")}
-      </p>
-
-      {/* Тугма */}
-      <span
-        className="relative mt-4 inline-flex w-fit items-center gap-2 rounded-full bg-white
-                   px-4 py-2 text-xs sm:text-sm font-bold text-slate-900 shadow-md
-                   group-hover:bg-slate-50 transition"
-      >
-        {t("chooseGame")} →
+        {user ? t("navOrders") : t("login")} →
       </span>
     </Link>
   );

@@ -125,6 +125,7 @@ const tj: Dict = {
 
   // 💰 Баланс / Ҳамён
   balance: "Баланс",
+  balanceHint: "Танҳо барои пардохти донаҳо — танҳо админ иваз мекунад",
   yourBalance: "Баланси шумо",
   balanceIn: "Баланс дар",
   manageBalance: "Идоракунии баланс",
@@ -307,6 +308,7 @@ const ru: Dict = {
 
   // 💰 Баланс / Кошелёк
   balance: "Баланс",
+  balanceHint: "Только для оплаты донатов — изменяет только админ",
   yourBalance: "Ваш баланс",
   balanceIn: "Баланс в",
   manageBalance: "Управление балансом",
@@ -489,6 +491,7 @@ const en: Dict = {
 
   // 💰 Balance / Wallet
   balance: "Balance",
+  balanceHint: "Only for donat payments — changed by admin only",
   yourBalance: "Your balance",
   balanceIn: "Balance in",
   manageBalance: "Manage balance",
@@ -671,6 +674,7 @@ const uz: Dict = {
 
   // 💰 Balans / Hamyon
   balance: "Balans",
+  balanceHint: "Faqat donat uchun — faqat admin o'zgartiradi",
   yourBalance: "Sizning balansingiz",
   balanceIn: "Balans",
   manageBalance: "Balansni boshqarish",
