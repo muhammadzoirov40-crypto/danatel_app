@@ -5,6 +5,7 @@ import type { Game } from "../types";
 import GameCard from "../components/GameCard";
 import PromoCarousel from "../components/PromoCarousel";
 import TrustTicker from "../components/TrustTicker";
+import SeoBlock from "../components/SeoBlock";
 import { useApp } from "../context/AppContext";
 import {
   CreditCard3D,
@@ -273,6 +274,9 @@ export default function Home() {
           <span className="text-xl shrink-0">⚠️</span>
           <span className="font-medium">{t("secureNote")}</span>
         </div>
+
+        {/* 📝 Блоки SEO — маълумоти воқеӣ (мисли persshop) */}
+        {!loading && !error && games.length > 0 && <SeoBlock games={games} />}
       </div>
     </div>
   );

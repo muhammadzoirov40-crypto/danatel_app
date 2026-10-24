@@ -194,6 +194,30 @@ const tj: Dict = {
   backToProfile: "Ба профил",
   seeBalance: "Балансро дидан",
   somoni: "сомонӣ",
+
+  // 📝 Блоки SEO (поёни саҳифа — мисли persshop)
+  seoTitle: "Донат ба бозиҳо дар Тоҷикистон",
+  seoIntro:
+    "danatel.tj — сайтти донати бозиҳо дар Тоҷикистон. Дар инҷо шумо метавонед алмос, UC, тилло ва дигар асбобҳои бозиро харед. Ҳамаи нархҳо дар сомонӣ (TJS) нишон дода шудаанд, пардохт тавассути DC Wallet сурат мегирад ва фармоиш пас аз санҷиши чек аз ҷониби админ тасдиқ мешавад. Ҳамаи бозиҳои дастрас:",
+  seoGamesTitle: "Бозиҳо барои дона ва нархҳо",
+  seoPayTitle: "Пардохт дар Тоҷикистон",
+  seoPayBody:
+    "Пардохт бо сомонӣ (TJS) тавассути DC Wallet мегузарад. Пас аз эҷоди фармоиш ба шумо линки пардохт (pay.dc.tj) ва рақами корти моро нишон медиҳем. Шумо маблағро интиқол дода, скриншоти чекро ба дастгирӣ мефиристед — админ чекро санҷида, фармоишро тасдиқ мекунад. Ин ҳамон усули боти мост, бе корти байналмилалии Visa/Mastercard.",
+  seoSafeTitle: "Оё донат бехатар аст?",
+  seoSafeBody:
+    "Бале. Барои дона фақат Player ID (Character ID) лозим аст — мо ҳеҷ гоҳ парол ё коди тасдиқро намепурсем. Пароли бозиро ба касе надиҳед; дар сайт ҳисоби шумо бо телефон ва рамз сохта мешавад.",
+  seoFaqTitle: "Саволҳои зиёд пурсидашаванда",
+  seoQ1: "Барои дона чӣ лозим аст?",
+  seoA1:
+    "Фақат Player ID (Character ID) бозии шумо — онро дар дохили бозӣ дидан мумкин аст. Парол лозим нест.",
+  seoQ2: "Нархҳо дар чӣ асбоб ҳисоб карда мешаванд?",
+  seoA2:
+    "Ҳамаи нархҳо дар сомонӣ (TJS) ҳастанд; ҳар як баста нархи худро дорад ва дар саҳифаи бозӣ аз хурдтарин нарх оғоз мешавад.",
+  seoQ3: "Фармоиш кай иҷро мешавад?",
+  seoA3:
+    "Пас аз он ки шумо чеки пардохтро мефиристед, админ онро санҷида тасдиқ мекунад ва маҳсулот ба ҳисоби шумо ворид мешавад.",
+  seoSupport: "Дастгирӣ ва тамос",
+  seoTgLabel: "Дастгирӣ дар Telegram",
 };
 
 const ru: Dict = {
@@ -377,6 +401,30 @@ const ru: Dict = {
   backToProfile: "В профиль",
   seeBalance: "Посмотреть баланс",
   somoni: "сомони",
+
+  // 📝 SEO-блок (низ страницы — как в persshop)
+  seoTitle: "Донат в игры в Таджикистане",
+  seoIntro:
+    "danatel.tj — сайт пополнения игр в Таджикистане. Здесь можно купить алмазы, UC, золото и другую игровую валюту. Все цены указаны в сомони (TJS), оплата проходит через DC Wallet, а заказ подтверждается администратором после проверки чека. Все доступные игры:",
+  seoGamesTitle: "Игры и цены",
+  seoPayTitle: "Оплата в Таджикистане",
+  seoPayBody:
+    "Оплата в сомони (TJS) через DC Wallet. После создания заказа мы показываем ссылку на оплату (pay.dc.tj) и номер нашей карты. Вы переводите сумму и присылаете скриншот чека в поддержку — администратор проверяет чек и подтверждает заказ. Это тот же способ, что и в боте, без международных карт Visa/Mastercard.",
+  seoSafeTitle: "Безопасно ли пополнять?",
+  seoSafeBody:
+    "Да. Для пополнения нужен только Player ID (Character ID) — мы никогда не просим пароль или код подтверждения. Никогда не сообщайте пароль от игры; аккаунт на сайте создаётся по телефону и паролю.",
+  seoFaqTitle: "Частые вопросы",
+  seoQ1: "Что нужно для пополнения?",
+  seoA1:
+    "Только ваш Player ID (Character ID) — он виден внутри игры. Пароль не нужен.",
+  seoQ2: "В какой валюте указаны цены?",
+  seoA2:
+    "Все цены в сомони (TJS); у каждого пакета своя цена, а на странице игры указано минимальное значение.",
+  seoQ3: "Когда будет выполнен заказ?",
+  seoA3:
+    "После того как вы присылаете чек об оплате, администратор проверяет его и подтверждает заказ, после чего товар появляется на вашем счёте.",
+  seoSupport: "Поддержка и контакты",
+  seoTgLabel: "Поддержка в Telegram",
 };
 
 const en: Dict = {
@@ -560,6 +608,30 @@ const en: Dict = {
   backToProfile: "Back to profile",
   seeBalance: "See balance",
   somoni: "somoni",
+
+  // 📝 SEO block (bottom of page — like persshop)
+  seoTitle: "Game top-ups in Tajikistan",
+  seoIntro:
+    "danatel.tj is a game top-up site for Tajikistan. Here you can buy diamonds, UC, gold and other in-game currency. All prices are shown in somoni (TJS), payment goes through DC Wallet, and every order is confirmed by an admin after checking your receipt. All available games:",
+  seoGamesTitle: "Games and prices",
+  seoPayTitle: "Payment in Tajikistan",
+  seoPayBody:
+    "Payment in somoni (TJS) via DC Wallet. After you create an order we show a payment link (pay.dc.tj) and our card number. You transfer the amount and send a screenshot of the receipt to support — the admin checks it and confirms the order. This is the same method as in our Telegram bot, without Visa/Mastercard.",
+  seoSafeTitle: "Is it safe to top up?",
+  seoSafeBody:
+    "Yes. Only your Player ID (Character ID) is required — we never ask for a password or confirmation code. Never share your game password; your account on the site is created with a phone number and password.",
+  seoFaqTitle: "Frequent questions",
+  seoQ1: "What do I need for a top-up?",
+  seoA1:
+    "Only your Player ID (Character ID), which you can see inside the game. No password needed.",
+  seoQ2: "Which currency are the prices in?",
+  seoA2:
+    "All prices are in somoni (TJS); each pack has its own price, and the game page shows the lowest one.",
+  seoQ3: "When will my order be completed?",
+  seoA3:
+    "Once you send your payment receipt, the admin checks it and confirms the order, then the items are added to your account.",
+  seoSupport: "Support & contacts",
+  seoTgLabel: "Support on Telegram",
 };
 
 const uz: Dict = {
@@ -743,6 +815,30 @@ const uz: Dict = {
   backToProfile: "Profilga qaytish",
   seeBalance: "Balansni ko'rish",
   somoni: "somoni",
+
+  // 📝 SEO bloki (sahifa pasti — persshop kabi)
+  seoTitle: "Tojikistonda o'yinlarga donat",
+  seoIntro:
+    "danatel.tj — Tojikistonda o'yinlarga donat sayti. Bu yerda olmaz, UC, oltin va boshqa o'yin valyutasini sotib olasiz. Barcha narxlar somonida (TJS), to'lov DC Wallet orqali o'tkaziladi, buyurtma esa chek tekshirilgach admin tomonidan tasdiqlanadi. Barcha mavjud o'yinlar:",
+  seoGamesTitle: "O'yinlar va narxlar",
+  seoPayTitle: "Tojikistonda to'lov",
+  seoPayBody:
+    "To'lov somonida (TJS), DC Wallet orqali. Buyurtma yaratilgach biz to'lov havolasini (pay.dc.tj) va karta raqamimizni ko'rsatamiz. Siz summani o'tkazib, chek skrinshotini qo'llab-quvvatlashga yuborasiz — admin uni tekshirib, buyurtmani tasdiqlaydi. Bu botdagi bilan bir xil usul, Visa/Mastercard'siz.",
+  seoSafeTitle: "Donat xavfsizmi?",
+  seoSafeBody:
+    "Ha. Donat uchun faqat Player ID (Character ID) kerak — biz hech qachon parol yoki tasdiqlash kodini so'ramaymiz. O'yin parolini hech kimga bermang; saytdagi hisob telefon va parol orqali yaratiladi.",
+  seoFaqTitle: "Ko'p so'raladigan savollar",
+  seoQ1: "Donat uchun nima kerak?",
+  seoA1:
+    "Faqat o'yin ichidagi Player ID (Character ID). Parol kerak emas.",
+  seoQ2: "Narxlar qaysi valyutada?",
+  seoA2:
+    "Barcha narxlar somonida (TJS); har bir paketning o'z narxi bor, o'yin sahifasida eng arzon narx ko'rsatilgan.",
+  seoQ3: "Buyurtma qachon bajariladi?",
+  seoA3:
+    "To'lov chekini yuborganingizdan so'ng admin uni tekshirib, buyurtmani tasdiqlaydi va mahsulot hisobingizga qo'shiladi.",
+  seoSupport: "Qo'llab-quvvatlash va aloqa",
+  seoTgLabel: "Telegramda qo'llab-quvvatlash",
 };
 
 export const dictionaries: Record<Lang, Dict> = { tj, ru, en, uz };
