@@ -25,15 +25,16 @@ export default function TrustTicker({
   return (
     <div
       aria-hidden
-      className="mt-3 flex items-center gap-2.5 rounded-2xl bg-white/[0.16] backdrop-blur-sm
-                 h-[42px] pl-3 pr-1 select-none"
+      className="mt-3 flex items-center gap-2.5 rounded-2xl bg-white/70 backdrop-blur-sm
+                 ring-1 ring-white shadow-sm h-[42px] pl-3 pr-1 select-none"
     >
       {/* ⭐ Бейҷаи доимӣ */}
       {badge && (
         <span
-          className="shrink-0 flex items-center gap-1 rounded-full bg-white/20
+          className="shrink-0 flex items-center gap-1 rounded-full bg-white
+                     ring-1 ring-slate-200 shadow-xs
                      px-3 py-1 text-[11px] sm:text-xs font-black tracking-wide
-                     text-white whitespace-nowrap"
+                     text-slate-800 whitespace-nowrap"
         >
           {badge}
         </span>
@@ -46,11 +47,11 @@ export default function TrustTicker({
             {doubled.map((it, i) => (
               <span
                 key={i}
-                className="inline-flex items-center gap-1.5 text-[12px] sm:text-[13px] font-semibold text-white/90"
+                className="inline-flex items-center gap-1.5 text-[12px] sm:text-[13px] font-semibold text-slate-700"
               >
-                <span className="text-white/75">{it.icon}</span>
+                <span className="text-slate-500">{it.icon}</span>
                 {it.text}
-                <span className="text-white/30 ml-1.5">•</span>
+                <span className="text-slate-300 ml-1.5">•</span>
               </span>
             ))}
           </div>

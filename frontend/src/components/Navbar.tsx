@@ -37,18 +37,18 @@ export default function Navbar() {
   };
 
   const linkCls =
-    "rounded-xl px-3 py-2 text-sm font-semibold text-white/85 hover:text-white " +
-    "hover:bg-white/12 transition";
+    "rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 hover:text-slate-950 " +
+    "hover:bg-white/80 transition";
 
   return (
-    <header className="sticky top-0 z-40 header-blue text-white">
+    <header className="sticky top-0 z-40 navbar-glass text-slate-900">
       <div className="mx-auto max-w-6xl px-4 h-14 sm:h-16 flex items-center gap-2 sm:gap-3">
         {/* 💎 Логотип */}
         <Link
           to="/"
           className="flex items-center gap-2 font-black text-base sm:text-lg shrink-0 tracking-tight"
         >
-          <span className="grid place-items-center w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/15 ring-1 ring-white/25 text-base sm:text-lg">
+          <span className="grid place-items-center w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/80 ring-1 ring-white shadow-xs text-base sm:text-lg">
             💎
           </span>
           <span>{t("brand")}</span>
@@ -77,8 +77,9 @@ export default function Navbar() {
         <div className="relative" ref={langRef}>
           <button
             onClick={() => setLangOpen((v) => !v)}
-            className="flex items-center gap-1.5 rounded-full bg-white/15 ring-1 ring-white/25
-                       px-3 py-1.5 text-xs sm:text-sm font-bold hover:bg-white/25 transition"
+            className="flex items-center gap-1.5 rounded-full bg-white/80 ring-1 ring-white
+                       px-3 py-1.5 text-xs sm:text-sm font-bold text-slate-700 hover:bg-white
+                       hover:text-slate-950 transition shadow-xs"
             title={t("language")}
             aria-haspopup="listbox"
             aria-expanded={langOpen}
@@ -130,8 +131,9 @@ export default function Navbar() {
         {/* 🪙 Баланс (танга) */}
         <Link
           to={user ? "/profile" : "/login"}
-          className="flex items-center gap-1.5 rounded-full bg-white/15 ring-1 ring-white/25
-                     px-3 py-1.5 text-xs sm:text-sm font-black hover:bg-white/25 transition tabular-nums"
+          className="flex items-center gap-1.5 rounded-full bg-white/80 ring-1 ring-white
+                     px-3 py-1.5 text-xs sm:text-sm font-black text-slate-700
+                     hover:bg-white hover:text-slate-950 transition tabular-nums shadow-xs"
           title={t("balance")}
         >
           <GoldCoin className="w-4 h-4" />
@@ -141,8 +143,9 @@ export default function Navbar() {
         {/* 👤 Профил */}
         <Link
           to={user ? "/profile" : "/login"}
-          className="grid place-items-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/20 ring-1 ring-white/30
-                     text-xs sm:text-sm font-bold hover:bg-white/30 transition shrink-0"
+          className="grid place-items-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/80 ring-1 ring-white
+                     text-xs sm:text-sm font-bold text-slate-700 hover:bg-white hover:text-slate-950
+                     transition shrink-0 shadow-xs"
           title={user ? t("profile") : t("login")}
         >
           {isAdmin ? "⚙" : "👤"}
@@ -151,8 +154,9 @@ export default function Navbar() {
         {/* ☰ Меню (ҳамбиргар) */}
         <Link
           to="/"
-          className="grid place-items-center w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/15 ring-1 ring-white/25
-                     text-sm font-bold hover:bg-white/25 transition shrink-0"
+          className="grid place-items-center w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/80 ring-1 ring-white
+                     text-sm font-bold text-slate-700 hover:bg-white hover:text-slate-950
+                     transition shrink-0 shadow-xs"
           title="Меню"
         >
           <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
