@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import { api, ApiError } from "../api/client";
+import Logo from "../components/Logo";
 
 /**
  * 🔑 Вуруд / Қайд — як саҳифаи ягона.
@@ -59,7 +60,9 @@ export default function Login() {
     <div className="mx-auto max-w-md px-4 py-10">
       <div className="card p-6 sm:p-8">
         <div className="text-center mb-6">
-          <div className="text-4xl mb-2">🔑</div>
+          <div className="flex justify-center mb-3">
+            <Logo size={46} />
+          </div>
           <h1 className="text-xl font-bold">
             {mode === "login" ? t("login") : t("register")}
           </h1>

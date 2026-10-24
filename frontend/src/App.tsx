@@ -3,6 +3,7 @@ import { AppProvider } from "./context/AppContext";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Navbar from "./components/Navbar";
 import BottomNav from "./components/BottomNav";
+import Logo from "./components/Logo";
 import Home from "./pages/Home";
 import GameDetail from "./pages/GameDetail";
 import OrderPage from "./pages/OrderPage";
@@ -45,7 +46,9 @@ export default function App() {
         {/* Поён — responsive */}
         <footer className="border-t border-slate-200 bg-white mt-10">
           <div className="mx-auto max-w-6xl px-4 py-6 text-center text-xs sm:text-sm text-slate-500">
-            <div className="font-semibold text-slate-700 mb-1">💎 danatel.tj</div>
+            <div className="flex items-center justify-center gap-2 font-semibold text-slate-700 mb-1">
+              <Logo size={20} withText textClass="text-sm" />
+            </div>
             ⚠️ Барои донат фақат Player ID лозим аст — паролро ба касе надиҳед!
             <div className="mt-2 opacity-70">© {new Date().getFullYear()} — Ҳуқуқҳо ҳифз шудаанд</div>
           </div>

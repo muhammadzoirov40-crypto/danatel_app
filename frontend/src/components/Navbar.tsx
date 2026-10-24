@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import { LANGS } from "../i18n";
 import { CatalogIcon, GoldCoin, OrdersIcon, TajikFlag } from "./Icons";
+import Logo from "./Logo";
 
 /**
  * Сарлавҳа — тарҳи мисли persshop.com:
@@ -43,15 +44,14 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-40 nav-blue text-white">
       <div className="mx-auto max-w-6xl px-4 h-14 sm:h-16 flex items-center gap-2 sm:gap-3">
-        {/* 💎 Логотип */}
-        <Link
-          to="/"
-          className="flex items-center gap-2 font-black text-base sm:text-lg shrink-0 tracking-tight"
-        >
-          <span className="grid place-items-center w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/15 ring-1 ring-white/25 text-base sm:text-lg">
-            💎
-          </span>
-          <span>{t("brand")}</span>
+        {/* 💎 Логотипи расмӣ (SVG) — variant «onDark» барои навбари кабуд */}
+        <Link to="/" className="shrink-0" title="danatel.tj">
+          <Logo
+            size={34}
+            variant="onDark"
+            withText
+            textClass="text-base sm:text-lg"
+          />
         </Link>
 
         {/* 🔗 Пайвандҳо (десктоп) */}
