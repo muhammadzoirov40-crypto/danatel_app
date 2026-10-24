@@ -120,17 +120,16 @@ export default function Home() {
 
           {/* ⭐️ Сатри далелҳо — мисли takrizhoi persshop (бо рейтингҳои воқеӣ) */}
           <TrustTicker items={tickerItems} badge={`⭐ ${games.length} ${t("statGames")}`} />
+
+          {/* ===== 2) БАННЕРИ ПРОМО — дар дохили кӯҳни кабуд (мисли persshop) ===== */}
+          {!loading && !error && promo.length > 0 && <PromoCarousel games={promo} />}
         </div>
+
+        {/* 🌗 Гузариши нарм: кабуд → сафед (паҳлӯйӣ, мисли persshop) */}
+        <div className="h-14 sm:h-20 bg-gradient-to-b from-transparent to-[#f4f7ff]" />
       </section>
 
       <div className="mx-auto max-w-6xl px-4">
-        {/* ===== 2) БАННЕРИ ПРОМО (карусел) ===== */}
-        {!loading && !error && promo.length > 0 && (
-          <div className="mt-5 sm:mt-7">
-            <PromoCarousel games={promo} />
-          </div>
-        )}
-
         {/* ===== 3) РӮЙХАТИ БОЗИҲО ===== */}
         <section id="games" className="mt-8 sm:mt-12 scroll-mt-20">
           <div className="flex items-center justify-between mb-3">
