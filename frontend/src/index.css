@@ -77,9 +77,9 @@ body {
 /* Градиенти кабуд-нил (ҳамон header-и persshop) */
 .header-blue {
   background:
-    radial-gradient(50rem 22rem at 88% -30%, rgba(129, 140, 248, 0.55), transparent 60%),
-    radial-gradient(40rem 20rem at 5% 120%, rgba(34, 211, 238, 0.3), transparent 60%),
-    linear-gradient(120deg, #1d4ed8 0%, #2563eb 45%, #4f46e5 100%);
+    radial-gradient(50rem 22rem at 88% -30%, rgba(147, 197, 253, 0.6), transparent 60%),
+    radial-gradient(40rem 20rem at 5% 120%, rgba(34, 211, 238, 0.38), transparent 60%),
+    linear-gradient(120deg, #1e56e0 0%, #2f74ee 48%, #4f95f5 100%);
 }
 
 /* Тикери ҳаракаткунанда (мисли строчканяи отзывҳои persshop) */

@@ -32,8 +32,6 @@ export default function Home() {
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  /** 📊 Омори воқеӣ аз база (танҳо рақамҳо — ҷаълӣ нест) */
-  const [stats, setStats] = useState({ orders_delivered: 0, users_total: 0 });
   /** ⭐ Рейтинги воқеӣ аз ҷадвали отзывҳо (админ тасдиқкардаҳо) */
   const [reviewSum, setReviewSum] = useState<{
     rating_avg: number;
@@ -48,10 +46,6 @@ export default function Home() {
       .then((d) => alive && setGames(d))
       .catch((e) => alive && setError(e?.message ?? t("error")))
       .finally(() => alive && setLoading(false));
-    api
-      .publicStats()
-      .then((d) => alive && setStats(d))
-      .catch(() => {});
     api
       .reviewSummary()
       .then((d) => alive && setReviewSum(d))
@@ -94,22 +88,7 @@ export default function Home() {
     return `⭐ ${avg.toFixed(1)} (${n} ${t("ratedPeople")})`;
   }, [reviewSum, t]);
 
-  /** Тикери далелҳо — воқеӣ, на ҷаълӣ (шумораи бозӣ → дар бейҷаи чап) */
-  const tickerItems = useMemo(
-    () => [
-      { icon: "🆔", text: t("trustId") },
-      { icon: "🇹🇯", text: t("trustSomoni") },
-      { icon: "⚡", text: t("trustFast") },
-      { icon: "💳", text: "DC Wallet" },
-      { icon: "💎", text: `${totalProducts} ${t("statProducts")}` },
-      // 📊 Рақамҳои воқеӣ аз база — ба ҷои рейтинг/отзыви сохта
-      { icon: "✅", text: `${stats.orders_delivered} ${t("statDelivered")}` },
-      { icon: "👥", text: `${stats.users_total} ${t("statCustomers")}` },
-      { icon: "🔒", text: t("secureNote") },
-    ],
-    [t, totalProducts, stats],
-  );
-
+  /** 🎚️ Тикер танҳо бейҷаи ⭐ рейтингро нишон медиҳад — матнҳо бардошта шуданд */
   return (
     <div>
       {/* ===== 1) САРЛАВҲАИ КАБУД — бо Navbar мепайвандад ===== */}
@@ -149,7 +128,7 @@ export default function Home() {
           </div>
 
           {/* ⭐️ Сатри далелҳо — мисли takrizhoi persshop (бо рейтингҳои воқеӣ) */}
-          <TrustTicker items={tickerItems} badge={ratingBadge} />
+          <TrustTicker badge={ratingBadge} />
 
           {/* ===== 2) 🪙 КОРТИ БАЛАНС — охирин чиз дар кабуд ===== */}
           <BalanceCard />

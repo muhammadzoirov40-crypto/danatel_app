@@ -11,14 +11,14 @@ interface Item {
 }
 
 export default function TrustTicker({
-  items,
+  items = [],
   badge,
 }: {
-  items: Item[];
-  /** Бейҷаи доимӣ дар тарафи чап (масалан: «⭐ 8 бозӣ») */
+  items?: Item[];
+  /** Бейҷаи доимӣ дар тарафи чап (масалан: «⭐ 4.9 (3 нафар)») */
   badge?: string;
 }) {
-  if (!items.length) return null;
+  if (!items.length && !badge) return null;
 
   const doubled = [...items, ...items];
 
@@ -39,21 +39,23 @@ export default function TrustTicker({
         </span>
       )}
 
-      {/* 🎚️ Ҳаракаткунанда */}
-      <div className="ticker flex-1 min-w-0">
-        <div className="ticker-track">
-          {doubled.map((it, i) => (
-            <span
-              key={i}
-              className="inline-flex items-center gap-1.5 text-[12px] sm:text-[13px] font-semibold text-white/90"
-            >
-              <span className="text-white/75">{it.icon}</span>
-              {it.text}
-              <span className="text-white/30 ml-1.5">•</span>
-            </span>
-          ))}
+      {/* 🎚️ Ҳаракаткунанда — танҳо агар матнҳо бошанд */}
+      {items.length > 0 && (
+        <div className="ticker flex-1 min-w-0">
+          <div className="ticker-track">
+            {doubled.map((it, i) => (
+              <span
+                key={i}
+                className="inline-flex items-center gap-1.5 text-[12px] sm:text-[13px] font-semibold text-white/90"
+              >
+                <span className="text-white/75">{it.icon}</span>
+                {it.text}
+                <span className="text-white/30 ml-1.5">•</span>
+              </span>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
