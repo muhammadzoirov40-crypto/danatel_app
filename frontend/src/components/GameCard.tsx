@@ -4,8 +4,11 @@ import { useApp } from "../context/AppContext";
 import GameLogo from "./GameLogo";
 
 /**
- * Корти бозӣ — мобилӣ **хеле зич** (мисли persshop):
- *   танҳо тасвир + ном + нарх, бе фосилаи иловагӣ.
+ * Корти бозӣ — мисли persshop.com:
+ *   айкони калон (squircle, мисли app-icon) + ном дар поён + нархи аз.
+ *
+ * ⚠️ Бейҷаи «ХИТ» ТАНҲО ВАҚТЕ СОХТА МЕШАВАД, ки админ `is_popular`-ро
+ *    фаъол кардааст — рейтинги ҷаълӣ нест.
  */
 export default function GameCard({ game }: { game: Game }) {
   const { t } = useApp();
@@ -14,29 +17,30 @@ export default function GameCard({ game }: { game: Game }) {
   return (
     <Link
       to={`/game/${game.slug}`}
-      className="group relative flex flex-col items-center text-center gap-0
-                 w-full max-w-[72px] sm:max-w-[82px] md:max-w-[92px] mx-auto
-                 transition active:scale-[0.95]"
+      className="group relative flex flex-col items-center text-center gap-1.5
+                 w-full max-w-[86px] sm:max-w-[112px] md:max-w-[124px] mx-auto
+                 transition active:scale-[0.96]"
     >
-      {/* Нишонаи «Хит» */}
+      {/* 🏷️ «ХИТ» — танҳо аз рӯи маълумоти сервер (0/128 ҳоло) */}
       {game.is_popular && (
         <span
-          className="absolute top-0 right-0 z-10 rounded-sm bg-rose-500 px-1 py-0.5
-                     text-[9px] font-bold text-white shadow-sm -translate-y-1/2 translate-x-1/2"
+          className="absolute -top-1.5 -right-1.5 z-10 rounded-full bg-rose-500
+                     px-2 py-0.5 text-[9px] sm:text-[10px] font-black uppercase
+                     tracking-wide text-white shadow-[0_4px_10px_-3px_rgba(225,29,72,0.6)]"
         >
           {t("popular")}
         </span>
       )}
 
-      {/* Тасвир — пурра дар паҳноӣ */}
+      {/* Тасвир — squircle калон, мисли app-icon */}
       <GameLogo game={game} size="card" />
 
       {/* Ном — то 2 сатр */}
-      <div className="w-full text-[10px] sm:text-[11px] font-semibold leading-tight line-clamp-2 text-slate-800">
+      <div className="w-full text-[11px] sm:text-xs font-bold leading-tight line-clamp-2 text-slate-800">
         {game.name}
       </div>
 
-      {/* Нарх — хурд */}
+      {/* Нарх — хурд, кабуд */}
       {min != null && (
         <div className="text-[10px] sm:text-[11px] font-bold text-brand-600 tabular-nums">
           {t("from")} {Number(min).toLocaleString("tj-TJ")}

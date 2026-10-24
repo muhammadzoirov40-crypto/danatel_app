@@ -27,8 +27,10 @@ export default function GameLogo({ game, size = "card" }: Props) {
     <div
       className={`${box} relative grid place-items-center overflow-hidden
                   bg-gradient-to-br from-brand-100 to-brand-200
-                  ring-1 ring-white/60 shadow-[0_6px_16px_-8px_rgba(37,99,235,0.4)]
-                  group-hover:scale-[1.03] transition-transform duration-200`}
+                  ring-1 ring-white/70
+                  shadow-[0_10px_22px_-10px_rgba(37,99,235,0.45)]
+                  group-hover:scale-[1.04] group-hover:shadow-[0_14px_28px_-10px_rgba(37,99,235,0.55)]
+                  transition duration-200`}
     >
       {showImage ? (
         <img
