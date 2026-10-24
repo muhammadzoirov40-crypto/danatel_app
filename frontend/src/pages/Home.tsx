@@ -84,7 +84,7 @@ export default function Home() {
     <div>
       {/* ===== 1) САРЛАВҲАИ КАБУД — бо Navbar мепайвандад ===== */}
       <section className="header-blue text-white">
-        <div className="mx-auto max-w-6xl px-4 pt-3 pb-4 sm:pt-4 sm:pb-5">
+        <div className="mx-auto max-w-6xl flex flex-col gap-3 px-4 pt-2 pb-0 sm:pt-5">
           <h1 className="sr-only">{t("heroTitle")}</h1>
 
           {/* 🔍 Ҷустуҷӯ — КАЛОН, мисли persshop (аз ҳар дастгоҳ кор мекунад) */}
