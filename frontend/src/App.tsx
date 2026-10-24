@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AppProvider } from "./context/AppContext";
+import ErrorBoundary from "./components/ErrorBoundary";
 import Navbar from "./components/Navbar";
 import BottomNav from "./components/BottomNav";
 import Home from "./pages/Home";
@@ -27,15 +28,17 @@ export default function App() {
       <BrowserRouter>
         <Navbar />
         <main className="min-h-[calc(100vh-4rem)] pb-20 md:pb-0">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/game/:slug" element={<GameDetail />} />
-            <Route path="/order/:id" element={<OrderPage />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <ErrorBoundary>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/game/:slug" element={<GameDetail />} />
+              <Route path="/order/:id" element={<OrderPage />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/admin" element={<Admin />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </ErrorBoundary>
         </main>
 
         {/* 📱 Навигатсияи поёнӣ дар телефон */}

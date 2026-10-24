@@ -1,34 +1,46 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../api/client";
-import type { Game } from "../types";
+import type { Game, Product } from "../types";
 import OrderForm from "../components/OrderForm";
 import GameLogo from "../components/GameLogo";
 import { useApp } from "../context/AppContext";
 
 /** Рангҳои баннер барои ҳар бозӣ (мисли PromoCarousel) */
-const THEMES: Record<string, string> = {
-  "free-fire":
-    "linear-gradient(115deg,#7c2d12 0%,#c2410c 42%,#ea580c 72%,#f59e0b 100%)",
-  "pubg-mobile":
-    "linear-gradient(115deg,#2a1a05 0%,#78350f 42%,#b45309 74%,#d97706 100%)",
-  "mobile-legends":
-    "linear-gradient(115deg,#2e1065 0%,#6d28d9 42%,#a21caf 74%,#db2777 100%)",
-  "blood-strike":
-    "linear-gradient(115deg,#083344 0%,#0e7490 48%,#06b6d4 100%)",
-  "arena-breakout":
-    "linear-gradient(115deg,#0f172a 0%,#334155 52%,#475569 100%)",
-  "arena-breakout-infinite":
-    "linear-gradient(115deg,#1c1917 0%,#3f3f46 52%,#57534e 100%)",
-  "honor-of-kings":
-    "linear-gradient(115deg,#1e1b4b 0%,#4338ca 48%,#7c3aed 100%)",
-  "marvel-rivals":
-    "linear-gradient(115deg,#450a0a 0%,#991b1b 48%,#dc2626 100%)",
+const THEMES: Record<string, { bg: string; art?: string }> = {
+  "free-fire": {
+    bg: "linear-gradient(115deg,#7c2d12 0%,#c2410c 42%,#ea580c 72%,#f59e0b 100%)",
+    art: "/images/free-fire.webp",
+  },
+  "pubg-mobile": {
+    bg: "linear-gradient(115deg,#2a1a05 0%,#78350f 42%,#b45309 74%,#d97706 100%)",
+    art: "/images/pubg-mobile.webp",
+  },
+  "mobile-legends": {
+    bg: "linear-gradient(115deg,#2e1065 0%,#6d28d9 42%,#a21caf 74%,#db2777 100%)",
+    art: "/images/mobile-legends.webp",
+  },
+  "blood-strike": {
+    bg: "linear-gradient(115deg,#083344 0%,#0e7490 48%,#06b6d4 100%)",
+    art: "/images/blood-strike.webp",
+  },
+  "arena-breakout": {
+    bg: "linear-gradient(115deg,#0f172a 0%,#334155 52%,#475569 100%)",
+    art: "/images/arena-breakout.webp",
+  },
+  "arena-breakout-infinite": {
+    bg: "linear-gradient(115deg,#1c1917 0%,#3f3f46 52%,#57534e 100%)",
+  },
+  "honor-of-kings": {
+    bg: "linear-gradient(115deg,#1e1b4b 0%,#4338ca 48%,#7c3aed 100%)",
+  },
+  "marvel-rivals": {
+    bg: "linear-gradient(115deg,#450a0a 0%,#991b1b 48%,#dc2626 100%)",
+  },
 };
-const FALLBACK =
-  "linear-gradient(115deg,#1d4ed8 0%,#2563eb 42%,#4f46e5 100%)";
+const FALLBACK_BG = "linear-gradient(115deg,#1d4ed8 0%,#2563eb 42%,#4f46e5 100%)";
 
-/** Саҳифаи тафсилоти бозӣ + формаи фармоиш — бе заминаи сафед */
+/** Саҳифаи тафсилоти бозӣ — тарҳи мисли persshop.com */
 export default function GameDetail() {
   const { slug = "" } = useParams();
   const { t, lang } = useApp();
@@ -37,10 +49,13 @@ export default function GameDetail() {
   const [game, setGame] = useState<Game | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  // 💰 Интихоби маҳсулот барои sticky-сумма дар сарчашма
+  const [selected, setSelected] = useState<Product | null>(null);
 
   useEffect(() => {
     let alive = true;
     setLoading(true);
+    setSelected(null);
     api
       .game(slug, lang)
       .then((d) => alive && setGame(d))
@@ -51,10 +66,21 @@ export default function GameDetail() {
     };
   }, [slug, lang, t]);
 
+  const theme = useMemo(() => THEMES[slug] ?? {}, [slug]);
+  const bg = theme.bg ?? FALLBACK_BG;
+  const products = game?.products ?? [];
+  const minPrice = products.length
+    ? Math.min(...products.map((p) => Number(p.price_tjs)))
+    : null;
+
   if (loading) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-10">
-        <div className="rounded-2xl h-64 animate-pulse" style={{ background: FALLBACK }} />
+      <div className="mx-auto max-w-6xl px-4 py-6 sm:py-10">
+        <div className="rounded-3xl h-56 sm:h-72 animate-pulse" style={{ background: FALLBACK_BG }} />
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-5 mt-5">
+          <div className="lg:col-span-3 rounded-3xl h-96 animate-pulse bg-white" />
+          <div className="lg:col-span-2 rounded-3xl h-64 animate-pulse bg-white/40" />
+        </div>
       </div>
     );
   }
@@ -62,7 +88,7 @@ export default function GameDetail() {
   if (error || !game) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <div className="text-4xl mb-3">😕</div>
+        <div className="text-5xl mb-3">😕</div>
         <p className="text-slate-600 mb-6">{error || t("notFound")}</p>
         <Link to="/" className="btn-primary">
           {t("goHome")}
@@ -71,63 +97,163 @@ export default function GameDetail() {
     );
   }
 
-  const bg = THEMES[game.slug] ?? FALLBACK;
-
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6 sm:py-10">
-      <button onClick={() => nav(-1)} className="btn-ghost text-sm mb-5">
+    <div className="mx-auto max-w-6xl px-3 sm:px-4 py-5 sm:py-8">
+      {/* Кнопкаи бозгашт */}
+      <button onClick={() => nav(-1)} className="btn-ghost text-sm mb-4">
         ← {t("back")}
       </button>
 
-      {/* Сарлавҳаи бозӣ — градиент, бе заминаи сафед */}
+      {/* ============ САРПӯШИ БОЗӢ (COVER) — мисли persshop ============ */}
       <div
-        className="relative rounded-3xl overflow-hidden shadow-[0_18px_40px_-22px_rgba(37,99,235,0.6)]"
+        className="relative rounded-3xl overflow-hidden shadow-[0_22px_50px_-25px_rgba(37,99,235,0.7)] mb-5"
         style={{ background: bg }}
       >
-        <div className="flex items-center gap-4 p-4 sm:p-6 text-white">
+        {/* Тасвири бозӣ дар тарафи рост бо маска */}
+        {theme.art && (
+          <img
+            src={theme.art}
+            alt=""
+            aria-hidden
+            className="pointer-events-none absolute right-0 top-0 h-full w-[55%] sm:w-[45%] object-cover opacity-40 sm:opacity-55"
+            style={{
+              maskImage:
+                "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.5) 35%, #000 85%)",
+              WebkitMaskImage:
+                "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.5) 35%, #000 85%)",
+            }}
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).style.display = "none";
+            }}
+          />
+        )}
+
+        {/* Ҳалқаҳои диагоналӣ */}
+        <div
+          className="absolute inset-0 opacity-25 pointer-events-none"
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(115deg, rgba(255,255,255,0.22) 0 2px, transparent 2px 26px)",
+          }}
+        />
+
+        {/* Мазмуни сарпӯш */}
+        <div className="relative flex items-center gap-4 sm:gap-6 p-5 sm:p-8 text-white">
           <div className="shrink-0">
             <GameLogo game={game} size="hero" />
           </div>
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold leading-tight">{game.name}</h1>
-            <p className="text-white/85 text-sm mt-1">
-              {t("price")}: {t("currency")}
+          <div className="min-w-0">
+            <span className="inline-block text-[10px] sm:text-xs font-semibold uppercase tracking-wider bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full mb-2">
+              💎 {t("topup")}
+            </span>
+            <h1 className="text-2xl sm:text-4xl font-extrabold leading-tight drop-shadow-sm">
+              {game.name}
+            </h1>
+            <p className="text-white/85 text-sm sm:text-base mt-1.5">
+              {t("gameSubtitle")}
             </p>
+
+            {/* Чипҳои асосӣ */}
+            <div className="flex flex-wrap gap-2 mt-3">
+              {minPrice != null && (
+                <span className="text-xs sm:text-sm bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full font-semibold">
+                  {t("from")} {minPrice.toLocaleString("tj-TJ")} {t("currency")}
+                </span>
+              )}
+              {products.length > 0 && (
+                <span className="text-xs sm:text-sm bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full">
+                  {products.length} {t("statProducts")}
+                </span>
+              )}
+              <span className="text-xs sm:text-sm bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full">
+                ⚡ {t("trustFast")}
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Форма — мобилӣ: якстона, десктоп: ду сутун */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-5 mt-5">
+      {/* ============ МАЗМУН — 2 СУТУН ============ */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
+        {/* Чап: формаи фармоиш */}
         <div className="lg:col-span-3">
           <OrderForm
             game={game}
+            selected={selected}
+            onSelected={setSelected}
             onCreated={(id) => nav(`/order/${id}`)}
           />
         </div>
 
-        {/* Тафсилот / роҳнамо — шарр/glassmorphism, бе заминаи сафед */}
-        <aside className="lg:col-span-2 space-y-4">
-          <div className="rounded-2xl bg-white/10 backdrop-blur-md ring-1 ring-white/20 p-4 sm:p-5 text-white">
-            <h3 className="font-semibold text-sm mb-3">💡 {t("howItWorks")}</h3>
-            <ol className="space-y-3 text-sm">
-              {[
-                { i: "🆔", txt: t("step2d") },
-                { i: "💎", txt: t("chooseAmount") },
-                { i: "💳", txt: t("step3d") },
-                { i: "🎁", txt: t("step4d") },
-              ].map((s, idx) => (
-                <li key={idx} className="flex gap-3">
-                  <span>{s.i}</span>
-                  <span className="text-white/90">{s.txt}</span>
-                </li>
-              ))}
-            </ol>
-          </div>
+        {/* Рост: sticky-сумма + роҳнамо (glassmorphism) */}
+        <aside className="lg:col-span-2">
+          <div className="lg:sticky lg:top-24 space-y-4">
+            {/* 🛒 Фармоиш — ҳамеша дида мешавад */}
+            <div className="rounded-3xl bg-white/10 backdrop-blur-md ring-1 ring-white/20 p-5 text-white shadow-lg">
+              <h3 className="font-bold text-base mb-4 flex items-center gap-2">
+                🛒 {t("yourOrder")}
+              </h3>
 
-          <div className="rounded-2xl bg-white/10 backdrop-blur-md ring-1 ring-white/20 p-4 text-xs text-white/95 flex gap-2">
-            <span>⚠️</span>
-            <span>{t("secureNote")}</span>
+              <div className="space-y-3 text-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-white/70">{t("playerId")}</span>
+                  <span className="font-mono font-semibold truncate max-w-[55%] text-right">
+                    {game.name}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-white/70">{t("chooseAmount")}</span>
+                  <span className="font-semibold text-right truncate max-w-[55%]">
+                    {selected ? selected.name : "—"}
+                  </span>
+                </div>
+
+                <div className="h-px bg-white/20 my-1" />
+
+                <div className="flex items-center justify-between">
+                  <span className="text-white/70">{t("total")}</span>
+                  <span className="text-xl font-extrabold">
+                    {selected
+                      ? Number(selected.price_tjs).toLocaleString("tj-TJ")
+                      : (minPrice ?? 0).toLocaleString("tj-TJ")}{" "}
+                    <span className="text-sm font-semibold text-white/80">
+                      {t("currency")}
+                    </span>
+                  </span>
+                </div>
+              </div>
+
+              {!selected && (
+                <p className="mt-3 text-xs text-white/70 bg-white/10 rounded-xl px-3 py-2">
+                  💡 {t("selectToContinue")}
+                </p>
+              )}
+
+              <div className="mt-4 rounded-xl bg-white/10 px-3 py-2.5 text-xs text-white/90 flex gap-2">
+                <span>🔒</span>
+                <span>{t("secureNote")}</span>
+              </div>
+            </div>
+
+            {/* 💡 Роҳнамо */}
+            <div className="rounded-3xl bg-white/10 backdrop-blur-md ring-1 ring-white/20 p-5 text-white">
+              <h3 className="font-semibold text-sm mb-3">💡 {t("howItWorks")}</h3>
+              <ol className="space-y-3 text-sm">
+                {[
+                  { i: "🆔", txt: t("step2d") },
+                  { i: "💎", txt: t("chooseAmount") },
+                  { i: "💳", txt: t("step3d") },
+                  { i: "🎁", txt: t("step4d") },
+                ].map((s, idx) => (
+                  <li key={idx} className="flex gap-3">
+                    <span className="shrink-0 w-6 h-6 rounded-full bg-white/20 text-xs font-bold flex items-center justify-center">
+                      {idx + 1}
+                    </span>
+                    <span className="text-white/90">{s.txt}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
           </div>
         </aside>
       </div>
