@@ -24,6 +24,7 @@ from app.schemas import (
     BalanceAdjustRequest,
     BalanceOut,
     BalanceTransactionOut,
+    BotImportReport,
     GameDetailOut,
     GameOut,
     GameUpsert,
@@ -426,3 +427,32 @@ def user_transactions(user_id: int, db: Session = Depends(get_db)):
 def my_balance(admin: User = Depends(require_admin), db: Session = Depends(get_db)):
     """💰 Баланси ҷории худи Admin (санҷишӣ)."""
     return BalanceOut(user_id=admin.id, balance=admin.balance or 0)
+
+
+# =====================================================================
+# 🔄 ИМПОРТИ МАЪЛОМОТ АЗ БОТИ TELEGRAM (фақат маълумот, не робот)
+# =====================================================================
+
+
+@router.post("/import-bot", response_model=BotImportReport)
+def import_from_bot(db: Session = Depends(get_db)):
+    """
+    🔄 Нусхабардории маълумот аз боти Telegram ба сайти мо.
+
+    1) Нархҳо   bot.products → site.products
+    2) Корбарон bot.users     → site.users  (+ балансҳо + таърих)
+    3) Фармоишҳо bot.orders   → site.orders
+
+    ⚠️ Токени робот истифода НАМЕШАВAD — танҳо DB хонда мешавад.
+    Idempotent: бори дуюм такрорӣ намесозад.
+    """
+    from app.services.bot_import import import_bot_data
+
+    try:
+        report = import_bot_data(db)
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=502, detail=f"Хатои импорт: {exc}") from exc
+
+    if not report.get("ok"):
+        raise HTTPException(status_code=400, detail=report.get("error") or "Импорт ноком")
+    return BotImportReport(**report)

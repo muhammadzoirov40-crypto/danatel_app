@@ -246,6 +246,23 @@ class AdminStats(BaseModel):
     games_active: int
 
 
+# =====================================================================
+# 🔄 ИМПОРТИ МАЪЛОМОТ АЗ БОТИ TELEGRAM
+# =====================================================================
+
+
+class BotImportReport(BaseModel):
+    """Натиҷаи импорти маълумот аз боти Telegram."""
+
+    ok: bool
+    error: str | None = None
+    prices: int = 0
+    price_fixed: int = 0
+    users: int = 0
+    orders: int = 0
+    skipped: int = 0
+
+
 class AdminOrderUpdate(BaseModel):
     status: str
     transaction_id: str | None = None

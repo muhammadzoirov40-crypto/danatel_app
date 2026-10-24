@@ -30,6 +30,10 @@ class Settings(BaseSettings):
     TELEGRAM_BOT_TOKEN: str = ""
     TELEGRAM_ADMIN_CHAT_ID: str = ""
 
+    # 🔄 ИМПОРТИ МАЪЛОМОТ аз боти Telegram (фақат DB, токен истифода намешавад)
+    # Масалан: postgresql+psycopg://postgres:pass@127.0.0.1:5432/fastapi
+    BOT_DATABASE_URL: str = ""
+
     # БАРНАМА
     FRONTEND_URL: str = "http://localhost:5173"
     ADMIN_PHONE: str = "992000000000"
