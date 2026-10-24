@@ -92,14 +92,14 @@ export default function Home() {
   return (
     <div>
       {/* ===== 1) САРЛАВҲАИ КАБУД — бо Navbar мепайвандад ===== */}
-      <section className="header-blue text-slate-900">
+      <section className="header-blue text-white">
         <div className="mx-auto max-w-6xl flex flex-col gap-3 px-4 pt-2 pb-0 sm:pt-5">
           <h1 className="sr-only">{t("heroTitle")}</h1>
 
           {/* 🔍 Ҷустуҷӯ — КАЛОН, мисли persshop (аз ҳар дастгоҳ кор мекунад) */}
           <div className="relative">
             <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2
-                             text-slate-400 text-base">
+                             text-white/70 text-base">
               🔍
             </span>
             <input
@@ -107,19 +107,20 @@ export default function Home() {
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t("searchPlaceholder")}
               aria-label={t("search")}
-              className="w-full h-[46px] rounded-2xl bg-white shadow-xs
-                         border border-white pl-10 pr-9
-                         text-sm font-medium text-slate-800
-                         placeholder:text-slate-400
-                         outline-none focus:ring-2 focus:ring-brand-400/60
-                         focus:border-brand-300 transition"
+              className="w-full h-[46px] rounded-2xl bg-white/[0.16] backdrop-blur-sm
+                         border border-white/25 pl-10 pr-9
+                         text-sm font-medium text-white
+                         placeholder:text-white/70
+                         shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]
+                         outline-none focus:ring-2 focus:ring-white/50
+                         focus:bg-white/25 transition"
             />
             {query && (
               <button
                 onClick={() => setQuery("")}
                 aria-label={t("cancel")}
                 className="absolute right-2 top-1/2 -translate-y-1/2 grid place-items-center
-                           w-7 h-7 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition"
+                           w-7 h-7 rounded-full bg-white/20 text-white hover:bg-white/30 transition"
               >
                 ✕
               </button>
@@ -301,10 +302,10 @@ function BalanceCard() {
   return (
     <Link
       to={user ? "/profile" : "/login"}
-      className="group flex items-center gap-3 sm:gap-4 rounded-3xl bg-white
-                 ring-1 ring-slate-200/70 px-4 py-3 sm:px-5 sm:py-4
-                 shadow-[0_18px_40px_-26px_rgba(15,23,61,0.55)]
-                 transition hover:ring-brand-200 active:scale-[0.995]"
+      className="group flex items-center gap-3 sm:gap-4 rounded-3xl bg-white/85 backdrop-blur-sm
+                 ring-1 ring-white/60 px-4 py-3 sm:px-5 sm:py-4
+                 shadow-[0_12px_30px_-18px_rgba(15,23,61,0.7)]
+                 transition hover:bg-white active:scale-[0.995]"
     >
       <GoldCoin className="w-9 h-9 sm:w-11 sm:h-11 shrink-0" />
 
