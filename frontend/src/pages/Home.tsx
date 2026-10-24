@@ -86,14 +86,13 @@ export default function Home() {
     [games],
   );
 
-  /** ⭐ Бейҷаи чап: рейтинг + шумораи отзывҳои воқеӣ.
-   *  Агар ҳанӯз отзыв набошад → шумораи бозиҳо ( рақами воқеӣ ). */
+  /** ⭐ Бейҷаи чап: рейтинги миёна + ЧАНД нафар хол додаанд.
+   *  Ҳама аз ҷадвали отзывҳои тасдиқшуда — рақами воқеӣ. */
   const ratingBadge = useMemo(() => {
-    if (reviewSum && reviewSum.reviews_total > 0) {
-      return `⭐ ${reviewSum.rating_avg.toFixed(1)} (${reviewSum.reviews_total} ${t("reviewsCount")})`;
-    }
-    return `⭐ ${games.length} ${t("statGames")}`;
-  }, [reviewSum, games.length, t]);
+    const avg = reviewSum?.rating_avg ?? 0;
+    const n = reviewSum?.reviews_total ?? 0;
+    return `⭐ ${avg.toFixed(1)} (${n} ${t("ratedPeople")})`;
+  }, [reviewSum, t]);
 
   /** Тикери далелҳо — воқеӣ, на ҷаълӣ (шумораи бозӣ → дар бейҷаи чап) */
   const tickerItems = useMemo(
