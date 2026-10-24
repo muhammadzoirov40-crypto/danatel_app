@@ -126,7 +126,7 @@ export default function Home() {
         </div>
 
         {/* 🌗 Гузариши нарм: кабуд → сафед (паҳлӯйӣ, мисли persshop) */}
-        <div className="h-14 sm:h-20 bg-gradient-to-b from-transparent to-[#f4f7ff]" />
+        <div className="h-24 sm:h-36 bg-gradient-to-b from-transparent to-[#f4f7ff]" />
       </section>
 
       <div className="mx-auto max-w-6xl px-4">
