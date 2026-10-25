@@ -111,13 +111,30 @@ export interface AdminUser {
   created_at: string;
 }
 
+import {
+  Ban,
+  CircleCheck,
+  CircleX,
+  Clock,
+  Gamepad2,
+  Minus,
+  Plus,
+  ReceiptText,
+  Undo2,
+  type LucideIcon,
+} from "lucide-react";
+
 /** Усули пардохт */
 export type PaymentMethodType = "dc_wallet" | "balance";
 
-export const TX_META: Record<TxKind, { cls: string; icon: string; key: string }> = {
-  credit: { cls: "bg-emerald-100 text-emerald-800", icon: "➕", key: "credit" },
-  debit: { cls: "bg-rose-100 text-rose-800", icon: "➖", key: "debit" },
-  refund: { cls: "bg-sky-100 text-sky-800", icon: "🔄", key: "refund" },
+/** Нишонаҳои тағйироти баланс — иконкаи касбӣ (Lucide), на emoji */
+export const TX_META: Record<
+  TxKind,
+  { cls: string; icon: LucideIcon; key: string }
+> = {
+  credit: { cls: "bg-emerald-100 text-emerald-800", icon: Plus, key: "credit" },
+  debit: { cls: "bg-rose-100 text-rose-800", icon: Minus, key: "debit" },
+  refund: { cls: "bg-sky-100 text-sky-800", icon: Undo2, key: "refund" },
 };
 
 /** ⭐ Отзиви воқеӣ (танҳо тасдиқшуда нишон дода мешавад) */
@@ -167,18 +184,18 @@ export interface AdminStats {
   games_active: number;
 }
 
-/** Рангҳои статус + калиди тарҷума */
+/** Рангҳои статус + иконкаи касбӣ + калиди тарҷума */
 export const STATUS_META: Record<
   OrderStatus,
-  { label: string; cls: string; key: string }
+  { icon: LucideIcon; cls: string; key: string }
 > = {
-  pending: { label: "⏳", cls: "bg-amber-100 text-amber-800", key: "waitingPayment" },
-  checking: { label: "🧾", cls: "bg-indigo-100 text-indigo-800", key: "checkingReceipt" },
-  paid: { label: "✅", cls: "bg-emerald-100 text-emerald-800", key: "paid" },
-  delivered: { label: "🎮", cls: "bg-sky-100 text-sky-800", key: "delivered" },
-  failed: { label: "❌", cls: "bg-rose-100 text-rose-800", key: "failed" },
-  refunded: { label: "💰", cls: "bg-slate-100 text-slate-700", key: "refunded" },
-  cancelled: { label: "🚫", cls: "bg-slate-100 text-slate-600", key: "cancelled" },
+  pending: { icon: Clock, cls: "bg-amber-100 text-amber-800", key: "waitingPayment" },
+  checking: { icon: ReceiptText, cls: "bg-indigo-100 text-indigo-800", key: "checkingReceipt" },
+  paid: { icon: CircleCheck, cls: "bg-emerald-100 text-emerald-800", key: "paid" },
+  delivered: { icon: Gamepad2, cls: "bg-sky-100 text-sky-800", key: "delivered" },
+  failed: { icon: CircleX, cls: "bg-rose-100 text-rose-800", key: "failed" },
+  refunded: { icon: Undo2, cls: "bg-slate-100 text-slate-700", key: "refunded" },
+  cancelled: { icon: Ban, cls: "bg-slate-100 text-slate-600", key: "cancelled" },
 };
 
 /** 🔍 Натиҷаи логини Player ID */

@@ -1,8 +1,10 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { Loader2, LogIn, UserPlus } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { api, ApiError } from "../api/client";
 import Logo from "../components/Logo";
+import { Ic } from "../components/Icons";
 
 /**
  * 🔑 Вуруд / Қайд — як саҳифаи ягона.
@@ -142,12 +144,18 @@ export default function Login() {
           >
             {loading ? (
               <>
-                <span className="animate-spin">⏳</span> {t("loading")}
+                <Ic icon={Loader2} className="animate-spin" /> {t("loading")}
               </>
             ) : mode === "login" ? (
-              <>🔓 {t("login")}</>
+              <>
+                <Ic icon={LogIn} />
+                {t("login")}
+              </>
             ) : (
-              <>✅ {t("register")}</>
+              <>
+                <Ic icon={UserPlus} />
+                {t("register")}
+              </>
             )}
           </button>
         </form>

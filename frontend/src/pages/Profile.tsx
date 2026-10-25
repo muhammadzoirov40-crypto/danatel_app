@@ -1,9 +1,26 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import {
+  CircleCheck,
+  CircleX,
+  Gamepad2,
+  Inbox,
+  KeyRound,
+  LayoutDashboard,
+  Loader2,
+  LogOut,
+  Package,
+  Save,
+  Settings,
+  Smartphone,
+  User,
+  Wallet,
+} from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { api, ApiError } from "../api/client";
 import type { Order } from "../types";
 import { STATUS_META } from "../types";
+import { Ic } from "../components/Icons";
 
 /**
  * 👤 Профили корбар:
@@ -88,23 +105,32 @@ export default function Profile() {
       <div className="card p-6">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
-            <div className="text-4xl mb-2">👤</div>
+            <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-brand-50 text-brand-600 mb-2">
+              <Ic icon={User} size="2xl" strokeWidth={1.75} />
+            </div>
             <h1 className="text-xl font-bold">
               {user.full_name || user.username || `#${user.id}`}
             </h1>
             {user.phone && (
-              <p className="text-sm text-slate-500 mt-0.5">📱 {user.phone}</p>
+              <p className="text-sm text-slate-500 mt-0.5 inline-flex items-center gap-1.5">
+                <Ic icon={Smartphone} className="text-slate-400" />
+                {user.phone}
+              </p>
             )}
             {isAdmin && (
-              <span className="inline-block mt-2 rounded-lg bg-brand-100 text-brand-700 text-xs px-2 py-0.5">
-                ⚙️ {t("admin")}
+              <span className="inline-flex items-center gap-1 mt-2 rounded-lg bg-brand-100 text-brand-700 text-xs px-2 py-0.5">
+                <Ic icon={Settings} size="xs" />
+                {t("admin")}
               </span>
             )}
           </div>
 
-          {/* 💰 Баланси ҷорӣ */}
+          {/* Баланси ҷорӣ */}
           <div className="rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white px-5 py-4 min-w-[180px]">
-            <div className="text-xs opacity-90">💰 {t("balance")}</div>
+            <div className="text-xs opacity-90 inline-flex items-center gap-1.5">
+              <Ic icon={Wallet} size="xs" />
+              {t("balance")}
+            </div>
             <div className="text-3xl font-bold tabular-nums mt-1">
               {balance.toLocaleString("tj-TJ")}
             </div>
@@ -114,11 +140,13 @@ export default function Profile() {
 
         <div className="mt-5 flex gap-2 flex-wrap">
           <Link to="/" className="btn-primary text-sm">
-            🎮 {t("chooseGame")}
+            <Ic icon={Gamepad2} />
+            {t("chooseGame")}
           </Link>
           {isAdmin && (
             <Link to="/admin" className="btn-ghost text-sm">
-              🛠️ {t("adminPanel")}
+              <Ic icon={LayoutDashboard} />
+              {t("adminPanel")}
             </Link>
           )}
           <button
@@ -128,14 +156,18 @@ export default function Profile() {
             }}
             className="btn-ghost text-sm"
           >
-            ⎋ {t("logout")}
+            <Ic icon={LogOut} />
+            {t("logout")}
           </button>
         </div>
       </div>
 
-      {/* 🔐 Ивазкунии парол */}
+      {/* Ивазкунии парол */}
       <div className="card p-6">
-        <h2 className="font-bold mb-1">🔐 {t("changePassword")}</h2>
+        <h2 className="font-bold mb-1 inline-flex items-center gap-2">
+          <Ic icon={KeyRound} className="text-brand-600" />
+          {t("changePassword")}
+        </h2>
         <p className="text-xs text-slate-500 mb-4">
           {t("currentPassword")} → {t("newPassword")} (≥ 8)
         </p>
@@ -185,20 +217,32 @@ export default function Profile() {
                   : "bg-rose-50 border border-rose-200 text-rose-700"
               }`}
             >
-              {pwdOk ? "✅ " : "⛔ "}
+              <Ic icon={pwdOk ? CircleCheck : CircleX} size="xs" />
               {pwdMsg}
             </div>
           )}
 
           <button type="submit" disabled={pwdBusy} className="btn-primary text-sm">
-            {pwdBusy ? "…" : `💾 ${t("save")}`}
+            {pwdBusy ? (
+              <>
+                <Ic icon={Loader2} className="animate-spin" /> {t("loading")}
+              </>
+            ) : (
+              <>
+                <Ic icon={Save} />
+                {t("save")}
+              </>
+            )}
           </button>
         </form>
       </div>
 
-      {/* 📦 Фармоишҳо */}
+      {/* Фармоишҳо */}
       <div className="card p-6">
-        <h2 className="font-bold mb-4">📦 {t("orders")}</h2>
+        <h2 className="font-bold mb-4 inline-flex items-center gap-2">
+          <Ic icon={Package} className="text-brand-600" />
+          {t("orders")}
+        </h2>
 
         {err && (
           <div className="rounded-xl bg-rose-50 border border-rose-200 px-4 py-3 text-sm text-rose-700 mb-4">
@@ -208,7 +252,9 @@ export default function Profile() {
 
         {orders.length === 0 ? (
           <div className="text-center py-8 text-slate-500">
-            <div className="text-3xl mb-2">📭</div>
+            <div className="flex justify-center mb-2 text-slate-300">
+              <Ic icon={Inbox} size="xl" />
+            </div>
             {t("noOrders")}
           </div>
         ) : (
@@ -236,9 +282,10 @@ export default function Profile() {
                       {t("currency")}
                     </div>
                     <span
-                      className={`inline-block mt-1 rounded-lg text-[11px] px-2 py-0.5 ${meta.cls}`}
+                      className={`badge mt-1 !py-0.5 !px-2 text-[11px] ${meta.cls}`}
                     >
-                      {meta.label} {t(meta.key)}
+                      <Ic icon={meta.icon} size="xs" strokeWidth={2.25} />
+                      {t(meta.key)}
                     </span>
                   </div>
                 </Link>

@@ -1,9 +1,26 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import {
+  Check,
+  CircleCheck,
+  Clock,
+  Copy,
+  CreditCard,
+  ExternalLink,
+  Frown,
+  House,
+  Loader2,
+  PartyPopper,
+  ReceiptText,
+  RefreshCw,
+  Smartphone,
+  Upload,
+} from "lucide-react";
 import { api } from "../api/client";
 import type { Order } from "../types";
 import StatusBadge from "../components/StatusBadge";
 import { useApp } from "../context/AppContext";
+import { Ic } from "../components/Icons";
 
 /** Саҳифаи санҷиши статуси фармоиш */
 export default function OrderPage() {
@@ -106,7 +123,9 @@ export default function OrderPage() {
     return (
       <div className="mx-auto max-w-2xl px-4 py-16 text-center">
         <div className="card p-6">
-          <div className="text-4xl mb-3">😕</div>
+          <div className="flex justify-center mb-3 text-slate-300">
+            <Ic icon={Frown} size="2xl" strokeWidth={1.75} />
+          </div>
           <p className="text-slate-600 mb-6">{error || t("notFound")}</p>
           <Link to="/" className="btn-primary">
             {t("goHome")}
@@ -121,7 +140,14 @@ export default function OrderPage() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 sm:py-12">
       <div className="card p-5 sm:p-8 text-center">
-        <div className="text-5xl mb-4">{paid ? "🎉" : "⏳"}</div>
+        <div className="flex justify-center mb-4">
+          <Ic
+            icon={paid ? PartyPopper : Clock}
+            size="3xl"
+            strokeWidth={1.75}
+            className={paid ? "text-emerald-500" : "text-amber-400"}
+          />
+        </div>
 
         <h1 className="text-xl sm:text-2xl font-bold mb-2">{t("orderCreated")}</h1>
 
@@ -147,8 +173,9 @@ export default function OrderPage() {
           order.payment_method === "dc_wallet" &&
           (order.payment_link || order.dc_payment_url) && (
             <div className="mt-5 rounded-2xl border border-slate-200 bg-white text-left overflow-hidden">
-              <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 text-sm font-semibold text-slate-700">
-                💳 {t("payLink")}
+              <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 text-sm font-semibold text-slate-700 inline-flex items-center gap-2">
+                <Ic icon={CreditCard} className="text-brand-600" />
+                {t("payLink")}
               </div>
               <div className="p-4 space-y-3">
                 {order.payment_card && (
@@ -161,7 +188,9 @@ export default function OrderPage() {
                 )}
                 {order.payment_phone && (
                   <div className="flex items-center justify-between gap-3">
-                    <span className="text-sm text-slate-500">📱</span>
+                    <span className="text-sm text-slate-500 inline-flex items-center justify-end">
+                      <Ic icon={Smartphone} className="text-slate-400" />
+                    </span>
                     <span className="font-mono font-semibold text-slate-800">
                       {order.payment_phone}
                     </span>
@@ -173,16 +202,19 @@ export default function OrderPage() {
                     href={order.payment_link || order.dc_payment_url || "#"}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex-1 text-center rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold py-2.5 transition"
+                    className="flex-1 text-center rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold py-2.5 transition inline-flex items-center justify-center gap-2"
                   >
-                    🔗 {t("openPayLink")}
+                    <Ic icon={ExternalLink} />
+                    {t("openPayLink")}
                   </a>
                   <button
                     type="button"
                     onClick={() => copyLink(order.payment_link || order.dc_payment_url || "")}
-                    className="shrink-0 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-sm font-semibold text-slate-600 px-4 py-2.5 transition"
+                    aria-label={t("copy")}
+                    className="shrink-0 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-sm font-semibold text-slate-600 px-4 py-2.5 transition inline-flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
                   >
-                    {copied ? t("copied") : `📋 ${t("copy")}`}
+                    <Ic icon={copied ? Check : Copy} className={copied ? "text-emerald-600" : ""} />
+                    {t(copied ? "copied" : "copy")}
                   </button>
                 </div>
               </div>
@@ -192,8 +224,9 @@ export default function OrderPage() {
         {/* 🧾 Формаи фиристодани чек (барои пардохти DC) */}
         {order.status === "pending" && order.payment_method === "dc_wallet" && (
           <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4 text-left">
-            <div className="font-semibold text-sm text-slate-800 mb-1">
-              🧾 {t("receiptTitle")}
+            <div className="font-semibold text-sm text-slate-800 mb-1 inline-flex items-center gap-2">
+              <Ic icon={ReceiptText} className="text-brand-600" />
+              {t("receiptTitle")}
             </div>
             <p className="text-xs text-slate-500 mb-3">{t("receiptNote")}</p>
 
@@ -225,8 +258,9 @@ export default function OrderPage() {
               </div>
             )}
             {sentOk && !sendErr && (
-              <div className="mt-3 rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-2 text-xs text-emerald-700">
-                ✅ {t("receiptSent")}
+              <div className="mt-3 rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-2 text-xs text-emerald-700 inline-flex items-center gap-2">
+                <Ic icon={CircleCheck} size="xs" />
+                {t("receiptSent")}
               </div>
             )}
 
@@ -237,10 +271,13 @@ export default function OrderPage() {
             >
               {sending ? (
                 <>
-                  <span className="animate-spin">⏳</span> {t("loading")}
+                  <Ic icon={Loader2} className="animate-spin" /> {t("loading")}
                 </>
               ) : (
-                <>📤 {t("sendReceipt")}</>
+                <>
+                  <Ic icon={Upload} />
+                  {t("sendReceipt")}
+                </>
               )}
             </button>
           </div>
@@ -249,8 +286,9 @@ export default function OrderPage() {
         {/* 🧾 Чеки фиристода — интизори тасдиқи админ */}
         {order.status === "checking" && (
           <div className="mt-5 rounded-2xl border border-indigo-200 bg-indigo-50 p-4 text-left">
-            <div className="text-sm font-semibold text-indigo-800 mb-1">
-              🧾 {t("receiptReview")}
+            <div className="text-sm font-semibold text-indigo-800 mb-1 inline-flex items-center gap-2">
+              <Ic icon={ReceiptText} />
+              {t("receiptReview")}
             </div>
             {order.receipt_text && (
               <div className="text-xs text-indigo-700 break-words">
@@ -276,22 +314,27 @@ export default function OrderPage() {
               rel="noreferrer"
               className="btn-primary w-full py-3.5 text-base"
             >
-              💳 {t("pay")}
+              <Ic icon={CreditCard} />
+              {t("pay")}
             </a>
           )}
 
           <button onClick={load} className="btn-ghost w-full" disabled={checking}>
             {checking ? (
               <>
-                <span className="animate-spin">⏳</span> {t("statusChecking")}
+                <Ic icon={Loader2} className="animate-spin" /> {t("statusChecking")}
               </>
             ) : (
-              <>🔄 {t("refresh")}</>
+              <>
+                <Ic icon={RefreshCw} />
+                {t("refresh")}
+              </>
             )}
           </button>
 
           <Link to="/" className="btn-ghost w-full">
-            🏠 {t("goHome")}
+            <Ic icon={House} />
+            {t("goHome")}
           </Link>
         </div>
 

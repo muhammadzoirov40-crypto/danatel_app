@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { CreditCard, Plus, Send, TriangleAlert, X } from "lucide-react";
 import { useApp } from "../context/AppContext";
-import { GoldCoin } from "./Icons";
+import { GoldCoin, Ic } from "./Icons";
 
 interface Props {
   open: boolean;
@@ -11,9 +12,19 @@ interface Props {
 const PRESETS = [20, 50, 100, 200, 500, 1000];
 
 export default function TopUpModal({ open, onClose }: Props) {
-  const { user, balance, lang } = useApp();
+  const { user, balance, lang, t } = useApp();
   const [amount, setAmount] = useState<number>(50);
   const [custom, setCustom] = useState<string>("50");
+
+  // Пӯшидани модал бо калиди Escape (дастрасӣ барои клавиатура)
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
 
   if (!open) return null;
 
@@ -43,19 +54,19 @@ export default function TopUpModal({ open, onClose }: Props) {
         role="dialog"
         aria-modal="true"
       >
-        {/* Тугмаи пӯшидан ✕ */}
+        {/* Тугмаи пӯшидан */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 grid place-items-center w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition"
-          aria-label="Пӯшидан"
+          aria-label={t("close")}
+          className="absolute top-4 right-4 grid place-items-center w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
         >
-          ✕
+          <Ic icon={X} />
         </button>
 
         {/* Сарлавҳа */}
         <div className="flex items-center gap-3 mb-4">
-          <div className="grid place-items-center w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/25 text-xl">
-            ➕
+          <div className="grid place-items-center w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/25">
+            <Ic icon={Plus} size="lg" strokeWidth={2.5} />
           </div>
           <div>
             <h2 className="text-lg font-black text-slate-900">
@@ -84,12 +95,15 @@ export default function TopUpModal({ open, onClose }: Props) {
             </div>
           </div>
         ) : (
-          <div className="mb-4 rounded-2xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-900 flex items-center justify-between">
-            <span>⚠️ Барои сабти баланс дар аккаунти худ лутфан ворид шавед:</span>
+          <div className="mb-4 rounded-2xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-900 flex items-start gap-2">
+            <Ic icon={TriangleAlert} size="xs" className="text-amber-500 mt-0.5 shrink-0" />
+            <span className="flex-1">
+              Барои сабти баланс дар аккаунти худ лутфан ворид шавед:
+            </span>
             <Link
               to="/login"
               onClick={onClose}
-              className="font-bold underline text-brand-700 ml-2 shrink-0"
+              className="font-bold underline text-brand-700 shrink-0"
             >
               Вуруд
             </Link>
@@ -146,7 +160,7 @@ export default function TopUpModal({ open, onClose }: Props) {
             onClick={handlePay}
             className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-sm shadow-md hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98] transition flex items-center justify-center gap-2"
           >
-            <span>💳</span>
+            <Ic icon={CreditCard} />
             <span>
               {lang === "ru"
                 ? `Оплатить ${amount} сомони (DC Wallet)`
@@ -160,7 +174,7 @@ export default function TopUpModal({ open, onClose }: Props) {
             rel="noopener noreferrer"
             className="w-full py-2.5 px-4 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold text-xs transition flex items-center justify-center gap-2"
           >
-            <span>💬</span>
+            <Ic icon={Send} />
             <span>
               {lang === "ru"
                 ? "Пополнить через Telegram Bot"

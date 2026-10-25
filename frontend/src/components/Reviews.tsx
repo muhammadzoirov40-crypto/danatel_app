@@ -1,15 +1,31 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { Loader2, MessageSquare, PenLine, Send, Star } from "lucide-react";
 import { api } from "../api/client";
 import { useApp } from "../context/AppContext";
 import type { Review, ReviewSummary } from "../types";
+import { Ic } from "./Icons";
 
-/** ⭐ Оценка дар сатри хурд: ★★★★★ */
-function Stars({ value, size = "text-sm" }: { value: number; size?: string }) {
+/** Рейтинги 5-ситорагӣ бо иконкаҳои касбӣ (Lucide Star) */
+function Stars({ value, size = "md" }: { value: number; size?: "sm" | "md" }) {
+  const n = Math.round(value);
+  const iconSize = size === "sm" ? "xs" : "sm";
   return (
-    <span className={`${size} text-amber-400 tracking-tight`} aria-label={`${value}/5`}>
-      {"★".repeat(Math.round(value))}
-      <span className="text-slate-300">{"★".repeat(5 - Math.round(value))}</span>
+    <span
+      className="inline-flex items-center gap-0.5"
+      role="img"
+      aria-label={`${n}/5`}
+    >
+      {[1, 2, 3, 4, 5].map((i) => (
+        <Ic
+          key={i}
+          icon={Star}
+          size={iconSize}
+          className={
+            i <= n ? "text-amber-400 fill-current" : "text-slate-300"
+          }
+        />
+      ))}
     </span>
   );
 }
@@ -63,7 +79,10 @@ export default function Reviews() {
   return (
     <section id="reviews" className="mt-10 sm:mt-14 scroll-mt-20">
       <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-        <h2 className="text-xl sm:text-2xl font-bold">⭐ {t("reviewsTitle")}</h2>
+        <h2 className="text-xl sm:text-2xl font-bold inline-flex items-center gap-2">
+          <Ic icon={Star} size="md" className="text-amber-400 fill-current" />
+          {t("reviewsTitle")}
+        </h2>
 
         <div className="flex items-center gap-3">
           {total > 0 ? (
@@ -80,7 +99,8 @@ export default function Reviews() {
 
           {sum?.can_review && !sum.my_review_id && (
             <button onClick={() => setOpen((v) => !v)} className="btn text-sm">
-              ✍️ {t("writeReview")}
+              <Ic icon={PenLine} />
+              {t("writeReview")}
             </button>
           )}
         </div>
@@ -94,18 +114,25 @@ export default function Reviews() {
         >
           <div className="flex items-center gap-3">
             <span className="text-sm font-bold">{t("yourRating")}</span>
-            <div className="flex gap-1">
+            <div className="flex gap-1.5">
               {[1, 2, 3, 4, 5].map((n) => (
                 <button
                   key={n}
                   type="button"
                   onClick={() => setRating(n)}
-                  className={`text-2xl leading-none transition ${
-                    n <= rating ? "text-amber-400" : "text-slate-300"
-                  }`}
+                  className="rounded-lg p-1 transition hover:scale-110 active:scale-95
+                             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
                   aria-label={`${n}`}
+                  aria-pressed={rating === n}
                 >
-                  ★
+                  <Ic
+                    icon={Star}
+                    size="lg"
+                    strokeWidth={1.5}
+                    className={
+                      n <= rating ? "text-amber-400 fill-current" : "text-slate-300"
+                    }
+                  />
                 </button>
               ))}
             </div>
@@ -126,7 +153,8 @@ export default function Reviews() {
 
           <div className="flex items-center gap-2">
             <button type="submit" disabled={busy || text.trim().length < 5} className="btn">
-              {busy ? "…" : t("send")}
+              <Ic icon={busy ? Loader2 : Send} className={busy ? "animate-spin" : ""} />
+              {t("send")}
             </button>
             <button type="button" onClick={() => setOpen(false)} className="btn-ghost">
               {t("cancel")}
@@ -147,7 +175,7 @@ export default function Reviews() {
                 <span className="font-bold text-sm text-slate-800 truncate">
                   {r.author_name}
                 </span>
-                <Stars value={r.rating} size="text-xs" />
+                <Stars value={r.rating} size="sm" />
               </div>
               <p className="text-sm text-slate-600 leading-relaxed">{r.text}</p>
               <time className="text-xs text-slate-400">
@@ -159,7 +187,9 @@ export default function Reviews() {
       ) : (
         !open && (
           <div className="card p-6 text-center text-sm text-slate-500">
-            <div className="text-2xl mb-1">💬</div>
+            <div className="flex justify-center mb-2 text-slate-300">
+              <Ic icon={MessageSquare} size="xl" />
+            </div>
             {t("reviewsNoYet")}
             {!user && (
               <div className="mt-3">

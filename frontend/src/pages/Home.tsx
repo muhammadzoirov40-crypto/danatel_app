@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { Gamepad2, Search, SearchX, ShieldAlert, Star, TriangleAlert, X } from "lucide-react";
 import { api } from "../api/client";
 import type { Game } from "../types";
 import GameCard from "../components/GameCard";
@@ -9,15 +10,7 @@ import SeoBlock from "../components/SeoBlock";
 import Reviews from "../components/Reviews";
 import Customers from "../components/Customers";
 import { useApp } from "../context/AppContext";
-import {
-  CreditCard3D,
-  Diamond3D,
-  Gamepad3D,
-  GiftBox3D,
-  GoldCoin,
-  IdBadge3D,
-  TajikFlag,
-} from "../components/Icons";
+import { Ic, CreditCard3D, Diamond3D, Gamepad3D, GiftBox3D, GoldCoin, IdBadge3D, TajikFlag } from "../components/Icons";
 
 /**
  * Саҳифаи асосӣ — тарҳи мисли persshop.com:
@@ -80,12 +73,20 @@ export default function Home() {
     [games],
   );
 
-  /** ⭐ Бейҷаи чап: рейтинги миёна + ЧАНД нафар хол додаанд.
-   *  Ҳама аз ҷадвали отзывҳои тасдиқшуда — рақами воқеӣ. */
+  /** Бейҷаи чап: рейтинги миёна + ЧАНД нафар хол додаанд.
+   *  Ҳама аз ҷадвали отзывҳои тасдиқшуда — рақами воқеӣ.
+   *  Иконкаи касбӣ (Lucide Star), на emoji; ҳатто рейтинг 0 бошад ҳам нишон дода мешавад. */
   const ratingBadge = useMemo(() => {
     const avg = reviewSum?.rating_avg ?? 0;
     const n = reviewSum?.reviews_total ?? 0;
-    return `⭐ ${avg.toFixed(1)} (${n} ${t("ratedPeople")})`;
+    return (
+      <>
+        <Ic icon={Star} size="xs" className="text-amber-300 fill-current" />
+        <span className="tabular-nums">
+          {avg.toFixed(1)} ({n} {t("ratedPeople")})
+        </span>
+      </>
+    );
   }, [reviewSum, t]);
 
   /** 🎚️ Тикер танҳо бейҷаи ⭐ рейтингро нишон медиҳад — матнҳо бардошта шуданд */
@@ -98,9 +99,11 @@ export default function Home() {
 
           {/* 🔍 Ҷустуҷӯ — КАЛОН, мисли persshop (аз ҳар дастгоҳ кор мекунад) */}
           <div className="relative">
-            <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2
-                             text-white/70 text-base">
-              🔍
+            {/* Иконка: `z-10` зарур аст → `backdrop-blur` дар input stacking context
+                месозад ва бе z-index иконка аз паси фони input пинҳон мемонад. */}
+            <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 z-10
+                             text-white/70">
+              <Ic icon={Search} />
             </span>
             <input
               value={query}
@@ -118,11 +121,13 @@ export default function Home() {
             {query && (
               <button
                 onClick={() => setQuery("")}
-                aria-label={t("cancel")}
+                aria-label={t("clear")}
                 className="absolute right-2 top-1/2 -translate-y-1/2 grid place-items-center
-                           w-7 h-7 rounded-full bg-white/20 text-white hover:bg-white/30 transition"
+                           w-7 h-7 rounded-full bg-white/20 text-white hover:bg-white/30
+                           transition active:scale-95 focus-visible:outline-none
+                           focus-visible:ring-2 focus-visible:ring-white/70"
               >
-                ✕
+                <Ic icon={X} />
               </button>
             )}
           </div>
@@ -146,8 +151,9 @@ export default function Home() {
         {/* ===== 4) РӮЙХАТИ БОЗИҲО ===== */}
         <section id="games" className="mt-8 sm:mt-12 scroll-mt-20">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-base sm:text-xl font-extrabold tracking-tight">
-              🎮 {query ? t("resultsFor") : t("chooseGame")}
+            <h2 className="text-base sm:text-xl font-extrabold tracking-tight inline-flex items-center gap-2">
+              <Ic icon={Gamepad2} size="md" className="text-brand-600" />
+              {query ? t("resultsFor") : t("chooseGame")}
             </h2>
             <Link
               to="/#games"
@@ -167,7 +173,9 @@ export default function Home() {
 
           {error && (
             <div className="card p-6 text-center text-rose-600">
-              <div className="text-3xl mb-2">⚠️</div>
+              <div className="flex justify-center mb-2">
+                <Ic icon={TriangleAlert} size="xl" />
+              </div>
               {error}
               <div className="mt-4">
                 <button className="btn-ghost" onClick={() => location.reload()}>
@@ -180,7 +188,9 @@ export default function Home() {
           {/* Ҳангами ҷустуҷӯ — натиҷа ёфт нашуд */}
           {!loading && !error && filtered.length === 0 && (
             <div className="card p-8 text-center">
-              <div className="text-4xl mb-2">🔍</div>
+              <div className="flex justify-center mb-2 text-slate-300">
+                <Ic icon={SearchX} size="2xl" />
+              </div>
               <div className="font-semibold">{t("noResults")}</div>
               {query && (
                 <button
@@ -275,7 +285,7 @@ export default function Home() {
 
         {/* Огоҳиномаи бехатарӣ */}
         <div className="mt-8 mb-4 rounded-2xl bg-amber-50/80 border border-amber-200 p-4 sm:p-5 text-sm text-amber-900 flex items-center gap-3">
-          <span className="text-xl shrink-0">⚠️</span>
+          <Ic icon={ShieldAlert} size="md" className="text-amber-500" />
           <span className="font-medium">{t("secureNote")}</span>
         </div>
 

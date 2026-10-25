@@ -1,12 +1,17 @@
+import type { ReactNode } from "react";
+
 /**
- * 🎚️ Тикери ҳаракаткунанда — мисли строчканяи takrixi persshop:
- *   [ ⭐ бейҷа ] │ далелҳои воқеӣ, ки ҳаракат мекунанд
+ * Тикери ҳаракаткунанда — мисли строчканяи takrixi persshop:
+ *   [ бейҷаи рейтинг ] │ далелҳои воқеӣ, ки ҳаракат мекунанд
  *
- * ⚠️ Танҳо далелҳои воқеӣ (бозӣ, маҳсулот, TJS, DC Wallet) —
- *    такризи ҷаълӣ ё рейтинги сохта НЕСТ.
+ * Танҳо далелҳои воқеӣ (бозӣ, маҳсулот, TJS, DC Wallet) —
+ * такризи ҷаълӣ ё рейтинги сохта НЕСТ.
+ *
+ * Дастрасӣ: `aria-hidden` танҳо рахи ҳаракаткунанда дорад,
+ * бейҷаи рейтинг барои screen reader дастрас мемонад.
  */
 interface Item {
-  icon: string;
+  icon: ReactNode;
   text: string;
 }
 
@@ -15,8 +20,8 @@ export default function TrustTicker({
   badge,
 }: {
   items?: Item[];
-  /** Бейҷаи доимӣ дар тарафи чап (масалан: «⭐ 4.9 (3 нафар)») */
-  badge?: string;
+  /** Бейҷаи доимӣ дар тарафи чап (масалан: иконкаи Star + «4.9 (3 нафар)») */
+  badge?: ReactNode;
 }) {
   if (!items.length && !badge) return null;
 
@@ -24,24 +29,21 @@ export default function TrustTicker({
 
   return (
     <div
-      aria-hidden
       className="mt-3 flex items-center gap-2.5 rounded-2xl bg-white/[0.16] backdrop-blur-sm
                  h-[42px] pl-3 pr-1 select-none"
     >
-      {/* ⭐ Бейҷаи доимӣ */}
+      {/* Бейҷаи доимӣ */}
       {badge && (
-        <span
-          className="shrink-0 flex items-center gap-1 rounded-full bg-white/20
-                     px-3 py-1 text-[11px] sm:text-xs font-black tracking-wide
-                     text-white whitespace-nowrap"
-        >
+        <span className="shrink-0 flex items-center gap-1.5 rounded-full bg-white/20
+                         px-3 py-1 text-[11px] sm:text-xs font-black tracking-wide
+                         text-white whitespace-nowrap">
           {badge}
         </span>
       )}
 
-      {/* 🎚️ Ҳаракаткунанда — танҳо агар матнҳо бошанд */}
+      {/* Ҳаракаткунанда — танҳо агар матнҳо бошанд */}
       {items.length > 0 && (
-        <div className="ticker flex-1 min-w-0">
+        <div className="ticker flex-1 min-w-0" aria-hidden>
           <div className="ticker-track">
             {doubled.map((it, i) => (
               <span

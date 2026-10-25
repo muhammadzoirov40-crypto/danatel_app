@@ -1,22 +1,25 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { House, LayoutGrid, Package, Plus, Send, User } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import TopUpModal from "./TopUpModal";
 import OrderSearchModal from "./OrderSearchModal";
+import { Ic } from "./Icons";
 
 /**
- * 📱 Навигатсияи поёнӣ (Bottom Navigation Bar) — мисли persshop.com:
- *   1) 🏠 Асосӣ / Главная (ҳаракат ба боло)
- *   2) 㗊 Каталог (ҳаракат ба рӯйхати бозиҳо)
- *   3) ➕ «Пур кардан» (кушодани модали пуркунии баланс)
- *   4) 🛒 Фармоишҳо / Корзина (кушодани фармоишҳо ё ҷустуҷӯ)
- *   5) 👤 Профил (гузариш ба профил ё вуруд)
- *   + 💬 Тугмаи равони чати Telegram / кӯмак
+ * Навигатсияи поёнӣ (Bottom Navigation Bar) — мисли persshop.com:
+ *   1) Асосӣ / Главная (ҳаракат ба боло)
+ *   2) Каталог (ҳаракат ба рӯйхати бозиҳо)
+ *   3) «Пур кардан» (кушодани модали пуркунии баланс)
+ *   4) Фармоишҳо (профил ё ҷустуҷӯи рақами фармоиш — сабад дар лоиҳа НЕСТ)
+ *   5) Профил (гузариш ба профил ё вуруд)
+ *   + Тугмаи дастгирӣ дар Telegram
+ * Ҳамаи иконкаҳо — Lucide, андозаи ягона 20px (`size="md"`).
  */
 export default function BottomNav() {
   const { pathname } = useLocation();
   const nav = useNavigate();
-  const { user, lang } = useApp();
+  const { user, lang, t } = useApp();
 
   const [topUpOpen, setTopUpOpen] = useState(false);
   const [orderSearchOpen, setOrderSearchOpen] = useState(false);
@@ -25,15 +28,16 @@ export default function BottomNav() {
   const isProfile = pathname === "/profile";
   const isLogin = pathname === "/login";
 
-  const t = {
+  const labels = {
     home: lang === "ru" ? "Главная" : lang === "uz" ? "Asosiy" : lang === "en" ? "Home" : "Асосӣ",
     catalog: lang === "ru" ? "Каталог" : lang === "uz" ? "Katalog" : lang === "en" ? "Catalog" : "Каталог",
     topup: lang === "ru" ? "Пополнить" : lang === "uz" ? "To'ldirish" : lang === "en" ? "Top up" : "Пур кардан",
-    cart: lang === "ru" ? "Корзина" : lang === "uz" ? "Savat" : lang === "en" ? "Orders" : "Фармоишҳо",
+    // Сабад дар ин лоиҳа вуҷуд надорад → номи рост: «Фармоишҳо»
+    orders: t("orders"),
     profile: lang === "ru" ? "Профиль" : lang === "uz" ? "Profil" : lang === "en" ? "Profile" : "Профил",
   };
 
-  /** 1) 🏠 Асосӣ — ба саҳифаи асосӣ ва баландтарин нуқта */
+  /** 1) Асосӣ — ба саҳифаи асосӣ ва баландтарин нуқта */
   const handleHomeClick = (e: React.MouseEvent) => {
     if (isHome) {
       e.preventDefault();
@@ -41,7 +45,7 @@ export default function BottomNav() {
     }
   };
 
-  /** 2) 㗊 Каталог — гузариш ба бахши бозиҳо (#games) */
+  /** 2) Каталог — гузариш ба бахши бозиҳо (#games) */
   const handleCatalogClick = (e: React.MouseEvent) => {
     if (isHome) {
       e.preventDefault();
@@ -59,13 +63,13 @@ export default function BottomNav() {
     }
   };
 
-  /** 3) ➕ Пур кардан — кушодани равзанаи пуркунии баланс */
+  /** 3) Пур кардан — кушодани равзанаи пуркунии баланс */
   const handleTopUpClick = (e: React.MouseEvent) => {
     e.preventDefault();
     setTopUpOpen(true);
   };
 
-  /** 4) 🛒 Фармоишҳо — агар вуруд карда бошад ба профил, вагарна ҷустуҷӯи рақами фармоиш */
+  /** 4) Фармоишҳо — агар вуруд карда бошад ба профил, вагарна ҷустуҷӯи рақами фармоиш */
   const handleOrdersClick = (e: React.MouseEvent) => {
     if (user) {
       // Иҷозат медиҳад, ки мустақиман ба саҳифаи профил / фармоишҳо гузарад
@@ -75,13 +79,22 @@ export default function BottomNav() {
     }
   };
 
+  /** Класси ягона барои итеми ғайрифаъол (ҳамеша ҳамон андоза ва фосила) */
+  const itemCls = (active: boolean) =>
+    `flex flex-col items-center justify-center transition-all active:scale-95
+     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 ${
+       active
+         ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl px-3.5 py-1.5 shadow-md shadow-blue-500/25"
+         : "text-slate-500 hover:text-slate-900 hover:bg-slate-100 px-2 py-1 rounded-2xl"
+     }`;
+
   return (
     <>
       {/* Модалҳо */}
       <TopUpModal open={topUpOpen} onClose={() => setTopUpOpen(false)} />
       <OrderSearchModal open={orderSearchOpen} onClose={() => setOrderSearchOpen(false)} />
 
-      {/* 💬 Тугмаи шинокунандаи чат / дастгирӣ (Floating Chat Button) */}
+      {/* Тугмаи шинокунандаи дастгирӣ дар Telegram */}
       <a
         href="https://t.me/ONLAYN_ALMAZ_TJ_bot"
         target="_blank"
@@ -90,14 +103,13 @@ export default function BottomNav() {
         className="fixed bottom-20 left-4 z-40 md:bottom-6 md:right-6 md:left-auto
                    w-12 h-12 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600
                    text-white shadow-[0_8px_24px_-4px_rgba(37,99,235,0.5)]
-                   grid place-items-center hover:scale-105 active:scale-95 transition-transform"
+                   grid place-items-center hover:scale-105 active:scale-95 transition-transform
+                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
       >
-        <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
-          <path d="M12 2C6.48 2 2 6.03 2 11c0 2.87 1.51 5.42 3.86 7.02l-.86 3.12 3.42-1.83C9.43 19.72 10.69 20 12 20c5.52 0 10-4.03 10-9s-4.48-9-10-9zm0 16c-1.12 0-2.2-.23-3.18-.65l-.39-.17-1.92 1.03.49-1.78-.26-.37C5.51 14.84 4.5 13.01 4.5 11c0-3.86 3.36-7 7.5-7s7.5 3.14 7.5 7-3.36 7-7.5 7z" />
-        </svg>
+        <Ic icon={Send} size="lg" />
       </a>
 
-      {/* 📱 Панели навигатсияи поёнӣ (Bottom Navigation Dock) — дар телефон/планшет */}
+      {/* Панели навигатсияи поёнӣ (Bottom Navigation Dock) — дар телефон/планшет */}
       <nav
         aria-label="Навигатсияи поёнӣ"
         className="md:hidden fixed bottom-3 inset-x-3 z-50 max-w-md mx-auto
@@ -105,94 +117,60 @@ export default function BottomNav() {
                    shadow-[0_12px_36px_-6px_rgba(15,23,42,0.22)]
                    rounded-3xl px-2 py-1.5 flex items-center justify-between"
       >
-        {/* 1) 🏠 Асосӣ */}
-        <Link
-          to="/"
-          onClick={handleHomeClick}
-          className={`flex flex-col items-center justify-center transition-all ${
-            isHome
-              ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl px-3.5 py-1.5 shadow-md shadow-blue-500/25"
-              : "text-slate-500 hover:text-slate-900 px-2 py-1"
-          }`}
-        >
-          <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-            <path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z" />
-          </svg>
-          <span className="text-[10px] font-bold leading-none mt-0.5">
-            {t.home}
-          </span>
+        {/* 1) Асосӣ */}
+        <Link to="/" onClick={handleHomeClick} aria-label={labels.home} className={itemCls(isHome)}>
+          <Ic icon={House} size="md" />
+          <span className="text-[10px] font-bold leading-none mt-0.5">{labels.home}</span>
         </Link>
 
-        {/* 2) 㗊 Каталог */}
+        {/* 2) Каталог */}
         <button
           type="button"
           onClick={handleCatalogClick}
-          className="flex flex-col items-center justify-center text-slate-500 hover:text-slate-900 px-2 py-1 transition cursor-pointer"
+          aria-label={labels.catalog}
+          className={itemCls(false)}
         >
-          <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-            <path d="M4 4h7v7H4zm9 0h7v7h-7zm0 9h7v7h-7zm-9 0h7v7H4z" />
-          </svg>
-          <span className="text-[10px] font-bold leading-none mt-0.5">
-            {t.catalog}
-          </span>
+          <Ic icon={LayoutGrid} size="md" />
+          <span className="text-[10px] font-bold leading-none mt-0.5">{labels.catalog}</span>
         </button>
 
-        {/* 3) ➕ Тугмаи калони марказӣ «Пур кардан» */}
+        {/* 3) Тугмаи калони марказӣ «Пур кардан» */}
         <button
           type="button"
           onClick={handleTopUpClick}
-          className="relative -mt-6 flex flex-col items-center group active:scale-95 transition-transform cursor-pointer"
+          aria-label={labels.topup}
+          className="relative -mt-6 flex flex-col items-center group active:scale-95 transition-transform
+                     cursor-pointer focus-visible:outline-none"
         >
           <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600
                           text-white shadow-lg shadow-blue-600/35 flex items-center justify-center
                           ring-4 ring-white group-hover:scale-105 transition-transform">
-            <svg
-              className="w-6 h-6 stroke-current stroke-[2.8]"
-              viewBox="0 0 24 24"
-              fill="none"
-              strokeLinecap="round"
-            >
-              <path d="M12 5v14M5 12h14" />
-            </svg>
+            <Ic icon={Plus} size="lg" strokeWidth={2.75} />
           </div>
           <span className="text-[10px] font-extrabold text-slate-700 mt-1 leading-none">
-            {t.topup}
+            {labels.topup}
           </span>
         </button>
 
-        {/* 4) 🛒 Фармоишҳо / Корзина */}
+        {/* 4) Фармоишҳо (сабад НЕСТ — ин фармоишҳои воқеӣ) */}
         <Link
           to={user ? "/profile" : "/login"}
           onClick={handleOrdersClick}
-          className={`flex flex-col items-center justify-center transition-all ${
-            isProfile && !isHome
-              ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl px-3.5 py-1.5 shadow-md shadow-blue-500/25"
-              : "text-slate-500 hover:text-slate-900 px-2 py-1"
-          }`}
+          aria-label={labels.orders}
+          className={itemCls(isProfile && !isHome)}
         >
-          <svg className="w-5 h-5 fill-none stroke-current stroke-2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M6 6h15l-1.5 9h-13zM6 6l-1-3H2M9 20a1 1 0 100-2 1 1 0 000 2zm9 0a1 1 0 100-2 1 1 0 000 2z" />
-          </svg>
-          <span className="text-[10px] font-bold leading-none mt-0.5">
-            {t.cart}
-          </span>
+          <Ic icon={Package} size="md" />
+          <span className="text-[10px] font-bold leading-none mt-0.5">{labels.orders}</span>
         </Link>
 
-        {/* 5) 👤 Профил */}
+        {/* 5) Профил */}
         <Link
           to={user ? "/profile" : "/login"}
-          className={`flex flex-col items-center justify-center transition-all ${
-            (isProfile || isLogin) && !isHome
-              ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl px-3.5 py-1.5 shadow-md shadow-blue-500/25"
-              : "text-slate-500 hover:text-slate-900 px-2 py-1"
-          }`}
+          aria-label={labels.profile}
+          className={itemCls((isProfile || isLogin) && !isHome)}
         >
-          <svg className="w-5 h-5 fill-none stroke-current stroke-2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z" />
-          </svg>
-          <span className="text-[10px] font-bold leading-none mt-0.5">
-            {t.profile}
-          </span>
+          <Ic icon={User} size="md" />
+          <span className="text-[10px] font-bold leading-none mt-0.5">{labels.profile}</span>
         </Link>
       </nav>
     </>

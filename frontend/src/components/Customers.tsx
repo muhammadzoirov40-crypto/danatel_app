@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
+import { Users } from "lucide-react";
 import { api } from "../api/client";
 import { useApp } from "../context/AppContext";
+import { Ic } from "./Icons";
 
 interface Row {
   name: string;
@@ -32,7 +34,10 @@ export default function Customers() {
   return (
     <section className="mt-10 sm:mt-12">
       <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
-        <h2 className="text-xl sm:text-2xl font-bold">👥 {t("customersTitle")}</h2>
+        <h2 className="text-xl sm:text-2xl font-bold inline-flex items-center gap-2">
+          <Ic icon={Users} size="md" className="text-brand-600" />
+          {t("customersTitle")}
+        </h2>
         <span className="text-sm font-bold text-slate-500">
           {total} {t("customersTotal")}
         </span>

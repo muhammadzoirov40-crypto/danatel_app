@@ -1,5 +1,18 @@
 import { useState, type FormEvent } from "react";
+import {
+  Gem,
+  LayoutDashboard,
+  Loader2,
+  LogIn,
+  LogOut,
+  Package,
+  Settings,
+  Star,
+  Users as UsersIcon,
+  type LucideIcon,
+} from "lucide-react";
 import { useApp } from "../../context/AppContext";
+import { Ic } from "../../components/Icons";
 import Dashboard from "./Dashboard";
 import Orders from "./Orders";
 import Products from "./Products";
@@ -15,20 +28,24 @@ export default function Admin() {
 
   if (!isAdmin) return <LoginGate />;
 
-  const tabs: { id: Tab; label: string; icon: string }[] = [
-    { id: "dashboard", label: t("dashboard"), icon: "📊" },
-    { id: "orders", label: t("orders"), icon: "📦" },
-    { id: "products", label: t("products"), icon: "💎" },
-    { id: "users", label: t("users"), icon: "👥" },
-    { id: "reviews", label: t("reviews"), icon: "⭐" },
+  const tabs: { id: Tab; label: string; icon: LucideIcon }[] = [
+    { id: "dashboard", label: t("dashboard"), icon: LayoutDashboard },
+    { id: "orders", label: t("orders"), icon: Package },
+    { id: "products", label: t("products"), icon: Gem },
+    { id: "users", label: t("users"), icon: UsersIcon },
+    { id: "reviews", label: t("reviews"), icon: Star },
   ];
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
       <div className="flex items-center justify-between gap-3 mb-5 flex-wrap">
-        <h1 className="text-xl font-bold text-white">🛠️ {t("adminPanel")}</h1>
+        <h1 className="text-xl font-bold text-white inline-flex items-center gap-2">
+          <Ic icon={Settings} size="md" />
+          {t("adminPanel")}
+        </h1>
         <button onClick={logout} className="btn-ghost text-sm">
-          ⎋ {t("logout")}
+          <Ic icon={LogOut} />
+          {t("logout")}
         </button>
       </div>
 
@@ -38,13 +55,15 @@ export default function Admin() {
           <button
             key={x.id}
             onClick={() => setTab(x.id)}
+            aria-pressed={tab === x.id}
             className={`btn text-sm whitespace-nowrap ${
               tab === x.id
                 ? "bg-brand-600 text-white"
                 : "bg-white border border-slate-200 text-slate-700"
             }`}
           >
-            {x.icon} {x.label}
+            <Ic icon={x.icon} />
+            {x.label}
           </button>
         ))}
       </div>
@@ -79,8 +98,8 @@ function LoginGate() {
     <div className="min-h-[70vh] grid place-items-center px-4">
       <form onSubmit={submit} className="card w-full max-w-sm p-6 sm:p-8">
         <div className="text-center mb-6">
-          <div className="grid place-items-center w-14 h-14 mx-auto rounded-2xl bg-brand-600 text-white text-2xl mb-3">
-            ⚙️
+          <div className="grid place-items-center w-14 h-14 mx-auto rounded-2xl bg-brand-600 text-white mb-3">
+            <Ic icon={Settings} size="xl" strokeWidth={1.75} />
           </div>
           <h1 className="text-lg font-bold">{t("adminPanel")}</h1>
         </div>
@@ -111,7 +130,16 @@ function LoginGate() {
         )}
 
         <button type="submit" disabled={loading} className="btn-primary w-full py-3">
-          {loading ? t("loading") : `🔓 ${t("login")}`}
+          {loading ? (
+            <>
+              <Ic icon={Loader2} className="animate-spin" /> {t("loading")}
+            </>
+          ) : (
+            <>
+              <Ic icon={LogIn} />
+              {t("login")}
+            </>
+          )}
         </button>
       </form>
     </div>

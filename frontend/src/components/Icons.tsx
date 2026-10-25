@@ -1,9 +1,64 @@
-import type { SVGProps } from "react";
+import type { LucideIcon } from "lucide-react";
 
 /**
  * 🎨 Иконкаҳои реалистии SVG (Realistic SVG Icons)
  * Бо градиентҳо, сояҳо ва ҷузъиёти баландсифат.
+ *
+ * ─────────────────────────────────────────────────────────────
+ * ИКОНКАҲОИ ИНТЕРФЕЙС — танҳо тавассути <Ic /> (Lucide Icons):
+ *   <Ic icon={Search} />            → 16×16, strokeWidth=2 (ҳамвор бо матн)
+ *   <Ic icon={X} size="md" />       → 20×20 барои тугмаҳои танҳо-иконка
+ *   <Ic icon={Star} className="fill-current" />  → иконкаи пурраранг
+ *   <Ic icon={Trash2} label={t("delete")} />     → иконкаи бе матн бо номи дастрасӣ
+ * Андоза, ғафсии хат ва `shrink-0` аз як ҷо меоянд → ҳамаи иконкаҳо якхела.
+ * ─────────────────────────────────────────────────────────────
  */
+
+/** Андозаҳои стандартии иконка (ягонаи иҷозатдодашуда) */
+const ICON_SIZES = {
+  xs: "w-3.5 h-3.5", // дар бейҷаҳои хурд / сатри зич
+  sm: "w-4 h-4", // ҳамҳаҷм бо матни оддӣ (пешфарз)
+  md: "w-5 h-5", // тугмаи танҳо-иконка / сатри тугма
+  lg: "w-6 h-6", // тугмаи чойпин (floating)
+  xl: "w-8 h-8", // ҳолати холӣ / плитка
+  "2xl": "w-10 h-10", // ҳолати холии калон
+  "3xl": "w-12 h-12", // ҳолати холии хеле калон
+} as const;
+
+export type IconSize = keyof typeof ICON_SIZES;
+
+interface IcProps {
+  icon: LucideIcon;
+  size?: IconSize;
+  className?: string;
+  /** Агар дода шавад → иконка барои screen reader ном дорад (WCAG) */
+  label?: string;
+  strokeWidth?: number;
+}
+
+/**
+ * Иконкаи стандартии интерфейс (Lucide).
+ * Ҳамеша `aria-hidden` мегирад, агар `label` дода нашуда бошад —
+ * то screen reader онро дубра накунад.
+ */
+export function Ic({
+  icon: Icon,
+  size = "sm",
+  className = "",
+  label,
+  strokeWidth = 2,
+}: IcProps) {
+  return (
+    <Icon
+      className={`${ICON_SIZES[size]} shrink-0 ${className}`}
+      strokeWidth={strokeWidth}
+      aria-hidden={label ? undefined : true}
+      role={label ? "img" : undefined}
+      aria-label={label}
+      focusable="false"
+    />
+  );
+}
 
 /** 🇹🇯 Парчами ҳақиқии Тоҷикистон (Real Tajik Flag) */
 export function TajikFlag({ className = "w-4 h-3 rounded-xs shadow-xs" }: { className?: string }) {
@@ -240,26 +295,6 @@ export function GiftBox3D({ className = "w-8 h-8" }: { className?: string }) {
         fill="url(#giftRibbon)"
       />
       <circle cx="24" cy="16" r="2" fill="#ca8a04" />
-    </svg>
-  );
-}
-
-/** 📖 Нишони каталоги воқеӣ (Catalog Icon) */
-export function CatalogIcon({ className = "w-4 h-4" }: SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z" fill="currentColor" fillOpacity="0.15" />
-      <path d="M6 6h10M6 10h10M6 14h6" />
-    </svg>
-  );
-}
-
-/** 📦 Нишони фармоишҳо / қуттӣ (Orders Box Icon) */
-export function OrdersIcon({ className = "w-4 h-4" }: SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" fill="currentColor" fillOpacity="0.15" />
-      <path d="m3.3 7 8.7 5 8.7-5M12 22V12" />
     </svg>
   );
 }

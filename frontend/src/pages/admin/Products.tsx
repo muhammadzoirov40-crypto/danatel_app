@@ -1,7 +1,27 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { CircleCheck, Gamepad2, Gem, Loader2, Plus, Save, Trash2 } from "lucide-react";
 import { api } from "../../api/client";
 import type { Game, Product } from "../../types";
 import { useApp } from "../../context/AppContext";
+import { Ic } from "../../components/Icons";
+
+/** Логотипи хурди бозӣ дар тугмаи интихоб (ҷои emoji-и базаи маълумот) */
+function GameChipLogo({ g }: { g: Game }) {
+  const [failed, setFailed] = useState(false);
+  if (g.image_url && !failed) {
+    return (
+      <img
+        src={g.image_url}
+        alt=""
+        aria-hidden
+        loading="lazy"
+        onError={() => setFailed(true)}
+        className="w-4 h-4 rounded object-cover shrink-0"
+      />
+    );
+  }
+  return <Ic icon={Gamepad2} size="xs" />;
+}
 
 /** Идораи бозиҳо + нархҳо (созиш танҳо бо тоҷикӣ, бо UI-и 4 забон) */
 export default function Products() {
@@ -55,8 +75,9 @@ export default function Products() {
     <div className="space-y-4">
       {err && <div className="card p-4 text-rose-600 text-sm">{err}</div>}
       {msg && (
-        <div className="card p-4 text-emerald-700 bg-emerald-50 border-emerald-200 text-sm">
-          ✅ {msg}
+        <div className="card p-4 text-emerald-700 bg-emerald-50 border-emerald-200 text-sm inline-flex items-center gap-2">
+          <Ic icon={CircleCheck} />
+          {msg}
         </div>
       )}
 
@@ -66,13 +87,15 @@ export default function Products() {
           <button
             key={g.id}
             onClick={() => setActive(g.slug)}
+            aria-pressed={active === g.slug}
             className={`btn text-xs whitespace-nowrap ${
               active === g.slug
                 ? "bg-brand-600 text-white"
                 : "bg-white border border-slate-200 text-slate-700"
             }`}
           >
-            {g.emoji} {g.name}
+            <GameChipLogo g={g} />
+            {g.name}
           </button>
         ))}
       </div>
@@ -80,8 +103,9 @@ export default function Products() {
       {/* Нархҳо */}
       {detail && (
         <div className="card overflow-hidden">
-          <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 font-semibold text-sm">
-            💎 {t("products")} — {detail.emoji} {detail.name}
+          <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 font-semibold text-sm inline-flex items-center gap-2">
+            <Ic icon={Gem} className="text-brand-600" />
+            {t("products")} — {detail.name}
           </div>
 
           {(detail.products ?? []).length === 0 ? (
@@ -133,11 +157,24 @@ function ProductRow({
 }: {
   product: Product;
   currency: string;
-  onChange: (patch: Record<string, unknown>) => void;
-  onDelete: () => void;
+  onChange: (patch: Record<string, unknown>) => void | Promise<void>;
+  onDelete: () => void | Promise<void>;
 }) {
   const [price, setPrice] = useState(String(p.price_tjs));
+  const [busy, setBusy] = useState<"save" | "del" | null>(null);
+  const { t } = useApp();
   const dirty = Number(price) !== Number(p.price_tjs);
+
+  /** Амал бо ҳолати busy → аз фиристодани дархости такрорӣ пешгирӣ мекунад */
+  const run = async (kind: "save" | "del", fn: () => void | Promise<void>) => {
+    if (busy) return;
+    setBusy(kind);
+    try {
+      await fn();
+    } finally {
+      setBusy(null);
+    }
+  };
 
   return (
     <div className="px-4 py-3 flex flex-wrap items-center gap-3">
@@ -158,14 +195,22 @@ function ProductRow({
 
       <div className="flex gap-1.5 ml-auto">
         <button
-          disabled={!dirty}
-          onClick={() => onChange({ price_tjs: Number(price) })}
+          disabled={!dirty || busy !== null}
+          onClick={() => void run("save", () => onChange({ price_tjs: Number(price) }))}
+          aria-label={t("save")}
+          title={t("save")}
           className="btn-primary text-xs px-3 py-1.5"
         >
-          💾
+          <Ic icon={Save} size="xs" />
         </button>
-        <button onClick={onDelete} className="btn-danger text-xs px-3 py-1.5">
-          🗑️
+        <button
+          disabled={busy !== null}
+          onClick={() => void run("del", onDelete)}
+          aria-label={t("delete")}
+          title={t("delete")}
+          className="btn-danger text-xs px-3 py-1.5"
+        >
+          <Ic icon={Trash2} size="xs" />
         </button>
       </div>
     </div>
@@ -218,7 +263,10 @@ function AddProduct({
 
   return (
     <form onSubmit={submit} className="card p-4">
-      <div className="font-semibold text-sm mb-3">➕ {t("add")}</div>
+      <div className="font-semibold text-sm mb-3 inline-flex items-center gap-2">
+        <Ic icon={Plus} className="text-brand-600" />
+        {t("add")}
+      </div>
 
       {err && (
         <div className="mb-3 rounded-xl bg-rose-50 border border-rose-200 px-3 py-2 text-xs text-rose-700">
@@ -259,7 +307,16 @@ function AddProduct({
       </div>
 
       <button type="submit" disabled={busy} className="btn-primary mt-3 text-sm">
-        {busy ? t("loading") : `➕ ${t("add")}`}
+        {busy ? (
+          <>
+            <Ic icon={Loader2} className="animate-spin" /> {t("loading")}
+          </>
+        ) : (
+          <>
+            <Ic icon={Plus} />
+            {t("add")}
+          </>
+        )}
       </button>
     </form>
   );

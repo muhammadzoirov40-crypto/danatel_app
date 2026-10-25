@@ -1,8 +1,18 @@
 import { useCallback, useEffect, useState } from "react";
+import {
+  CircleCheck,
+  CircleX,
+  Ban,
+  Gamepad2,
+  Inbox,
+  Layers,
+  ReceiptText,
+} from "lucide-react";
 import { api } from "../../api/client";
 import type { Order, OrderStatus } from "../../types";
 import { STATUS_META } from "../../types";
 import { useApp } from "../../context/AppContext";
+import { Ic } from "../../components/Icons";
 
 const FILTERS: (OrderStatus | "all")[] = [
   "all",
@@ -65,8 +75,17 @@ export default function Orders() {
                 : "bg-white border border-slate-200 text-slate-700"
             }`}
           >
-            {f === "all" ? "🌐 " + t("orders") : STATUS_META[f as OrderStatus].label}{" "}
-            {f === "all" ? "" : t(STATUS_META[f as OrderStatus].key ?? "status")}
+            {f === "all" ? (
+              <>
+                <Ic icon={Layers} />
+                {t("orders")}
+              </>
+            ) : (
+              <>
+                <Ic icon={STATUS_META[f as OrderStatus].icon} />
+                {t(STATUS_META[f as OrderStatus].key ?? "status")}
+              </>
+            )}
           </button>
         ))}
       </div>
@@ -82,7 +101,9 @@ export default function Orders() {
         </div>
       ) : orders.length === 0 ? (
         <div className="card p-10 text-center text-slate-500">
-          <div className="text-3xl mb-2">📭</div>
+          <div className="flex justify-center mb-2 text-slate-300">
+            <Ic icon={Inbox} size="xl" />
+          </div>
           {t("noOrders")}
         </div>
       ) : (
@@ -98,7 +119,12 @@ export default function Orders() {
                   <th className="text-left px-4 py-3">Player ID</th>
                   <th className="text-right px-4 py-3">{t("amount")}</th>
                   <th className="text-left px-4 py-3">{t("status")}</th>
-                  <th className="text-left px-4 py-3">🧾 {t("receiptPhoto")}</th>
+                  <th className="text-left px-4 py-3">
+                    <span className="inline-flex items-center gap-1.5">
+                      <Ic icon={ReceiptText} size="xs" />
+                      {t("receiptPhoto")}
+                    </span>
+                  </th>
                   <th className="text-right px-4 py-3">{t("actions")}</th>
                 </tr>
               </thead>
@@ -114,7 +140,8 @@ export default function Orders() {
                     </td>
                     <td className="px-4 py-3">
                       <span className={`badge ${STATUS_META[o.status].cls}`}>
-                        {STATUS_META[o.status].label} {t(STATUS_META[o.status].key ?? "status")}
+                        <Ic icon={STATUS_META[o.status].icon} size="xs" strokeWidth={2.25} />
+                        {t(STATUS_META[o.status].key ?? "status")}
                       </span>
                     </td>
                     <td className="px-4 py-3">
@@ -136,7 +163,8 @@ export default function Orders() {
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-mono font-bold">#{o.id}</span>
                   <span className={`badge ${STATUS_META[o.status].cls}`}>
-                    {STATUS_META[o.status].label} {t(STATUS_META[o.status].key ?? "status")}
+                    <Ic icon={STATUS_META[o.status].icon} size="xs" strokeWidth={2.25} />
+                    {t(STATUS_META[o.status].key ?? "status")}
                   </span>
                 </div>
                 <div className="text-sm text-slate-600 space-y-1">
@@ -190,9 +218,10 @@ function ReceiptCell({ order, t }: { order: Order; t: (k: string) => string }) {
         <button
           type="button"
           onClick={() => void open()}
-          className="inline-block text-brand-600 hover:text-brand-700 text-xs font-semibold underline"
+          className="inline-flex items-center gap-1.5 text-brand-600 hover:text-brand-700 text-xs font-semibold underline"
         >
-          🧾 {t("receiptPhoto")}
+          <Ic icon={ReceiptText} size="xs" />
+          {t("receiptPhoto")}
         </button>
       )}
       {err && <div className="text-[11px] text-rose-600">{err}</div>}
@@ -224,14 +253,16 @@ function RowActions({
             onClick={() => onSet(order.id, "paid")}
             className="btn bg-emerald-600 text-white text-xs px-3 py-1.5 hover:bg-emerald-700"
           >
-            ✅ {t("approve")}
+            <Ic icon={CircleCheck} size="xs" />
+            {t("approve")}
           </button>
           <button
             disabled={busy}
             onClick={() => onSet(order.id, "cancelled")}
             className="btn-danger text-xs px-3 py-1.5"
           >
-            🚫 {t("reject")}
+            <Ic icon={Ban} size="xs" />
+            {t("reject")}
           </button>
         </>
       )}
@@ -242,16 +273,19 @@ function RowActions({
           onClick={() => onSet(order.id, "delivered")}
           className="btn bg-sky-600 text-white text-xs px-3 py-1.5 hover:bg-sky-700"
         >
-          🎮 {t("markDelivered")}
+          <Ic icon={Gamepad2} size="xs" />
+          {t("markDelivered")}
         </button>
       )}
       {order.status === "pending" && (
         <button
           disabled={busy}
           onClick={() => onSet(order.id, "failed")}
+          aria-label={t("failed")}
+          title={t("failed")}
           className="btn-danger text-xs px-3 py-1.5"
         >
-          ❌
+          <Ic icon={CircleX} size="xs" />
         </button>
       )}
     </div>

@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { ArrowRight, Gamepad2 } from "lucide-react";
 import type { Game } from "../types";
 import { useApp } from "../context/AppContext";
+import { Ic } from "./Icons";
 
 /**
  * 🎠 Баннери промо — мисли persshop.com:
@@ -94,7 +96,8 @@ export default function PromoCarousel({ games }: { games: Game[] }) {
                          backdrop-blur px-3 py-1 text-[11px] font-extrabold uppercase
                          tracking-wide ring-1 ring-white/20"
             >
-              ✦ {g.name}
+              <Ic icon={Gamepad2} size="xs" className="opacity-80" />
+              {g.name}
             </span>
 
             {/* Рақами калон — нархи аз */}
@@ -127,7 +130,8 @@ export default function PromoCarousel({ games }: { games: Game[] }) {
                          px-4 py-2 sm:px-5 sm:py-2 text-xs sm:text-sm font-bold text-slate-900
                          shadow-md hover:bg-slate-50 transition"
             >
-              {t("pay")} →
+              <Ic icon={ArrowRight} size="xs" strokeWidth={2.5} />
+              {t("pay")}
             </span>
           </div>
         </Link>

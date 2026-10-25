@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { PackageSearch, X } from "lucide-react";
 import { useApp } from "../context/AppContext";
+import { Ic } from "./Icons";
 
 interface Props {
   open: boolean;
@@ -8,10 +10,20 @@ interface Props {
 }
 
 export default function OrderSearchModal({ open, onClose }: Props) {
-  const { lang } = useApp();
+  const { lang, t } = useApp();
   const nav = useNavigate();
   const [orderId, setOrderId] = useState("");
   const [err, setErr] = useState("");
+
+  // Пӯшидани модал бо калиди Escape (дастрасӣ барои клавиатура)
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
 
   if (!open) return null;
 
@@ -35,15 +47,15 @@ export default function OrderSearchModal({ open, onClose }: Props) {
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 grid place-items-center w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition"
-          aria-label="Пӯшидан"
+          aria-label={t("close")}
+          className="absolute top-4 right-4 grid place-items-center w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
         >
-          ✕
+          <Ic icon={X} />
         </button>
 
         <div className="flex items-center gap-3 mb-4">
-          <div className="grid place-items-center w-11 h-11 rounded-2xl bg-amber-50 text-amber-600 ring-1 ring-amber-100 text-xl">
-            🛒
+          <div className="grid place-items-center w-11 h-11 rounded-2xl bg-amber-50 text-amber-600 ring-1 ring-amber-100">
+            <Ic icon={PackageSearch} size="lg" />
           </div>
           <div>
             <h2 className="text-base font-black text-slate-900">

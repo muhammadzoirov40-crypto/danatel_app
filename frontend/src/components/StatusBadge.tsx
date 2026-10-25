@@ -1,24 +1,19 @@
 import type { OrderStatus } from "../types";
+import { STATUS_META } from "../types";
 import { useApp } from "../context/AppContext";
+import { Ic } from "./Icons";
 
-const MAP: Record<OrderStatus, { key: string; cls: string; icon: string }> = {
-  pending: { key: "waitingPayment", cls: "bg-amber-100 text-amber-800", icon: "⏳" },
-  checking: { key: "checkingReceipt", cls: "bg-indigo-100 text-indigo-800", icon: "🧾" },
-  paid: { key: "paid", cls: "bg-emerald-100 text-emerald-800", icon: "✅" },
-  delivered: { key: "delivered", cls: "bg-sky-100 text-sky-800", icon: "🎮" },
-  failed: { key: "failed", cls: "bg-rose-100 text-rose-800", icon: "❌" },
-  refunded: { key: "refunded", cls: "bg-slate-100 text-slate-700", icon: "💰" },
-  cancelled: { key: "cancelled", cls: "bg-slate-100 text-slate-600", icon: "🚫" },
-};
-
-/** Бейҷи статуси фармоиш */
+/**
+ * Бейҷи статуси фармоиш — иконкаи Lucide + матни тарҷума.
+ * Ранг/иконка аз ягонаи манбаи `STATUS_META` меояд (на emoji, на дубликат).
+ */
 export default function StatusBadge({ status }: { status: OrderStatus }) {
   const { t } = useApp();
-  const meta = MAP[status] ?? MAP.pending;
+  const meta = STATUS_META[status] ?? STATUS_META.pending;
 
   return (
     <span className={`badge ${meta.cls}`}>
-      <span>{meta.icon}</span>
+      <Ic icon={meta.icon} size="xs" strokeWidth={2.25} />
       {t(meta.key)}
     </span>
   );

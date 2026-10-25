@@ -1,8 +1,20 @@
 import { useEffect, useRef, useState } from "react";
+import {
+  Check,
+  CircleCheck,
+  CreditCard,
+  Flame,
+  Loader2,
+  Lock,
+  Search,
+  TriangleAlert,
+  Wallet,
+} from "lucide-react";
 import type { Game, Product, PlayerLookupResponse } from "../types";
 import { api, ApiError } from "../api/client";
 import { useApp } from "../context/AppContext";
 import BankPicker from "./BankPicker";
+import { Ic } from "./Icons";
 
 interface Props {
   game: Game;
@@ -183,9 +195,12 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                          transition flex items-center gap-1.5"
             >
               {nickLoading ? (
-                <span className="animate-pulse">🔍</span>
+                <Ic icon={Loader2} className="animate-spin" />
               ) : (
-                <>🔍 {t("check")}</>
+                <>
+                  <Ic icon={Search} />
+                  {t("check")}
+                </>
               )}
             </button>
           </div>
@@ -193,7 +208,9 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
           {/* Натиҷаи логини ник */}
           {nickLookup?.found && nickLookup.nickname && (
             <div className="mt-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 px-3.5 py-2.5 rounded-2xl flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center text-xs">✅</span>
+              <span className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center">
+                <Ic icon={CircleCheck} size="xs" className="text-emerald-600" />
+              </span>
               <span className="font-mono font-semibold">{nickLookup.nickname}</span>
               {nickLookup.region && (
                 <span className="text-emerald-500 text-xs">({nickLookup.region})</span>
@@ -206,10 +223,9 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
             const cls = ok
               ? "text-emerald-700 bg-emerald-50 border-emerald-200"
               : "text-amber-700 bg-amber-50 border-amber-200";
-            const icon = ok ? "✅" : "⚠️";
             return (
               <div className={`mt-2 text-sm border px-3.5 py-2.5 rounded-2xl flex items-center gap-2 ${cls}`}>
-                <span>{icon}</span>
+                <Ic icon={ok ? CircleCheck : TriangleAlert} />
                 <span>{nickLookup.message || t("nicknameNotFound")}</span>
               </div>
             );
@@ -228,6 +244,7 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
               <button
                 key={p.id}
                 onClick={() => setSelected(p)}
+                aria-pressed={active}
                 className={`relative rounded-2xl border-2 p-3 sm:p-3.5 text-left transition-all
                   ${
                     active
@@ -237,7 +254,8 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
               >
                 {p.is_popular && (
                   <span className="absolute -top-2.5 right-2 badge bg-rose-500 text-white shadow">
-                    🔥 {t("popular")}
+                    <Ic icon={Flame} size="xs" className="fill-current" />
+                    {t("popular")}
                   </span>
                 )}
                 <div
@@ -258,8 +276,8 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                   </span>
                 </div>
                 {active && (
-                  <span className="absolute -top-2 -left-2 w-6 h-6 rounded-full bg-brand-600 text-white text-xs flex items-center justify-center shadow">
-                    ✓
+                  <span className="absolute -top-2 -left-2 w-6 h-6 rounded-full bg-brand-600 text-white flex items-center justify-center shadow">
+                    <Ic icon={Check} size="xs" strokeWidth={3} />
                   </span>
                 )}
               </button>
@@ -276,6 +294,7 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
           {/* DC Wallet */}
           <button
             onClick={() => setMethod("dc")}
+            aria-pressed={method === "dc"}
             className={`rounded-2xl border-2 p-3.5 text-left transition
               ${
                 method === "dc"
@@ -283,13 +302,17 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                   : "border-slate-200 bg-white hover:border-slate-300"
               }`}
           >
-            <div className="font-semibold text-sm">💳 {t("dcPayment")}</div>
+            <div className="font-semibold text-sm inline-flex items-center gap-2">
+              <Ic icon={CreditCard} className="text-brand-600" />
+              {t("dcPayment")}
+            </div>
             <div className="text-xs text-slate-500 mt-0.5">{t("payWithDC")}</div>
           </button>
 
           {/* Баланс */}
           <button
             onClick={() => setMethod("balance")}
+            aria-pressed={method === "balance"}
             className={`rounded-2xl border-2 p-3.5 text-left transition
               ${
                 method === "balance"
@@ -297,7 +320,10 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                   : "border-slate-200 bg-white hover:border-slate-300"
               }`}
           >
-            <div className="font-semibold text-sm">💰 {t("balancePayment")}</div>
+            <div className="font-semibold text-sm inline-flex items-center gap-2">
+              <Ic icon={Wallet} className="text-emerald-600" />
+              {t("balancePayment")}
+            </div>
             <div className="text-xs text-slate-500 mt-0.5">
               {user ? (
                 <>
@@ -315,15 +341,22 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
 
         {/* Огоҳиномаи баланс */}
         {method === "balance" && user && price > 0 && !canUseBalance && (
-          <div className="mb-4 rounded-2xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
-            ⚠️ {t("insufficientBalance")} — {t("currentBalance")}: {balance.toLocaleString("tj-TJ")} /{" "}
-            {t("total")}: {price.toLocaleString("tj-TJ")} {t("currency")}
+          <div className="mb-4 rounded-2xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800 flex items-start gap-2">
+            <Ic icon={TriangleAlert} className="text-amber-500 mt-0.5" />
+            <span>
+              {t("insufficientBalance")} — {t("currentBalance")}: {balance.toLocaleString("tj-TJ")} /{" "}
+              {t("total")}: {price.toLocaleString("tj-TJ")} {t("currency")}
+            </span>
           </div>
         )}
 
         {error && (
-          <div className="mb-4 rounded-2xl bg-rose-50 border border-rose-200 px-4 py-3 text-sm text-rose-700">
-            {error}
+          <div
+            role="alert"
+            className="mb-4 rounded-2xl bg-rose-50 border border-rose-200 px-4 py-3 text-sm text-rose-700 flex items-start gap-2"
+          >
+            <Ic icon={TriangleAlert} className="text-rose-500 mt-0.5" />
+            <span>{error}</span>
           </div>
         )}
 
@@ -334,17 +367,24 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
         >
           {loading ? (
             <>
-              <span className="animate-spin">⏳</span> {t("loading")}
+              <Ic icon={Loader2} className="animate-spin" /> {t("loading")}
             </>
           ) : method === "balance" ? (
-            <>💰 {t("payFromBalance")}</>
+            <>
+              <Ic icon={Wallet} />
+              {t("payFromBalance")}
+            </>
           ) : (
-            <>💳 {t("pay")} {price > 0 ? `— ${price.toLocaleString("tj-TJ")} ${t("currency")}` : ""}</>
+            <>
+              <Ic icon={CreditCard} />
+              {t("pay")} {price > 0 ? `— ${price.toLocaleString("tj-TJ")} ${t("currency")}` : ""}
+            </>
           )}
         </button>
 
-        <p className="mt-3 text-xs text-slate-500 text-center leading-relaxed">
-          🔒 {t("secureNote")}
+        <p className="mt-3 text-xs text-slate-500 text-center leading-relaxed inline-flex items-center justify-center gap-1.5 flex-wrap">
+          <Ic icon={Lock} size="xs" className="text-slate-400" />
+          {t("secureNote")}
         </p>
       </div>
 

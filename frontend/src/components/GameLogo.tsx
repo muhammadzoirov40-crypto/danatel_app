@@ -1,5 +1,12 @@
 import { useState } from "react";
+import { Gamepad2 } from "lucide-react";
 import type { Game } from "../types";
+import { Ic } from "./Icons";
+
+/** Фолбэк: агар расм нобурд → иконкаи касбии бозӣ (на emoji) */
+function GamepadFallback() {
+  return <Ic icon={Gamepad2} size="xl" strokeWidth={1.75} className="text-white/70" />;
+}
 
 interface Props {
   game: Game;
@@ -41,9 +48,7 @@ export default function GameLogo({ game, size = "card" }: Props) {
           className="w-full h-full object-cover"
         />
       ) : (
-        <span className="text-4xl" aria-hidden>
-          🎮
-        </span>
+        <GamepadFallback />
       )}
     </div>
   );

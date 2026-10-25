@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
+import { Phone, Send } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import type { Game } from "../types";
+import { Ic } from "./Icons";
 
 /** 📝 Блоки SEO-и поёни саҳифа — мисли persshop.
  *  Танҳо маълумоти воқеӣ: бозиҳо аз API, пардохти воқеӣ, тамоси воқеӣ. */
@@ -103,13 +105,15 @@ export default function SeoBlock({ games }: { games: Game[] }) {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 rounded-full bg-sky-50 ring-1 ring-sky-200 px-4 py-2 text-xs sm:text-sm font-bold text-sky-700 hover:bg-sky-100 transition"
             >
-              ✈️ {t("seoTgLabel")}
+              <Ic icon={Send} />
+              {t("seoTgLabel")}
             </a>
             <a
               href="tel:+992002119831"
               className="inline-flex items-center gap-2 rounded-full bg-emerald-50 ring-1 ring-emerald-200 px-4 py-2 text-xs sm:text-sm font-bold text-emerald-700 hover:bg-emerald-100 transition"
             >
-              📞 +992 002119831
+              <Ic icon={Phone} />
+              +992 002119831
             </a>
           </div>
         </div>

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Check, ChevronDown, LayoutGrid, LogOut, Menu, Package, Settings, User } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { LANGS } from "../i18n";
-import { CatalogIcon, GoldCoin, OrdersIcon, TajikFlag } from "./Icons";
+import { GoldCoin, Ic, TajikFlag } from "./Icons";
 import Logo from "./Logo";
 
 /**
@@ -14,23 +15,31 @@ export default function Navbar() {
   const { lang, setLang, t, user, balance, isAdmin, logout } = useApp();
   const nav = useNavigate();
   const [langOpen, setLangOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const langRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const cur = LANGS.find((l) => l.code === lang) ?? LANGS[0];
 
-  // Пӯшидани рӯйхати забон ҳангами клик берун
+  // Пӯшидани рӯйхатҳо ҳангами клик берун ё калиди Escape
   useEffect(() => {
-    if (!langOpen) return;
+    if (!langOpen && !menuOpen) return;
     const onDown = (e: MouseEvent) => {
-      if (!langRef.current?.contains(e.target as Node)) setLangOpen(false);
+      if (langRef.current && !langRef.current.contains(e.target as Node)) setLangOpen(false);
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
     };
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setLangOpen(false);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setLangOpen(false);
+        setMenuOpen(false);
+      }
+    };
     document.addEventListener("mousedown", onDown);
     document.addEventListener("keydown", onKey);
     return () => {
       document.removeEventListener("mousedown", onDown);
       document.removeEventListener("keydown", onKey);
     };
-  }, [langOpen]);
+  }, [langOpen, menuOpen]);
 
   const onLogout = () => {
     logout();
@@ -38,8 +47,9 @@ export default function Navbar() {
   };
 
   const linkCls =
-    "rounded-xl px-3 py-2 text-sm font-semibold text-white/85 hover:text-white " +
-    "hover:bg-white/12 transition";
+    "inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold " +
+    "text-white/85 hover:text-white hover:bg-white/12 transition focus-visible:outline-none " +
+    "focus-visible:ring-2 focus-visible:ring-white/70";
 
   return (
     <header className="sticky top-0 z-40 nav-blue text-white">
@@ -57,16 +67,17 @@ export default function Navbar() {
         {/* 🔗 Пайвандҳо (десктоп) */}
         <nav className="hidden md:flex items-center gap-1 ml-2">
           <Link to="/" className={linkCls}>
-            <CatalogIcon className="w-4 h-4 opacity-90 inline-block mr-1" />
+            <Ic icon={LayoutGrid} className="opacity-90" />
             <span>{t("navCatalog")}</span>
           </Link>
           <Link to={user ? "/profile" : "/login"} className={linkCls}>
-            <OrdersIcon className="w-4 h-4 opacity-90 inline-block mr-1" />
+            <Ic icon={Package} className="opacity-90" />
             <span>{t("navOrders")}</span>
           </Link>
           {isAdmin && (
             <Link to="/admin" className={linkCls}>
-              ⚙️ {t("adminPanel")}
+              <Ic icon={Settings} className="opacity-90" />
+              <span>{t("adminPanel")}</span>
             </Link>
           )}
         </nav>
@@ -78,8 +89,10 @@ export default function Navbar() {
           <button
             onClick={() => setLangOpen((v) => !v)}
             className="flex items-center gap-1.5 rounded-full bg-white/15 ring-1 ring-white/25
-                       px-3 py-1.5 text-xs sm:text-sm font-bold hover:bg-white/25 transition"
+                       px-3 py-1.5 text-xs sm:text-sm font-bold hover:bg-white/25 transition
+                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
             title={t("language")}
+            aria-label={t("language")}
             aria-haspopup="listbox"
             aria-expanded={langOpen}
           >
@@ -89,7 +102,11 @@ export default function Navbar() {
               <span>{cur.flag}</span>
             )}
             <span className="uppercase">{cur.code}</span>
-            <span className="text-[10px] opacity-70">▾</span>
+            <Ic
+              icon={ChevronDown}
+              size="xs"
+              className={`opacity-70 transition-transform ${langOpen ? "rotate-180" : ""}`}
+            />
           </button>
 
           {langOpen && (
@@ -120,7 +137,9 @@ export default function Navbar() {
                     <span>{l.flag}</span>
                   )}
                   <span>{l.label}</span>
-                  {lang === l.code && <span className="ml-auto">✓</span>}
+                  {lang === l.code && (
+                    <Ic icon={Check} size="xs" className="ml-auto text-brand-600" />
+                  )}
                 </button>
               ))}
             </div>
@@ -138,27 +157,88 @@ export default function Navbar() {
           <span>{user ? Number(balance || 0).toLocaleString("tj-TJ") : "0"}</span>
         </Link>
 
-        {/* 👤 Профил */}
+        {/* 👤 Профил / Вуруд */}
         <Link
           to={user ? "/profile" : "/login"}
+          aria-label={user ? t("profile") : t("login")}
           className="grid place-items-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/20 ring-1 ring-white/30
-                     text-xs sm:text-sm font-bold hover:bg-white/30 transition shrink-0"
+                     text-xs sm:text-sm font-bold hover:bg-white/30 transition active:scale-95 shrink-0
+                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
           title={user ? t("profile") : t("login")}
         >
-          {isAdmin ? "⚙" : "👤"}
+          <Ic icon={isAdmin ? Settings : User} size="md" />
         </Link>
 
-        {/* ☰ Меню (ҳамбиргар) */}
-        <Link
-          to="/"
-          className="grid place-items-center w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/15 ring-1 ring-white/25
-                     text-sm font-bold hover:bg-white/25 transition shrink-0"
-          title="Меню"
-        >
-          <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M3 5h14a1 1 0 010 2H3a1 1 0 010-2zm0 4h14a1 1 0 010 2H3a1 1 0 010-2zm0 4h14a1 1 0 010 2H3a1 1 0 010-2z" clipRule="evenodd" />
-          </svg>
-        </Link>
+        {/* ☰ Меню — рӯйхати воқеии амалҳо (профил / админ / баромад) */}
+        <div className="relative" ref={menuRef}>
+          <button
+            type="button"
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label={t("menu")}
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
+            title={t("menu")}
+            className="grid place-items-center w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/15 ring-1 ring-white/25
+                       text-sm font-bold hover:bg-white/25 transition active:scale-95 shrink-0
+                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+          >
+            <Ic icon={Menu} size="md" className={`transition-transform ${menuOpen ? "rotate-90" : ""}`} />
+          </button>
+
+          {menuOpen && (
+            <div
+              role="menu"
+              className="absolute right-0 mt-2 w-56 rounded-2xl bg-white text-slate-800
+                         border border-slate-200 shadow-xl overflow-hidden p-1 z-50"
+            >
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setMenuOpen(false);
+                  nav(user ? "/profile" : "/login");
+                }}
+                className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium
+                           hover:bg-slate-50 transition text-left"
+              >
+                <Ic icon={User} className="text-slate-400" />
+                {user ? t("profile") : t("login")}
+              </button>
+
+              {isAdmin && (
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    nav("/admin");
+                  }}
+                  className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium
+                             hover:bg-slate-50 transition text-left"
+                >
+                  <Ic icon={Settings} className="text-slate-400" />
+                  {t("adminPanel")}
+                </button>
+              )}
+
+              <div className="h-px bg-slate-100 my-1" />
+
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setMenuOpen(false);
+                  onLogout();
+                }}
+                className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold
+                           text-rose-600 hover:bg-rose-50 transition text-left"
+              >
+                <Ic icon={LogOut} />
+                {t("logout")}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

@@ -41,7 +41,9 @@ body {
   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5
            font-semibold transition active:scale-[0.98] disabled:opacity-50
-           disabled:pointer-events-none;
+           disabled:pointer-events-none
+           focus-visible:outline-none focus-visible:ring-2
+           focus-visible:ring-brand-500 focus-visible:ring-offset-1;
   }
   .btn-primary {
     @apply btn bg-brand-600 text-white hover:bg-brand-700 shadow-sm;
@@ -71,6 +73,15 @@ body {
     @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5
            text-xs font-semibold;
   }
+}
+
+/* ============ ⌨️ ДАСТРАСӢ БАРОИ КЛАВИАТУРА ============ */
+/* Ҳалқаи равшан ҳангами Tab барои ҳамаи тугмаҳо ва пайвандҳое,
+   ки ҳалқаи худро надоранд (`.btn` аллакай ring-и худро дорад —
+   `:not([class*="focus-visible"])` аз дубораи ду доира пешгирӣ мекунад). */
+:where(a, button, [role="menuitem"], [role="tab"], [role="option"]):focus-visible:not([class*="focus-visible"]) {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
 }
 
 /* ============ 🎨 ЗАМИНАИ ЯГОНАИ САЙТ (мисли расми намунавӣ) ============ */

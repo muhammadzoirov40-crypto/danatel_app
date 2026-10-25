@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, Frown, Gem, Zap } from "lucide-react";
 import { api } from "../api/client";
 import type { Game, Product } from "../types";
 import OrderForm from "../components/OrderForm";
 import GameLogo from "../components/GameLogo";
 import { useApp } from "../context/AppContext";
+import { Ic } from "../components/Icons";
 
 /** Рангҳои баннер барои ҳар бозӣ (мисли PromoCarousel) */
 const THEMES: Record<string, { bg: string; art?: string }> = {
@@ -88,7 +90,9 @@ export default function GameDetail() {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16 text-center">
         <div className="card p-6">
-          <div className="text-5xl mb-3">😕</div>
+          <div className="flex justify-center mb-3 text-slate-300">
+            <Ic icon={Frown} size="2xl" strokeWidth={1.75} />
+          </div>
           <p className="text-slate-600 mb-6">{error || t("notFound")}</p>
           <Link to="/" className="btn-primary">
             {t("goHome")}
@@ -102,7 +106,8 @@ export default function GameDetail() {
     <div className="mx-auto max-w-6xl px-3 sm:px-4 py-5 sm:py-8">
       {/* Кнопкаи бозгашт */}
       <button onClick={() => nav(-1)} className="btn-ghost text-sm mb-4">
-        ← {t("back")}
+        <Ic icon={ArrowLeft} />
+        {t("back")}
       </button>
 
       {/* ============ САРПӯШИ БОЗӢ (COVER) — мисли persshop ============ */}
@@ -144,8 +149,9 @@ export default function GameDetail() {
             <GameLogo game={game} size="hero" />
           </div>
           <div className="min-w-0">
-            <span className="inline-block text-[10px] sm:text-xs font-semibold uppercase tracking-wider bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full mb-2">
-              💎 {t("topup")}
+            <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-semibold uppercase tracking-wider bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full mb-2">
+              <Ic icon={Gem} size="xs" />
+              {t("topup")}
             </span>
             <h1 className="text-2xl sm:text-4xl font-extrabold leading-tight drop-shadow-sm">
               {game.name}
@@ -166,8 +172,9 @@ export default function GameDetail() {
                   {products.length} {t("statProducts")}
                 </span>
               )}
-              <span className="text-xs sm:text-sm bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full">
-                ⚡ {t("trustFast")}
+              <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full">
+                <Ic icon={Zap} size="xs" />
+                {t("trustFast")}
               </span>
             </div>
           </div>

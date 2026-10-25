@@ -1,7 +1,36 @@
 import { useEffect, useState } from "react";
+import {
+  CircleCheck,
+  CircleX,
+  Clock,
+  Package,
+  Star,
+  Trash2,
+} from "lucide-react";
 import { api } from "../../api/client";
 import { useApp } from "../../context/AppContext";
 import type { AdminReviewList } from "../../types";
+import { Ic } from "../../components/Icons";
+
+/** Рейтинги 5-ситорагӣ бо иконкаҳои касбӣ */
+function Stars({ value }: { value: number }) {
+  return (
+    <span
+      className="inline-flex items-center gap-0.5"
+      role="img"
+      aria-label={`${value}/5`}
+    >
+      {[1, 2, 3, 4, 5].map((i) => (
+        <Ic
+          key={i}
+          icon={Star}
+          size="xs"
+          className={i <= value ? "text-amber-400 fill-current" : "text-slate-300"}
+        />
+      ))}
+    </span>
+  );
+}
 
 /** 🛡️ Санҷиши отзывҳо — админ тасдиқ / рад / нест мекунад */
 export default function Reviews() {
@@ -41,17 +70,23 @@ export default function Reviews() {
 
   return (
     <div className="space-y-5">
-      {/* 📊 Омор */}
+      {/* Омор */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <div className="card p-4 text-center">
           <div className="text-2xl font-black text-amber-500">
             {data.rating_avg || "—"}
           </div>
-          <div className="text-xs text-slate-500">⭐ {t("rating")}</div>
+          <div className="text-xs text-slate-500 inline-flex items-center justify-center gap-1.5">
+            <Ic icon={Star} size="xs" className="text-amber-400 fill-current" />
+            {t("rating")}
+          </div>
         </div>
         <div className="card p-4 text-center">
           <div className="text-2xl font-black">{data.reviews_total}</div>
-          <div className="text-xs text-slate-500">✅ {t("approved")}</div>
+          <div className="text-xs text-slate-500 inline-flex items-center justify-center gap-1.5">
+            <Ic icon={CircleCheck} size="xs" />
+            {t("approved")}
+          </div>
         </div>
         <div className="card p-4 text-center">
           <div
@@ -59,13 +94,19 @@ export default function Reviews() {
           >
             {data.pending}
           </div>
-          <div className="text-xs text-slate-500">⏳ {t("pendingReview")}</div>
+          <div className="text-xs text-slate-500 inline-flex items-center justify-center gap-1.5">
+            <Ic icon={Clock} size="xs" />
+            {t("pendingReview")}
+          </div>
         </div>
       </div>
 
-      {/* ⏳ Дар интизори тасдиқ */}
+      {/* Дар интизори тасдиқ */}
       <section>
-        <h3 className="font-bold mb-2">⏳ {t("pendingReview")}</h3>
+        <h3 className="font-bold mb-2 inline-flex items-center gap-2">
+          <Ic icon={Clock} className="text-amber-500" />
+          {t("pendingReview")}
+        </h3>
         {pending.length === 0 ? (
           <div className="card p-4 text-sm text-slate-500">{t("nothingPending")}</div>
         ) : (
@@ -85,9 +126,12 @@ export default function Reviews() {
         )}
       </section>
 
-      {/* ✅ Тасдиқшудаҳо */}
+      {/* Тасдиқшудаҳо */}
       <section>
-        <h3 className="font-bold mb-2">✅ {t("approved")}</h3>
+        <h3 className="font-bold mb-2 inline-flex items-center gap-2">
+          <Ic icon={CircleCheck} className="text-emerald-500" />
+          {t("approved")}
+        </h3>
         {approved.length === 0 ? (
           <div className="card p-4 text-sm text-slate-500">{t("nothingApproved")}</div>
         ) : (
@@ -131,14 +175,12 @@ function Row({
         <div className="min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-bold text-sm">{r.author_name}</span>
-            <span className="text-amber-400 text-xs">
-              {"★".repeat(r.rating)}
-              <span className="text-slate-300">{"★".repeat(5 - r.rating)}</span>
-            </span>
+            <Stars value={r.rating} />
             <span className="text-xs text-slate-400">#{r.id}</span>
             {r.order_id && (
-              <span className="text-xs text-slate-400">
-                📦 #{r.order_id}
+              <span className="text-xs text-slate-400 inline-flex items-center gap-1">
+                <Ic icon={Package} size="xs" />
+                #{r.order_id}
               </span>
             )}
           </div>
@@ -153,18 +195,25 @@ function Row({
         <div className="flex gap-2 shrink-0">
           {onApprove && (
             <button onClick={onApprove} disabled={busy} className="btn text-xs">
-              ✅ {t("approve")}
+              <Ic icon={CircleCheck} size="xs" />
+              {t("approve")}
             </button>
           )}
           <button onClick={onReject} disabled={busy} className="btn-ghost text-xs">
-            ❌ {t("reject")}
+            <Ic icon={CircleX} size="xs" />
+            {t("reject")}
           </button>
           <button
-            onClick={onDelete}
+            onClick={() => {
+              // Тасдиқи корбар пеш аз нест кардан (амали бебозгашт)
+              if (window.confirm(`${t("delete")}: #${r.id}?`)) onDelete();
+            }}
             disabled={busy}
+            aria-label={t("delete")}
+            title={t("delete")}
             className="btn-ghost text-xs text-rose-600"
           >
-            🗑
+            <Ic icon={Trash2} size="xs" />
           </button>
         </div>
       </div>
