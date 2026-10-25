@@ -31,6 +31,13 @@ export default function Customers() {
 
   if (total === 0) return null;
 
+  /** Ниқоби ном барои ҳимояи шахсий: «Муҳаммад» → «Муҳа•••д» */
+  function maskName(name: string): string {
+    if (name.length <= 4) return name;
+    const keep = name.length <= 8 ? 2 : 3;
+    return name.slice(0, keep) + "•••" + name.slice(-1);
+  }
+
   return (
     <section className="mt-10 sm:mt-12">
       <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
@@ -56,7 +63,7 @@ export default function Customers() {
             >
               {r.name.slice(0, 1).toUpperCase()}
             </span>
-            <span className="font-semibold text-slate-700">{r.name}</span>
+            <span className="font-semibold text-slate-700">{maskName(r.name)}</span>
             <span className="text-xs text-slate-400">
               · {r.delivered} {t("customersOrders")}
             </span>
