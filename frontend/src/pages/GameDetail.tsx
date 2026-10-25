@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Frown, Gem, Zap } from "lucide-react";
+import { ArrowLeft, Frown, Gem } from "lucide-react";
 import { api } from "../api/client";
 import type { Game, Product } from "../types";
 import OrderForm from "../components/OrderForm";
@@ -12,7 +12,8 @@ import { Ic } from "../components/Icons";
 /** Рангҳои баннер барои ҳар бозӣ (мисли PromoCarousel) */
 const THEMES: Record<string, { bg: string; art?: string }> = {
   "free-fire": {
-    bg: "linear-gradient(115deg,#7c2d12 0%,#c2410c 42%,#ea580c 72%,#f59e0b 100%)",
+    // 🔥 Сурх → норинҷӣ → зарди табангар (тарҳи нав; матни сафед бо скрим хонда мешавад)
+    bg: "linear-gradient(115deg,#b91c1c 0%,#ea580c 38%,#f59e0b 72%,#fbbf24 100%)",
     art: "/images/free-fire.webp",
   },
   "pubg-mobile": {
@@ -105,13 +106,8 @@ export default function GameDetail() {
 
   return (
     <div className="mx-auto max-w-6xl px-3 sm:px-4 py-5 sm:py-8">
-      {/* Кнопкаи бозгашт */}
-      <button onClick={() => nav(-1)} className="btn-ghost text-sm mb-4">
-        <Ic icon={ArrowLeft} />
-        {t("back")}
-      </button>
-
-      {/* ============ САРПӯШИ БОЗӢ (COVER) — мисли persshop ============ */}
+      {/* ============ САРПӯШИ БОЗӢ (COVER) ============
+          Тугмаи «Бозгашт» акнун ДАР ДОХИЛИ баннер (торуши) — мисли тарҳи нав */}
       <div
         className="relative rounded-3xl overflow-hidden shadow-[0_22px_50px_-25px_rgba(37,99,235,0.7)] mb-5"
         style={{ background: bg }}
@@ -144,6 +140,26 @@ export default function GameDetail() {
           }}
         />
 
+        {/* 🌑 Скрими тира аз чап — матни сафед бояд WCAG AA хонда шавад */}
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/25 to-transparent pointer-events-none"
+        />
+
+        {/* ⬅️ Тугмаи бозгашт — дар боло-рост, шишаӣ */}
+        <button
+          type="button"
+          onClick={() => nav(-1)}
+          className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 inline-flex items-center gap-1.5
+                     rounded-full bg-white/20 hover:bg-white/35 border border-white/35
+                     text-white text-xs sm:text-sm font-semibold px-3.5 py-2 backdrop-blur-md
+                     transition active:scale-95 focus-visible:outline-none focus-visible:ring-2
+                     focus-visible:ring-white"
+        >
+          <Ic icon={ArrowLeft} size="xs" />
+          {t("back")}
+        </button>
+
         {/* Мазмуни сарпӯш */}
         <div className="relative flex items-center gap-4 sm:gap-6 p-5 sm:p-8 text-white">
           <div className="shrink-0">
@@ -173,10 +189,8 @@ export default function GameDetail() {
                   {products.length} {t("statProducts")}
                 </span>
               )}
-              <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full">
-                <Ic icon={Zap} size="xs" />
-                {t("trustFast")}
-              </span>
+              {/* ⚠️ Чипи «Дар сонияҳо» (даъвои суръат) бароварда шуд —
+                  танҳо маълумоти воқеӣ: нархи аз + шумораи бастаҳо */}
             </div>
           </div>
         </div>

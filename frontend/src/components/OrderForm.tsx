@@ -152,10 +152,14 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
     setShowBank(true);
   };
 
-  /** Сарлавҳаи бахш — мисли persshop (рақам + унвон) */
+  /** Сарлавҳаи бахш — рақам + унвон (глассморфизм) */
   const SectionHead = ({ n, title, hint }: { n: number; title: string; hint?: string }) => (
     <div className="flex items-center gap-3 mb-4">
-      <span className="w-7 h-7 shrink-0 rounded-full bg-brand-600 text-white text-sm font-bold flex items-center justify-center shadow-sm">
+      <span
+        className="w-8 h-8 shrink-0 rounded-full bg-gradient-to-br from-brand-500 to-brand-700
+                   text-white text-sm font-bold flex items-center justify-center
+                   shadow-[0_8px_18px_-8px_rgba(37,99,235,0.95)]"
+      >
         {n}
       </span>
       <div className="min-w-0">
@@ -167,7 +171,7 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
 
   return (
     <>
-      <div className="card p-4 sm:p-6 rounded-3xl">
+      <div className="glass rounded-3xl p-4 sm:p-6">
         {/* ============ 1. ДАННЫЕ АККАУНТА ============ */}
         <SectionHead n={1} title={t("accountData")} hint={t("accountDataHint")} />
 
@@ -237,7 +241,8 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
         {/* ============ 2. ВЫБЕРИТЕ НОМИНАЛ ============ */}
         <SectionHead n={2} title={t("chooseAmount")} hint={t("chooseAmountHint")} />
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 mb-6">
+        {/* Сеткаи бастаҳо: 2 (мобилӣ) → 3 (планшет) → 4 (компютер) */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 mb-6">
           {products.map((p) => {
             const active = selected?.id === p.id;
             return (
@@ -249,7 +254,7 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                   ${
                     active
                       ? "border-brand-600 bg-brand-50 shadow-[0_8px_20px_-10px_rgba(37,99,235,0.7)] scale-[1.02]"
-                      : "border-slate-200 bg-white hover:border-brand-300 hover:shadow-sm"
+                      : "border-slate-200 bg-white hover:border-brand-300 hover:shadow-md hover:-translate-y-0.5"
                   }`}
               >
                 {p.is_popular && (
@@ -302,9 +307,18 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                   : "border-slate-200 bg-white hover:border-slate-300"
               }`}
           >
-            <div className="font-semibold text-sm inline-flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <Ic icon={CreditCard} className="text-brand-600" />
-              {t("dcPayment")}
+              <span className="font-semibold text-sm">{t("dcPayment")}</span>
+              {/* Радиои ороишӣ — ҳолати воқеӣ дар `aria-pressed`-и кнопка */}
+              <span
+                aria-hidden
+                className={`ml-auto w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                  method === "dc" ? "border-brand-600" : "border-slate-300"
+                }`}
+              >
+                {method === "dc" && <span className="w-2 h-2 rounded-full bg-brand-600" />}
+              </span>
             </div>
             <div className="text-xs text-slate-500 mt-0.5">{t("payWithDC")}</div>
           </button>
@@ -320,9 +334,17 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                   : "border-slate-200 bg-white hover:border-slate-300"
               }`}
           >
-            <div className="font-semibold text-sm inline-flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <Ic icon={Wallet} className="text-emerald-600" />
-              {t("balancePayment")}
+              <span className="font-semibold text-sm">{t("balancePayment")}</span>
+              <span
+                aria-hidden
+                className={`ml-auto w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                  method === "balance" ? "border-emerald-600" : "border-slate-300"
+                }`}
+              >
+                {method === "balance" && <span className="w-2 h-2 rounded-full bg-emerald-600" />}
+              </span>
             </div>
             <div className="text-xs text-slate-500 mt-0.5">
               {user ? (
@@ -369,15 +391,11 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
             <>
               <Ic icon={Loader2} className="animate-spin" /> {t("loading")}
             </>
-          ) : method === "balance" ? (
-            <>
-              <Ic icon={Wallet} />
-              {t("payFromBalance")}
-            </>
           ) : (
             <>
-              <Ic icon={CreditCard} />
-              {t("pay")} {price > 0 ? `— ${price.toLocaleString("tj-TJ")} ${t("currency")}` : ""}
+              <Ic icon={Lock} />
+              {method === "balance" ? t("payFromBalance") : t("pay")}
+              {price > 0 ? ` — ${price.toLocaleString("tj-TJ")} ${t("currency")}` : ""}
             </>
           )}
         </button>

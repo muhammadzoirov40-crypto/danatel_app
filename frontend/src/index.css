@@ -27,6 +27,16 @@ body {
   box-shadow: 0 12px 30px -16px rgba(37, 99, 235, 0.35);
 }
 
+/* 🪟 ГЛASSMORPHISM — контейнери шаффофи мулоим (саҳифаи бозӣ).
+   Бе `card` истифода мешавад, то худаш фон/садд/сояро идора кунад. */
+.glass {
+  background: rgba(255, 255, 255, 0.82);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 26px 60px -32px rgba(37, 99, 235, 0.55);
+}
+
 /* Навъи афтодаи амудии промо-картоҳо (мобилӣ) */
 .no-scrollbar {
   scrollbar-width: none;
@@ -454,6 +464,11 @@ body::before {
   background-color: #131a2c;
   border-color: #28334e;
   box-shadow: 0 16px 36px -22px rgba(0, 0, 0, 0.9);
+}
+.dark .glass {
+  background: rgba(19, 26, 44, 0.84);
+  border-color: rgba(148, 163, 184, 0.16);
+  box-shadow: 0 26px 60px -32px rgba(0, 0, 0, 0.92);
 }
 .dark .btn-ghost {
   background-color: #131a2c;
