@@ -21,6 +21,12 @@ interface AppState {
   isAdmin: boolean;
   /** 💰 Баланси ҷорӣ (сонияҳо аз backend гирифта мешавад) */
   balance: number;
+  /**
+   * ⏳ Оё боргирии аввалияи сессия (`/me`) анҷом ёфт?
+   * Саҳифаҳои ҳифзшуда бояд интизор шаванд → F5 дар `/profile`
+   * дигар ба `/login` партофта намешавад, вақте токен дуруст аст.
+   */
+  authReady: boolean;
 
   /** 🔄 Навсозии маълумоти корбар аз backend */
   refreshUser: () => Promise<void>;
@@ -63,6 +69,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
   const [balance, setBalance] = useState<number>(0);
   const [search, setSearch] = useState<string>("");
+  /** ⏳ Оё боргирии аввалияи сессия анҷом ёфт? (танҳо як маротиба) */
+  const [authReady, setAuthReady] = useState(false);
 
   // 🌙 Мавзӯи равшан/торик — `.dark` дар <html>, дар localStorage нигоҳ дошта мешавад
   const [theme, setThemeState] = useState<"light" | "dark">(() =>
@@ -97,23 +105,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // 🔄 Боргирӣ вақти оғоз (агар токен бошад)
   const refreshUser = useCallback(async () => {
-    if (!getToken()) {
-      setUser(null);
-      setBalance(0);
-      setIsAdmin(false);
-      return;
-    }
     try {
-      const me = await api.me();
-      setUser(me);
-      setBalance(Number(me.balance ?? 0));
-      setIsAdmin(!!me.is_admin);
-    } catch {
-      // Токен нодуруст ё мӯҳлаташ гузашта
-      setToken(null);
-      setUser(null);
-      setBalance(0);
-      setIsAdmin(false);
+      if (!getToken()) {
+        setUser(null);
+        setBalance(0);
+        setIsAdmin(false);
+        return;
+      }
+      try {
+        const me = await api.me();
+        setUser(me);
+        setBalance(Number(me.balance ?? 0));
+        setIsAdmin(!!me.is_admin);
+      } catch {
+        // Токен нодуруст ё мӯҳлаташ гузашта
+        setToken(null);
+        setUser(null);
+        setBalance(0);
+        setIsAdmin(false);
+      }
+    } finally {
+      // Ҳамеша — ҳато ҳангоми хатогӣ ҳам, то роҳҳои ҳифзшуда вақти бекор
+      // натавонанд `user === null`-ро «вуруд накардааст» ҳисобанд.
+      setAuthReady(true);
     }
   }, []);
 
@@ -173,6 +187,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       user,
       isAdmin,
       balance,
+      authReady,
       refreshUser,
       login,
       register,
@@ -183,7 +198,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       theme,
       toggleTheme,
     }),
-    [lang, setLang, t, user, isAdmin, balance, refreshUser, login, register, logout, search, theme, toggleTheme],
+    [lang, setLang, t, user, isAdmin, balance, authReady, refreshUser, login, register, logout, search, theme, toggleTheme],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
