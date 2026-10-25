@@ -163,23 +163,39 @@ export default function Orders() {
   );
 }
 
-/** 🧾 Чеки пардохти корбар — линк ба расм + матн (барои админ) */
+/** 🧾 Чеки пардохти корбар — расми бехатар (бо токени админ) + матн */
 function ReceiptCell({ order, t }: { order: Order; t: (k: string) => string }) {
+  const [err, setErr] = useState("");
+
+  const open = async () => {
+    if (!order.receipt_file) return;
+    setErr("");
+    try {
+      const url = await api.fetchReceipt(order.receipt_file);
+      const w = window.open(url, "_blank", "noopener");
+      if (!w) setErr(t("popupBlocked"));
+      // 1 дақиқа баъд blob-ро нест мекунем
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (e) {
+      setErr((e as Error)?.message ?? t("error"));
+    }
+  };
+
   if (!order.receipt_file && !order.receipt_text) {
     return <span className="text-slate-300">—</span>;
   }
   return (
     <div className="space-y-1 max-w-[220px]">
       {order.receipt_file && (
-        <a
-          href={order.receipt_file}
-          target="_blank"
-          rel="noreferrer"
+        <button
+          type="button"
+          onClick={() => void open()}
           className="inline-block text-brand-600 hover:text-brand-700 text-xs font-semibold underline"
         >
           🧾 {t("receiptPhoto")}
-        </a>
+        </button>
       )}
+      {err && <div className="text-[11px] text-rose-600">{err}</div>}
       {order.receipt_text && (
         <div className="text-xs text-slate-500 break-words">{order.receipt_text}</div>
       )}

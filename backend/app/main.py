@@ -5,14 +5,16 @@ import asyncio
 import logging
 import os
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.database import init_db
+from app.models import User
 from app.routers import admin, auth, games, lookup, orders, reviews, webhook
+from app.security import require_admin
 
 logging.basicConfig(
     level=logging.INFO,
@@ -32,8 +34,10 @@ app = FastAPI(
     title="danatel.tj — Донати бозиҳо",
     description="Сайти фурӯши кредитҳои бозӣ (FastAPI + React + PostgreSQL)",
     version="1.0.0",
-    docs_url="/api/docs",
-    openapi_url="/api/openapi.json",
+    # 📄 Дар production хомӯш (ENABLE_DOCS=false) → бе ифшои схемаи API
+    docs_url="/api/docs" if settings.ENABLE_DOCS else None,
+    openapi_url="/api/openapi.json" if settings.ENABLE_DOCS else None,
+    redoc_url="/api/redoc" if settings.ENABLE_DOCS else None,
 )
 
 # ========================== CORS ==========================
@@ -51,6 +55,17 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# ========================== 🛡️ Сарлавияҳои амниятӣ ==========================
+@app.middleware("http")
+async def security_headers(request, call_next):
+    """Сарлавияҳои бехатарии браузер (ба CORS таъсир намерасонад)."""
+    response = await call_next(request)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("Referrer-Policy", "same-origin")
+    return response
 
 # ========================== Роутерҳо ==========================
 app.include_router(auth.router)
@@ -78,8 +93,15 @@ _RECEIPTS = os.path.join(
 
 
 @app.get("/uploads/receipts/{name}", include_in_schema=False)
-async def receipt_image(name: str):
-    """Нишон додани расми чеки пардохт барои админ."""
+async def receipt_image(
+    name: str,
+    admin: User = Depends(require_admin),  # noqa: ARG001 — танҳо админ
+):
+    """Нишон додани расми чеки пардохт.
+
+    🛑 Танҳо барои АДМИН: дар расм маълумоти корти шахсӣ (рақам, ном)
+    мавҷуд аст → бе токени админ кушода намешавад.
+    """
     from fastapi import HTTPException
 
     # Танҳо номи оддӣ (бе ../) — амният
@@ -87,7 +109,7 @@ async def receipt_image(name: str):
     path = os.path.join(_RECEIPTS, safe)
     if not os.path.isfile(path):
         raise HTTPException(status_code=404, detail="Расм ёфт нашуд")
-    return FileResponse(path)
+    return FileResponse(path, headers={"Cache-Control": "private, no-store"})
 
 
 # ========================== Оғоз ==========================
@@ -127,9 +149,13 @@ async def spa_fallback(full_path: str):
         raise HTTPException(status_code=404, detail="Файли статикӣ ёфт нашуд")
 
     # Агар файли воқеӣ вуҷуд дошта бошад → ҳамонро бидиҳед
+    # 🛡️ Танҳо дар дохили dist — `../` (path traversal) иҷозат нест,
+    #    вагарна `..%2F..%2F.env` метавонад сиррҳоро фиристад.
     if full_path:
-        file_path = os.path.join(_dist, full_path.replace("/", os.sep))
-        if os.path.isfile(file_path):
+        root = os.path.abspath(_dist)
+        file_path = os.path.abspath(os.path.join(root, full_path.replace("/", os.sep)))
+        inside = file_path == root or file_path.startswith(root + os.sep)
+        if inside and os.path.isfile(file_path):
             return FileResponse(file_path)
 
     # Вагарна → index.html (SPA routing)

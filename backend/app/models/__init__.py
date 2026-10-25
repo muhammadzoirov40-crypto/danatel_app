@@ -34,6 +34,13 @@ class User(Base):
     language: Mapped[str] = mapped_column(String(5), default="tj")
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
 
+    # 🔐 Насби токен: ҳангоми ивазкунии парол ин рақам зиёд мешавад
+    # → ҲАМАИ токенҳои пешин фавран беэътибор мешаванд (бе race-и вақт).
+    # Токени нав ҳамон `tv`-ро дорад → кор мекунад.
+    token_version: Mapped[int] = mapped_column(
+        Integer, default=0, nullable=False, server_default="0"
+    )
+
     # 💰 БАЛАНС ( Decimal барои дақиқии пул )
     balance: Mapped[Decimal] = mapped_column(
         Numeric(14, 2), default=Decimal("0.00"), nullable=False, server_default="0"
@@ -241,6 +248,10 @@ class Order(Base):
     # 🛡️ Идемпотентность — аз донати такрорӣ (дублировка) манъ мекунад
     client_token: Mapped[str | None] = mapped_column(String(64), unique=True, index=True)
 
+    # 🎫 Токени дастрасӣ ба фармоиш барои МИЗОҶИ БЕ ВУРУД (IDOR-муҳофизат).
+    # Мизоҷи бе ҳисоб токенро мегирад ва ҳангоми дархост мефиристад.
+    access_token: Mapped[str | None] = mapped_column(String(64), unique=True, index=True)
+
     # Забони дархосткунанда
     language: Mapped[str] = mapped_column(String(5), default="tj")
     # Истинодҳои Telegram
@@ -305,4 +316,26 @@ class AuditLog(Base):
     entity: Mapped[str] = mapped_column(String(64))
     entity_id: Mapped[str | None] = mapped_column(String(64))
     details: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+# =====================================================================
+# 🚫 ТОКЕНҲОИ БЕКОРШУДА (Logout / ивазкунии парол)
+# =====================================================================
+
+
+class RevokedToken(Base):
+    """Рӯйхати токенҳои бекоршуда.
+
+    `jti` — шиносноми токен (Logout).
+    `user-all:<id>` — «ҲАМАИ токенҳои ин корбар бекоранд» (ивазкунии парол).
+    """
+
+    __tablename__ = "revoked_tokens"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    jti: Mapped[str] = mapped_column(String(80), unique=True, index=True)
+    user_id: Mapped[int | None] = mapped_column(Integer, index=True)
+    reason: Mapped[str] = mapped_column(String(32), default="logout")
+    expires_at: Mapped[datetime] = mapped_column(DateTime, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())

@@ -12,7 +12,7 @@ import Logo from "../components/Logo";
  *  - Баланс: 0 сомонӣ ҳангоми қайд
  */
 export default function Login() {
-  const { t, lang, login, register } = useApp();
+  const { t, lang, refreshUser } = useApp();
   const nav = useNavigate();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [phone, setPhone] = useState("");
@@ -31,7 +31,12 @@ export default function Login() {
       setErr(t("invalidPhone"));
       return;
     }
-    if (password.length < 4) {
+    // Санҷиши дарозии парол ТАНҲО ҳангоми ҚАЙД (вуруд бе маҳдудияти нав)
+    if (mode === "register" && password.length < 8) {
+      setErr(t("passwordShort"));
+      return;
+    }
+    if (mode === "login" && password.length < 1) {
       setErr(t("passwordShort"));
       return;
     }
@@ -39,18 +44,31 @@ export default function Login() {
     setLoading(true);
     try {
       if (mode === "login") {
-        await login(phone, password);
+        await api.login(phone, password);
       } else {
-        await register({
+        await api.register({
           phone,
           password,
           full_name: fullName.trim() || undefined,
           language: lang,
         });
       }
+      await refreshUser();
       nav("/profile");
     } catch (e2) {
-      setErr(e2 instanceof ApiError ? e2.message : t("error"));
+      // Паёми бехатарӣ аз рӯи коди хато — бе ифшои оё корбар вуҷуд дорад
+      const status = e2 instanceof ApiError ? e2.status : 0;
+      setErr(
+        status === 401
+          ? t("loginFailed")
+          : status === 409
+            ? t("phoneExists")
+            : status === 429
+              ? t("tooManyAttempts")
+              : e2 instanceof ApiError
+                ? e2.message
+                : t("error"),
+      );
     } finally {
       setLoading(false);
     }

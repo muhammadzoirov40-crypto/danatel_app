@@ -1,13 +1,14 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
-import { api } from "../api/client";
+import { api, ApiError } from "../api/client";
 import type { Order } from "../types";
 import { STATUS_META } from "../types";
 
 /**
  * 👤 Профили корбар:
  *   - Баланси ҷорӣ бо сомонӣ
+ *   - 🔐 Ивазкунии парол
  *   - Таърихи фармоишҳо
  */
 export default function Profile() {
@@ -15,6 +16,49 @@ export default function Profile() {
   const nav = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [err, setErr] = useState("");
+
+  // 🔐 Ивазкунии парол
+  const [pwdCur, setPwdCur] = useState("");
+  const [pwdNew, setPwdNew] = useState("");
+  const [pwdCheck, setPwdCheck] = useState("");
+  const [pwdMsg, setPwdMsg] = useState("");
+  const [pwdOk, setPwdOk] = useState(false);
+  const [pwdBusy, setPwdBusy] = useState(false);
+
+  const submitPassword = async (e: FormEvent) => {
+    e.preventDefault();
+    setPwdMsg("");
+    if (pwdNew.length < 8) {
+      setPwdOk(false);
+      setPwdMsg(t("passwordShort"));
+      return;
+    }
+    if (pwdNew !== pwdCheck) {
+      setPwdOk(false);
+      setPwdMsg(t("passwordMismatch"));
+      return;
+    }
+    setPwdBusy(true);
+    try {
+      await api.changePassword(pwdCur, pwdNew);
+      setPwdOk(true);
+      setPwdMsg(t("passwordChanged"));
+      setPwdCur("");
+      setPwdNew("");
+      setPwdCheck("");
+    } catch (e2) {
+      setPwdOk(false);
+      setPwdMsg(
+        e2 instanceof ApiError && e2.status === 403
+          ? t("wrongCurrentPassword")
+          : e2 instanceof ApiError
+            ? e2.message
+            : t("error"),
+      );
+    } finally {
+      setPwdBusy(false);
+    }
+  };
 
   // Агар вуруд накарда бошад → ба саҳифаи вуруд
   useEffect(() => {
@@ -87,6 +131,69 @@ export default function Profile() {
             ⎋ {t("logout")}
           </button>
         </div>
+      </div>
+
+      {/* 🔐 Ивазкунии парол */}
+      <div className="card p-6">
+        <h2 className="font-bold mb-1">🔐 {t("changePassword")}</h2>
+        <p className="text-xs text-slate-500 mb-4">
+          {t("currentPassword")} → {t("newPassword")} (≥ 8)
+        </p>
+
+        <form onSubmit={submitPassword} className="space-y-3 max-w-sm">
+          <label className="block text-sm">
+            <span className="text-slate-600">{t("currentPassword")}</span>
+            <input
+              type="password"
+              autoComplete="current-password"
+              required
+              value={pwdCur}
+              onChange={(e) => setPwdCur(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="text-slate-600">{t("newPassword")}</span>
+            <input
+              type="password"
+              autoComplete="new-password"
+              required
+              minLength={8}
+              value={pwdNew}
+              onChange={(e) => setPwdNew(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="text-slate-600">{t("confirmPassword")}</span>
+            <input
+              type="password"
+              autoComplete="new-password"
+              required
+              minLength={8}
+              value={pwdCheck}
+              onChange={(e) => setPwdCheck(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
+            />
+          </label>
+
+          {pwdMsg && (
+            <div
+              className={`rounded-xl px-4 py-2 text-sm ${
+                pwdOk
+                  ? "bg-emerald-50 border border-emerald-200 text-emerald-700"
+                  : "bg-rose-50 border border-rose-200 text-rose-700"
+              }`}
+            >
+              {pwdOk ? "✅ " : "⛔ "}
+              {pwdMsg}
+            </div>
+          )}
+
+          <button type="submit" disabled={pwdBusy} className="btn-primary text-sm">
+            {pwdBusy ? "…" : `💾 ${t("save")}`}
+          </button>
+        </form>
       </div>
 
       {/* 📦 Фармоишҳо */}

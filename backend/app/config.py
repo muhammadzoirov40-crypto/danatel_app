@@ -43,6 +43,12 @@ class Settings(BaseSettings):
     ADMIN_PHONE: str = "992000000000"
     ADMIN_PASSWORD: str = "admin"
 
+    # 🏭 МУҲИТ: production / development / test
+    ENVIRONMENT: str = "production"
+    # 📄 Swagger UI + OpenAPI. Дар production беҳтар хомӯш аст
+    #    (ба ҷои он → хатогиҳои иттилоотӣ). Барои рушд: ENABLE_DOCS=true
+    ENABLE_DOCS: bool = True
+
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
     )

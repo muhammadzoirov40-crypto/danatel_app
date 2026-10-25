@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import logging
+import time
 
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
@@ -113,12 +114,27 @@ def _ensure_missing_columns() -> None:
     inspector = inspect(engine)
     existing_tables = set(inspector.get_table_names())
 
-    # 1) Ҷадвалҳои нав (масалан: balance_transactions)
-    Base.metadata.create_all(bind=engine)
+    # 1) Ҷадвалҳои нав (масалан: balance_transactions, revoked_tokens)
+    #    ⚠️ uvicorn бо 2 worker ҳамзамон оғоз мешавад → ҳар ду як ҷадвалро
+    #       сохтан мехоҳанд → яке «already exists» мегирад. Ин НАБОЯД
+    #       оғози барномаро ноком созад (дар як лаҳза як бор retry мекунем).
+    for attempt in (1, 2, 3):
+        try:
+            Base.metadata.create_all(bind=engine, checkfirst=True)
+            break
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "⚠️ create_all (дафъаи %s, ҳамзамонӣ): %s",
+                attempt,
+                exc.__class__.__name__,
+            )
+            if attempt == 3:
+                raise
+            time.sleep(0.4)
 
     # 2) Сутунҳои нав дар ҷадвалҳои мавҷуда
     wanted: dict[str, list[str]] = {
-        "users": ["phone", "password_hash", "balance"],
+        "users": ["phone", "password_hash", "balance", "token_version"],
         "orders": [
             "client_token",
             "payment_method",
@@ -126,6 +142,7 @@ def _ensure_missing_columns() -> None:
             "receipt_file",
             "receipt_text",
             "receipt_at",
+            "access_token",
         ],
         "games": ["image_pad"],
     }
@@ -137,6 +154,7 @@ def _ensure_missing_columns() -> None:
             have = {c["name"] for c in inspector.get_columns(table)}
             for col in cols:
                 if col in have:
+                    
                     continue
                 ddl = _column_ddl(table, col)
                 if not ddl:
@@ -156,12 +174,16 @@ def _column_ddl(table: str, col: str) -> str | None:
         ("users", "phone"): "ALTER TABLE users ADD COLUMN phone VARCHAR(32)",
         ("users", "password_hash"): "ALTER TABLE users ADD COLUMN password_hash VARCHAR(255)",
         ("users", "balance"): "ALTER TABLE users ADD COLUMN balance NUMERIC(14,2) NOT NULL DEFAULT 0",
+        # 🔐 Насби токен (бекоркунии ҳамаи токенҳо ҳангоми ивазкунии парол)
+        ("users", "token_version"): "ALTER TABLE users ADD COLUMN token_version INTEGER NOT NULL DEFAULT 0",
         ("orders", "client_token"): "ALTER TABLE orders ADD COLUMN client_token VARCHAR(64)",
         ("orders", "payment_method"): "ALTER TABLE orders ADD COLUMN payment_method VARCHAR(32) DEFAULT 'dc_wallet'",
         ("orders", "user_id"): "ALTER TABLE orders ADD COLUMN user_id INTEGER",
         ("orders", "receipt_file"): "ALTER TABLE orders ADD COLUMN receipt_file VARCHAR(512)",
         ("orders", "receipt_text"): "ALTER TABLE orders ADD COLUMN receipt_text VARCHAR(512)",
         ("orders", "receipt_at"): "ALTER TABLE orders ADD COLUMN receipt_at TIMESTAMP",
+        # 🎫 Токени дастрасии мизоҷи бе вуруд (муҳофизат аз IDOR)
+        ("orders", "access_token"): "ALTER TABLE orders ADD COLUMN access_token VARCHAR(64)",
         ("games", "image_pad"): "ALTER TABLE games ADD COLUMN image_pad INTEGER NOT NULL DEFAULT 0",
     }
     return rules.get((table, col))

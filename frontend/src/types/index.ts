@@ -63,6 +63,8 @@ export interface PaymentInit {
   invoice_id?: string | null;
   amount_tjs: number;
   message: string;
+  /** 🎫 Токени дастрасӣ барои мизоҷи бе вуруд */
+  access_token?: string | null;
 }
 
 export interface User {

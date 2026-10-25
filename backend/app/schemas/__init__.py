@@ -18,9 +18,16 @@ class RegisterRequest(BaseModel):
     """📱 Қайди корбари нав."""
 
     phone: str
-    password: str = Field(min_length=4, max_length=128)
+    password: str = Field(min_length=8, max_length=128)
     full_name: str | None = Field(default=None, max_length=128)
     language: str = Field(default="tj", max_length=5)
+
+
+class ChangePasswordRequest(BaseModel):
+    """🔐 Ивазкунии парол (танҳо барои корбари вурудкарда)."""
+
+    current_password: str = Field(min_length=1, max_length=128)
+    new_password: str = Field(min_length=8, max_length=128)
 
 
 class Token(BaseModel):
@@ -223,6 +230,8 @@ class PaymentInitOut(BaseModel):
     invoice_id: str | None = None
     amount_tjs: Decimal
     message: str = ""
+    # 🎫 Токени дастрасӣ барои мизоҷи БЕ ВУРУД (дархостҳои /orders/{id})
+    access_token: str | None = None
 
 
 class OrderOut(BaseModel):

@@ -1,30 +1,63 @@
-"""Роутери вуруд, қайд ва эътирофи корбар/админ."""
+"""Роутери вуруд, қайд, хуруҷ ва ивазкунии парол."""
 from __future__ import annotations
 
+import hmac
+import re
 from decimal import Decimal
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app import ratelimit
 from app.config import settings
 from app.database import get_db
 from app.models import User
 from app.schemas import (
     BalanceOut,
+    ChangePasswordRequest,
     LoginRequest,
     RegisterRequest,
     Token,
     UserOut,
 )
 from app.security import (
+    bump_token_version,
     create_access_token,
     get_current_user,
+    get_token_payload,
     hash_password,
+    needs_rehash,
+    revoke_token,
     verify_password,
 )
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
+
+
+def _issue_token(user: User) -> str:
+    """🎫 Сохтани токен барои корбар (бо `tv` — насби ҷорӣ)."""
+    return create_access_token(
+        {
+            "sub": str(user.id),
+            "admin": bool(user.is_admin),
+            "tv": int(user.token_version or 0),
+        }
+    )
+
+# 🚦 Маҳдудсозии дархост (муҳофизат аз brute-force)
+LOGIN_LIMIT = 12          # кӯшишҳои вуруд
+LOGIN_WINDOW = 300        # 5 дақиқа
+REGISTER_LIMIT = 8
+REGISTER_WINDOW = 600     # 10 дақиқа
+CHPWD_LIMIT = 5
+CHPWD_WINDOW = 900        # 15 дақиқа
+
+_PHONE_RE = re.compile(r"^\d{10,15}$")
+MIN_PASSWORD = 8
+
+# 📵 Паёми ягона барои ҳамаи нокомиҳои вуруд — бе ифшои сабаб
+LOGIN_FAILED = "Номи корбар ё парол нодуруст"
 
 
 def _normalize_phone(phone: str) -> str:
@@ -40,19 +73,41 @@ def _normalize_phone(phone: str) -> str:
     return p
 
 
+def _weak_password(password: str, phone: str) -> str | None:
+    """Санҷиши сиёсати парол. Бармегардонад: сабаб ё None."""
+    if len(password or "") < MIN_PASSWORD:
+        return f"Парол бояд аз {MIN_PASSWORD} ҳарф зиёд бошад"
+    if password.isdigit():
+        return "Парол набояд танҳо рақам бошад"
+    if password.lower() in {phone, phone[-9:], "password", "12345678", "qwertyui"}:
+        return "Пароли интихобшуда хеле суст аст"
+    return None
+
+
+# =====================================================================
+# 📱 ҚАЙДИ КОРБАР
+# =====================================================================
 @router.post("/register", response_model=Token)
-def register(payload: RegisterRequest, db: Session = Depends(get_db)):
+def register(payload: RegisterRequest, request: Request, db: Session = Depends(get_db)):
     """
     📱 Қайди корбари нав ( телефон + парол ).
 
-    Баланси ибтидоӣ: 0 сомонӣ.
+    • Маҳдудсозии дархост (муҳофизат аз эҷоди ҳисобҳои зиёд)
+    • Парол ≥ 8 ҳарф, ҳосси Argon2id
+    • Баланси ибтидоӣ: 0 сомонӣ
     """
+    ratelimit.enforce(
+        request, "register", REGISTER_LIMIT, REGISTER_WINDOW,
+        identifier=_normalize_phone(payload.phone),
+    )
+
     phone = _normalize_phone(payload.phone)
-    if len(phone) < 9 or not phone.isdigit():
+    if not _PHONE_RE.match(phone):
         raise HTTPException(status_code=422, detail="Рақами телефон нодуруст аст")
 
-    if len(payload.password or "") < 4:
-        raise HTTPException(status_code=422, detail="Парол бояд аз 4 ҳарф зиёд бошад")
+    weak = _weak_password(payload.password, phone)
+    if weak:
+        raise HTTPException(status_code=422, detail=weak)
 
     # Санҷиши такрорӣ — телефон бояд ягона бошад
     existing = db.scalar(select(User).where(User.phone == phone))
@@ -62,7 +117,7 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)):
     user = User(
         phone=phone,
         password_hash=hash_password(payload.password),
-        full_name=(payload.full_name or "").strip() or None,
+        full_name=(payload.full_name or "").strip()[:128] or None,
         language=payload.language if payload.language in ("tj", "ru", "en", "uz") else "tj",
         is_admin=False,
         balance=Decimal("0.00"),
@@ -71,24 +126,34 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(user)
 
-    token = create_access_token({"sub": str(user.id), "admin": False})
+    token = _issue_token(user)
     return Token(access_token=token, is_admin=False)
 
 
+# =====================================================================
+# 🔑 ВУРУД
+# =====================================================================
 @router.post("/login", response_model=Token)
-def login(payload: LoginRequest, db: Session = Depends(get_db)):
+def login(payload: LoginRequest, request: Request, db: Session = Depends(get_db)):
     """
     🔑 Вуруд.
 
-    • Админ: телефон аз `.env` + парол аз `.env`
+    • Маҳдудсозӣ: 12 кӯшиш / 5 дақиқа (барои ҳар IP ва ҳар телефон)
+    • Админ: телефон + парол аз `.env` (санҷиши вақти-доимӣ)
     • Корбар: телефон + пароли қайдшуда
+    • Ҷавоби хато ЯГОНА аст → аз рӯйи он корбар вуҷуд дорад ё не фаҳмидан мумкин нест
     """
     phone = _normalize_phone(payload.phone)
+    ratelimit.enforce(
+        request, "login", LOGIN_LIMIT, LOGIN_WINDOW, identifier=phone
+    )
 
-    # ===== 🔑 Вуруди админ аз .env =====
-    if (
-        phone == _normalize_phone(settings.ADMIN_PHONE)
-        and payload.password == settings.ADMIN_PASSWORD
+    admin_phone = _normalize_phone(settings.ADMIN_PHONE)
+    admin_password = settings.ADMIN_PASSWORD or ""
+
+    # ===== 🔑 Вуруди админ аз .env (вақти-доимӣ, бе ифшои сабаб) =====
+    if admin_password and hmac.compare_digest(phone, admin_phone) and hmac.compare_digest(
+        payload.password or "", admin_password
     ):
         user = db.scalar(select(User).where(User.is_admin.is_(True)).limit(1))
         if user is None:
@@ -101,18 +166,87 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
             db.add(user)
             db.commit()
             db.refresh(user)
-        token = create_access_token({"sub": str(user.id), "admin": True})
+        token = _issue_token(user)
         return Token(access_token=token, is_admin=True)
 
     # ===== 👤 Вуруди корбари оддӣ =====
     user = db.scalar(select(User).where(User.phone == phone))
-    if user is not None and user.password_hash and verify_password(payload.password, user.password_hash):
-        token = create_access_token({"sub": str(user.id), "admin": bool(user.is_admin)})
+    if user is not None and user.password_hash and verify_password(
+        payload.password, user.password_hash
+    ):
+        # 🔄 Мигратсияи бехатар: bcrypt-и кӯҳна → Argon2id
+        if needs_rehash(user.password_hash):
+            user.password_hash = hash_password(payload.password)
+            db.commit()
+        token = _issue_token(user)
         return Token(access_token=token, is_admin=bool(user.is_admin))
 
-    raise HTTPException(status_code=401, detail="Номи корбар ё парол нодуруст")
+    raise HTTPException(status_code=401, detail=LOGIN_FAILED)
 
 
+# =====================================================================
+# 🚪 ХУРУҷ (бекор кардани токени ҷорӣ)
+# =====================================================================
+@router.post("/logout")
+def logout(
+    payload: dict = Depends(get_token_payload),
+    db: Session = Depends(get_db),
+):
+    """🚪 Хуруҷ — токени ҷорӣ бекор мешавад (дигар кор намекунад)."""
+    try:
+        user_id: int | None = int(payload.get("sub"))  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        user_id = None
+    revoke_token(db, payload.get("jti"), user_id, payload.get("exp"))
+    return {"ok": True}
+
+
+# =====================================================================
+# 🔐 ИВАЗКУНИИ ПАРОЛ
+# =====================================================================
+@router.post("/password/change", response_model=Token)
+def change_password(
+    payload: ChangePasswordRequest,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """
+    🔐 Ивазкунии парол (танҳо барои корбари вурудкарда).
+
+    • Пароли кӯҳна ҳатмист
+    • Пароли нав ≥ 8 ҳарф ва набояд такрорӣ бошад
+    • Баъди ивазкунӣ ҲАМАИ токенҳои кӯҳна бекор мешавад
+      ва токени нав баргардонида мешавад (сеанс ҷорӣ идома меёбад)
+    """
+    ratelimit.enforce(
+        request, "password_change", CHPWD_LIMIT, CHPWD_WINDOW,
+        identifier=str(user.id),
+    )
+
+    if not verify_password(payload.current_password, user.password_hash):
+        raise HTTPException(status_code=403, detail="Пароли кӯҳна нодуруст аст")
+
+    new = payload.new_password or ""
+    weak = _weak_password(new, user.phone or "")
+    if weak:
+        raise HTTPException(status_code=422, detail=weak)
+    if hmac.compare_digest(new, payload.current_password or ""):
+        raise HTTPException(status_code=422, detail="Пароли нав набояд бо кӯҳна як хел бошад")
+
+    user.password_hash = hash_password(new)
+    db.commit()
+
+    # 🚫 Ҳамаи токенҳои кӯҳна (аз ҷумла токени ҷорӣ) беэътибор мешавад
+    bump_token_version(db, user)
+
+    token = _issue_token(user)
+    return Token(access_token=token, is_admin=bool(user.is_admin))
+
+
+# =====================================================================
+# 👤 МАЪЛУМОТИ КОРБАР
+# =====================================================================
 @router.get("/me", response_model=UserOut)
 def me(user: User = Depends(get_current_user)):
     """👤 Маълумоти корбар аз ҷумла БАЛАНСИ ҶОРИИ Ӯ."""

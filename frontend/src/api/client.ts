@@ -32,6 +32,29 @@ export function getToken(): string | null {
   return token;
 }
 
+// ========================== 🎫 ТОКЕНИ ФАРМОИШ (мизоҷи бе вуруд) ==========================
+// Мизоҷи бе ҳисоб ҳангоми сохтани фармоиш токени дастрасӣ мегирад.
+// Ӯ танҳо тавассути ҳамин токен ба /orders/{id} дастрасӣ дорад (муҳофизат аз IDOR).
+const orderTokenKey = (id: number | string) => `danatel_ot_${id}`;
+
+function saveOrderToken(orderId: number, tok?: string | null) {
+  try {
+    if (tok) localStorage.setItem(orderTokenKey(orderId), tok);
+  } catch {
+    /* localStorage дастрс нест — бе токен мемонад */
+  }
+}
+
+function orderTokenFor(path: string): string | null {
+  const m = /^\/orders\/(\d+)/.exec(path);
+  if (!m) return null;
+  try {
+    return localStorage.getItem(orderTokenKey(m[1]));
+  } catch {
+    return null;
+  }
+}
+
 class ApiError extends Error {
   status: number;
   constructor(status: number, message: string) {
@@ -49,6 +72,9 @@ async function request<T>(
     ...(options.headers as Record<string, string>),
   };
   if (token) headers.Authorization = `Bearer ${token}`;
+  // 🎫 Токени фармоиш барои дархостҳои /orders/{id}
+  const orderToken = orderTokenFor(path);
+  if (orderToken) headers["X-Order-Token"] = orderToken;
 
   const res = await fetch(`${BASE}${path}`, { ...options, headers });
 
@@ -109,7 +135,7 @@ export const api = {
     ),
 
   // ========================== ФАРМОИШ ==========================
-  createOrder: (data: {
+  createOrder: async (data: {
     game_slug: string;
     product_id: number;
     player_id: string;
@@ -119,11 +145,15 @@ export const api = {
     payment_method?: "dc_wallet" | "balance";
     /** 🛡️ Идемпотентность — аз донати такрорӣ */
     client_token?: string;
-  }) =>
-    request<PaymentInit>("/orders", {
+  }) => {
+    const res = await request<PaymentInit>("/orders", {
       method: "POST",
       body: JSON.stringify(data),
-    }),
+    });
+    // 🎫 Нигоҳдошани токени дастрасӣ (барои саҳифаи /order/{id} бе вуруд)
+    saveOrderToken(res.order_id, res.access_token);
+    return res;
+  },
 
   order: (id: number, lang = "tj") => request<Order>(`/orders/${id}?lang=${lang}`),
   orderStatus: (id: number) =>
@@ -144,6 +174,8 @@ export const api = {
 
     const headers: Record<string, string> = {};
     if (token) headers.Authorization = `Bearer ${token}`;
+    const orderToken = orderTokenFor(`/orders/${id}/receipt`);
+    if (orderToken) headers["X-Order-Token"] = orderToken;
 
     const res = await fetch(`${BASE}/orders/${id}/receipt`, {
       method: "POST",
@@ -189,6 +221,38 @@ export const api = {
   },
 
   me: () => request<User>("/auth/me"),
+
+  /** 🚪 Хуруҷ — токен дар сервер БЕКОР мешавад (на танҳо дар браузер) */
+  logout: async () => {
+    try {
+      return await request<{ ok: boolean }>("/auth/logout", { method: "POST" });
+    } catch {
+      return { ok: false };
+    }
+  },
+
+  /** 🔐 Ивазкунии парол — токени нав бармегардонад, кӯҳнаҳо бекор мешавад */
+  changePassword: async (current_password: string, new_password: string) => {
+    const res = await request<{ access_token: string; is_admin: boolean }>(
+      "/auth/password/change",
+      { method: "POST", body: JSON.stringify({ current_password, new_password }) },
+    );
+    setToken(res.access_token); // сеанс ҷорӣ идома меёбад
+    return res;
+  },
+
+  /**
+   * 🧾 Гирифтани расми чек барои админ.
+   * Расмҳои чек (маълумоти корти шахсӣ) бе токени админ кушода намешавад.
+   */
+  fetchReceipt: async (path: string): Promise<string> => {
+    const headers: Record<string, string> = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+    const res = await fetch(path, { headers });
+    if (!res.ok) throw new ApiError(res.status, res.statusText);
+    const blob = await res.blob();
+    return URL.createObjectURL(blob);
+  },
 
   // ========================== 💰 БАЛАНС ==========================
   myBalance: () => request<BalanceInfo>("/auth/me/balance"),

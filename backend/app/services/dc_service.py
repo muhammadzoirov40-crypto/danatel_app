@@ -29,9 +29,13 @@ def _sign(payload: dict[str, Any]) -> str:
 def verify_webhook_signature(payload: dict[str, Any]) -> bool:
     """Санҷиши имзои вебхуки DC."""
     if not settings.DC_SECRET_KEY:
-        # Дар ҳолати танзимоти намоишӣ имзо санҷида намешавад
-        logger.warning("DC_SECRET_KEY танзим нашуда — имзо санҷида намешавад")
-        return True
+        # 🛑 БЕ калиди махфӣ ҳЕЧ ГОҲ қабул накунед:
+        # вагарна ҳар кас метавонад POST /api/webhook/dc бифиристад ва
+        # фармоиши бепулро «пардохтшуда» эълон кунад.
+        logger.warning(
+            "DC_SECRET_KEY танзим нашуда — ҳАМАИ вебхукҳои DC РАД мешаванд"
+        )
+        return False
     received = payload.get("signature") or payload.get("sign")
     if not received:
         return False

@@ -130,6 +130,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const logout = useCallback(() => {
+    // 🚪 Аввал токенро дар СЕРВЕР бекор мекунем (сеанс дигар кор намекунад)
+    void api.logout();
     setToken(null);
     setUser(null);
     setBalance(0);
