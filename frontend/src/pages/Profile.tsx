@@ -21,6 +21,7 @@ import { api, ApiError } from "../api/client";
 import type { Order } from "../types";
 import { STATUS_META } from "../types";
 import { Ic } from "../components/Icons";
+import Customers from "../components/Customers";
 
 /**
  * 👤 Профили корбар:
@@ -294,6 +295,10 @@ export default function Profile() {
           </div>
         )}
       </div>
+
+      {/* 👥 Муштариёни воқеӣ — аз фармоишҳои иҷрочуда */}
+      <Customers />
+
     </div>
   );
 }

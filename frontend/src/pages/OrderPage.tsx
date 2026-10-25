@@ -19,6 +19,7 @@ import {
 import { api } from "../api/client";
 import type { Order } from "../types";
 import StatusBadge from "../components/StatusBadge";
+import Customers from "../components/Customers";
 import { useApp } from "../context/AppContext";
 import { Ic } from "../components/Icons";
 
@@ -342,6 +343,10 @@ export default function OrderPage() {
           <p className="mt-5 text-xs text-slate-500">{t("statusChecking")}</p>
         )}
       </div>
+
+      {/* 👥 Муштариёни воқеӣ — аз фармоишҳои иҷрочуда */}
+      <Customers />
+
     </div>
   );
 }
