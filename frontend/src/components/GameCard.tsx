@@ -1,7 +1,15 @@
+import { Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { Game } from "../types";
 import { useApp } from "../context/AppContext";
 import GameLogo from "./GameLogo";
+import { Ic } from "./Icons";
+
+interface GameCardProps {
+  game: Game;
+  isFavorite?: boolean;
+  onToggleFavorite?: (slug: string) => void;
+}
 
 /**
  * Корти бозӣ — мисли persshop.com:
@@ -9,8 +17,9 @@ import GameLogo from "./GameLogo";
  *
  * ⚠️ Бейҷаи «ХИТ» ТАНҲО ВАҚТЕ СОХТА МЕШАВАД, ки админ `is_popular`-ро
  *    фаъол кардааст — рейтинги ҷаълӣ нест.
+ * ❤️ Тугмаи дӯстдоштаҳо (Favorites) бо нигоҳдорӣ дар browser.
  */
-export default function GameCard({ game }: { game: Game }) {
+export default function GameCard({ game, isFavorite = false, onToggleFavorite }: GameCardProps) {
   const { t } = useApp();
   const min = game.min_price_tjs;
 
@@ -21,7 +30,31 @@ export default function GameCard({ game }: { game: Game }) {
                  w-full max-w-[100px] sm:max-w-[110px] md:max-w-[118px] mx-auto
                  transition active:scale-[0.96]"
     >
-      {/* 🏷️ «ХИТ» — танҳо аз рӯи маълумоти сервер (0/128 ҳоло) */}
+      {/* ❤️ Тугмаи дӯстдоштаҳо */}
+      {onToggleFavorite && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onToggleFavorite(game.slug);
+          }}
+          aria-label={isFavorite ? "Аз дӯстдоштаҳо хориҷ кардан" : "Ба дӯстдоштаҳо илова кардан"}
+          title={isFavorite ? "Дӯстдошта" : "Илова ба дӯстдоштаҳо"}
+          className="absolute -top-1.5 -left-1.5 z-10 w-6 h-6 rounded-full bg-white/95
+                     backdrop-blur-xs shadow-xs border border-slate-200/80
+                     grid place-items-center hover:scale-110 active:scale-90 transition
+                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+        >
+          <Ic
+            icon={Heart}
+            size="xs"
+            className={isFavorite ? "text-rose-500 fill-rose-500" : "text-slate-400 hover:text-rose-500"}
+          />
+        </button>
+      )}
+
+      {/* 🏷️ «ХИТ» — танҳо аз рӯи маълумоти сервер */}
       {game.is_popular && (
         <span
           className="absolute -top-1.5 -right-1.5 z-10 rounded-full bg-rose-500
