@@ -293,7 +293,7 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
         <div className="h-px bg-slate-100 mb-6" />
 
         {/* ============ 3. УСУЛИ ПАРДОХТ ============ */}
-        <SectionHead n={3} title={t("choosePayment")} />
+        <SectionHead n={3} title={t("choosePayment")} hint={t("choosePaymentHint")} />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-5">
           {/* DC Wallet */}
