@@ -21,6 +21,8 @@ class RegisterRequest(BaseModel):
     password: str = Field(min_length=8, max_length=128)
     full_name: str | None = Field(default=None, max_length=128)
     language: str = Field(default="tj", max_length=5)
+    # 🔗 Коди даъвати дӯст (аз линки шахсӣ) — агар нодуруст бошад, нодида гирифта мешавад
+    referral_code: str | None = Field(default=None, max_length=16)
 
 
 class ChangePasswordRequest(BaseModel):
@@ -34,6 +36,8 @@ class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
     is_admin: bool = False
+    # 🔗 Оё қайд бо линки даъвати дӯст буд? (тасдиқ барои интерфейс)
+    referral_applied: bool = False
 
 
 class UserOut(BaseModel):
@@ -205,6 +209,67 @@ class BalanceTransactionOut(BaseModel):
     created_at: datetime
     # Барои нишон дар ҷадвал
     admin_name: str | None = None
+
+
+# =====================================================================
+# 🪙 PERS COINS
+# =====================================================================
+
+
+class CoinTxOut(BaseModel):
+    """Як сатри таърихи тангаҳо."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    kind: str
+    amount: int
+    coins_after: int
+    reason: str | None = None
+    created_at: datetime
+
+
+class CoinsMeOut(BaseModel):
+    """Тангаҳои корбар + қоидаҳои ҳисоб (аз .env, на аз фронт)."""
+
+    coins: int = 0
+    coins_per_tjs: int = 5       # ҳар 1 сомонӣ = N танга (cashback)
+    exchange_rate: int = 100     # N танга = 1 сомонӣ
+    min_exchange: int = 100      # ҳадди ақал барои иваз
+    spin_cost: int = 50          # хароҷоти як гардиши чарх
+    referral_code: str = ""
+    referred_count: int = 0
+    history: list[CoinTxOut] = []
+
+
+class CoinsExchangeOut(BaseModel):
+    """Натиҷаи ивази танга ба баланс."""
+
+    coins: int
+    balance: Decimal
+    credited_tjs: Decimal
+    spent_coins: int
+
+
+# =====================================================================
+# 🛠️ АДМИН — ТАНГА
+# =====================================================================
+
+
+class AdminCoinsGrant(BaseModel):
+    """Админ ба корбар танга илова мекунад (бо сабаби возеҳ)."""
+
+    user_id: int
+    amount: int = Field(gt=0, le=1_000_000, description="Тангаи иловашаванда")
+    reason: str | None = Field(default=None, max_length=255)
+
+
+class CoinsGrantOut(BaseModel):
+    """Ҷавоби иловакунии танга аз ҷониби админ."""
+
+    user_id: int
+    coins: int
+    granted: int
 
 
 class AdminUserOut(BaseModel):

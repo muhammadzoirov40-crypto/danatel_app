@@ -11,6 +11,7 @@ from app.database import get_db
 from app.models import (
     AuditLog,
     BalanceTransaction,
+    CoinTransactionKind,
     Game,
     Order,
     OrderStatus,
@@ -18,6 +19,7 @@ from app.models import (
     User,
 )
 from app.schemas import (
+    AdminCoinsGrant,
     AdminOrderUpdate,
     AdminStats,
     AdminUserOut,
@@ -25,6 +27,7 @@ from app.schemas import (
     BalanceOut,
     BalanceTransactionOut,
     BotImportReport,
+    CoinsGrantOut,
     GameDetailOut,
     GameOut,
     GameUpsert,
@@ -34,7 +37,7 @@ from app.schemas import (
     ProductUpsert,
 )
 from app.security import require_admin
-from app.services import telegram_service, wallet
+from app.services import coins, telegram_service, wallet
 
 router = APIRouter(
     prefix="/api/admin", tags=["admin"], dependencies=[Depends(require_admin)]
@@ -151,6 +154,10 @@ async def update_order(
     db.refresh(order)
 
     if payload.status == OrderStatus.DELIVERED:
+        # 🪙 Cashback барои фармоиши иҷрочуда.
+        #    ТАНҲО як дафъа барои як фармоиш (идемпотентия дар хидмат),
+        #    ва ҲЕҶ ГОҲ вазифаи асосиро (тағйири статус) халалдор намекунад.
+        coins.grant_order_cashback(db, order=order)
         await telegram_service.notify_order_delivered(order.id, order.telegram_chat_id)
 
     return OrderOut(
@@ -384,6 +391,53 @@ def add_balance(
         balance=user.balance,
         orders_count=orders_count,
         created_at=user.created_at,
+    )
+
+
+# =====================================================================
+# 🪙 ТАНГАҲО (PERS COINS) — иловакунии админ
+# =====================================================================
+@router.post("/users/{user_id}/coins", response_model=CoinsGrantOut)
+def add_coins_admin(
+    user_id: int,
+    payload: AdminCoinsGrant,
+    admin: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """
+    ➕ Ба тангаҳои корбар илова кардан.
+
+    Мисол: админ ба муштарӣ 100 танга медиҳад.
+    Ҳамаи тағйирот дар як transaction сабт мешавад (таърих + баланс).
+    """
+    target_id = payload.user_id or user_id
+
+    try:
+        user, _entry = coins.add_coins(
+            db,
+            user_id=target_id,
+            amount=payload.amount,
+            kind=CoinTransactionKind.ADMIN_GRANT,
+            reason=payload.reason or "Иловакунии танга аз ҷониби Admin",
+        )
+    except coins.CoinsError as exc:
+        raise HTTPException(status_code=exc.status, detail=str(exc)) from exc
+
+    db.add(
+        AuditLog(
+            admin_id=admin.id,
+            action="coins_grant",
+            entity="user",
+            entity_id=str(user.id),
+            details=f"+{payload.amount} танга | {payload.reason or '-'}",
+        )
+    )
+    db.commit()
+
+    return CoinsGrantOut(
+        user_id=user.id,
+        coins=int(user.coins or 0),
+        granted=payload.amount,
     )
 
 

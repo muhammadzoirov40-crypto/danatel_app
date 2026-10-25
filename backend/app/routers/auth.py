@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hmac
+import logging
 import re
 from decimal import Decimal
 
@@ -31,8 +32,11 @@ from app.security import (
     revoke_token,
     verify_password,
 )
+from app.services import coins as coins_service
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
+
+logger = logging.getLogger("auth")
 
 
 def _issue_token(user: User) -> str:
@@ -114,6 +118,13 @@ def register(payload: RegisterRequest, request: Request, db: Session = Depends(g
     if existing is not None:
         raise HTTPException(status_code=409, detail="Ин телефон аллакай қайд шудааст")
 
+    # 🔗 Даъват: коди дӯст аз линки шахсӣ (агар нодуруст бошад — нодида мегирем,
+    #    то қайд бо сабаби линки вайрон қатъ нашавад)
+    inviter = coins_service.find_user_by_referral_code(db, payload.referral_code)
+    referral_applied = inviter is not None
+    if payload.referral_code and not referral_applied:
+        logger.warning("🔗 Коди даъват нодуруст ҳангоми қайд (phone=…%s)", phone[-4:])
+
     user = User(
         phone=phone,
         password_hash=hash_password(payload.password),
@@ -121,13 +132,25 @@ def register(payload: RegisterRequest, request: Request, db: Session = Depends(g
         language=payload.language if payload.language in ("tj", "ru", "en", "uz") else "tj",
         is_admin=False,
         balance=Decimal("0.00"),
+        coins=0,
+        referred_by_id=inviter.id if inviter is not None else None,
     )
     db.add(user)
     db.commit()
     db.refresh(user)
 
+    # 🪙 Бонуси даъват (як дафъа): +даъваткунанда, +дӯсти нав
+    if inviter is not None:
+        try:
+            coins_service.grant_referral(
+                db, inviter_id=inviter.id, invited_id=user.id
+            )
+        except Exception:  # noqa: BLE001
+            # Қайд набояд ноком шавад, вале хатогӣ бояд дида шавад
+            logger.exception("Хатогии бонуси даъват (inviter=%s)", inviter.id)
+
     token = _issue_token(user)
-    return Token(access_token=token, is_admin=False)
+    return Token(access_token=token, is_admin=False, referral_applied=referral_applied)
 
 
 # =====================================================================

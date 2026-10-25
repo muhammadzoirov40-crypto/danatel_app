@@ -46,6 +46,22 @@ class User(Base):
         Numeric(14, 2), default=Decimal("0.00"), nullable=False, server_default="0"
     )
 
+    # 🪙 PERS COINS — тангаҳои дохилӣ (100 танга = 1 сомонӣ).
+    #    Тангаҳо ТАНОБО аз бекенд ҷорӣ мешаванд: cashback, даъват, админ,
+    #    иваз ба баланс. Фронт ҲЕҶ ГОҲ маблағ намегӯяд.
+    coins: Mapped[int] = mapped_column(
+        Integer, default=0, nullable=False, server_default="0"
+    )
+
+    # 🔗 ДАЪВАТ — коди шахсии даъват + кӣ ин корбарро даъват кард
+    referral_code: Mapped[str | None] = mapped_column(
+        String(12), unique=True, index=True
+    )
+    # ⚠️ Бе FK-и сахт: сутунҳои кӯҳна бо ALTER илова мешаванд (database.py)
+    referred_by_id: Mapped[int | None] = mapped_column(
+        Integer, index=True, nullable=True
+    )
+
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     orders: Mapped[list["Order"]] = relationship(
@@ -114,6 +130,63 @@ class BalanceTransaction(Base):
 
     user: Mapped["User"] = relationship(foreign_keys=[user_id], back_populates="transactions")
     admin: Mapped["User | None"] = relationship(foreign_keys=[admin_id])
+
+
+# =====================================================================
+# 🪙 PERS COINS — ТАРИХИ ТАНГАҲО
+# =====================================================================
+
+
+class CoinTransactionKind:
+    """Навъи тағйироти тангаҳо."""
+
+    CASHBACK = "cashback"              # ➕ аз фармоиши иҷрочуда
+    REFERRAL = "referral"              # ➕ даъвати дӯст
+    REFERRAL_WELCOME = "referral_welcome"  # ➕ бонуси дӯсти нав
+    ADMIN_GRANT = "admin_grant"        # ➕ аз ҷониби админ
+    EXCHANGE = "exchange"              # ➖ иваз ба баланс (100 → 1 сомонӣ)
+    SPIN = "spin"                      # ➖ хароҷоти гардиши чарх
+    SPIN_REWARD = "spin_reward"        # ➕ ғолиби гардиши чарх
+
+    ALL = [
+        CASHBACK, REFERRAL, REFERRAL_WELCOME,
+        ADMIN_GRANT, EXCHANGE, SPIN, SPIN_REWARD,
+    ]
+
+
+class CoinTransaction(Base):
+    """
+    🪙 Таърихи ҳамаи тағйироти тангаҳо (Pers Coins).
+
+    Ҳар як сатр = як амалиёт: корбар, миқдор, навъ, сабаб,
+    тангаҳои монда ПАС аз амалиёт ва сана.
+    Таърих беҳри аудит аст — тангаҳои ҷорӣ дар users.coins.
+    """
+
+    __tablename__ = "coin_transactions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    # Навъ: cashback / referral / exchange / ...
+    kind: Mapped[str] = mapped_column(String(24), index=True)
+    # Миқдор бо аломат: + илова, - буриш
+    amount: Mapped[int] = mapped_column(Integer, nullable=False)
+    # Тангаҳои монда ПАС аз ин амалиёт
+    coins_after: Mapped[int] = mapped_column(Integer, nullable=False)
+    # Сабаби тағйирот (забони оддӣ)
+    reason: Mapped[str | None] = mapped_column(Text)
+    # Истинод ба фармоиш (барои cashback)
+    order_id: Mapped[int | None] = mapped_column(
+        ForeignKey("orders.id", ondelete="SET NULL"), index=True
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), index=True
+    )
+
+    user: Mapped["User"] = relationship(foreign_keys=[user_id])
 
 
 # =====================================================================

@@ -134,7 +134,16 @@ def _ensure_missing_columns() -> None:
 
     # 2) Сутунҳои нав дар ҷадвалҳои мавҷуда
     wanted: dict[str, list[str]] = {
-        "users": ["phone", "password_hash", "balance", "token_version"],
+        "users": [
+            "phone",
+            "password_hash",
+            "balance",
+            "token_version",
+            # 🪙 Pers Coins + 🔗 даъват
+            "coins",
+            "referral_code",
+            "referred_by_id",
+        ],
         "orders": [
             "client_token",
             "payment_method",
@@ -176,6 +185,13 @@ def _column_ddl(table: str, col: str) -> str | None:
         ("users", "balance"): "ALTER TABLE users ADD COLUMN balance NUMERIC(14,2) NOT NULL DEFAULT 0",
         # 🔐 Насби токен (бекоркунии ҳамаи токенҳо ҳангоми ивазкунии парол)
         ("users", "token_version"): "ALTER TABLE users ADD COLUMN token_version INTEGER NOT NULL DEFAULT 0",
+        # 🪙 Pers Coins + 🔗 даъват (UTM/реферал)
+        # ⚠️ UNIQUE барои referral_code дар ин ҷо ГОЗОРИДА НАМЕШАВАД:
+        #    SQLite/PG аз `ALTER TABLE ... ADD COLUMN ... UNIQUE` кор намегиранд.
+        #    Ягонаӣ дар сатри код (`app/services/coins.py`) тафтиш мешавад.
+        ("users", "coins"): "ALTER TABLE users ADD COLUMN coins INTEGER NOT NULL DEFAULT 0",
+        ("users", "referral_code"): "ALTER TABLE users ADD COLUMN referral_code VARCHAR(12)",
+        ("users", "referred_by_id"): "ALTER TABLE users ADD COLUMN referred_by_id INTEGER",
         ("orders", "client_token"): "ALTER TABLE orders ADD COLUMN client_token VARCHAR(64)",
         ("orders", "payment_method"): "ALTER TABLE orders ADD COLUMN payment_method VARCHAR(32) DEFAULT 'dc_wallet'",
         ("orders", "user_id"): "ALTER TABLE orders ADD COLUMN user_id INTEGER",

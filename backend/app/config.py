@@ -41,6 +41,19 @@ class Settings(BaseSettings):
     FIRELOOT_API_URL: str = "https://partner.firelootshop.com/api/v1"
     FIRELOOT_API_KEY: str = ""
 
+    # 🪙 PERS COINS (тангаҳои дохилӣ) — ҳамаи рақамҳо аз .env танзим мешаванд
+    #    cashback: ҳар 1 сомонии фармоиши ИҶРОЧУДА = COINS_PER_TJS танга
+    COINS_PER_TJS: int = 5
+    #    иваз ба баланс: COINS_TO_TJS танга = 1 сомонӣ (адади куллӣ)
+    COINS_TO_TJS: int = 100
+    #    даъват: ҳангоми қайди дӯст тавассути линки шахсӣ (як дафъа)
+    REFERRAL_COINS: int = 50
+    REFERRAL_FRIEND_COINS: int = 10
+    #    хароҷоти як гардиши чарх (Фаза 2)
+    SPIN_COST_COINS: int = 50
+    #    ҳадди ақал барои иваз ба баланс
+    COINS_MIN_EXCHANGE: int = 100
+
     # БАРНАМА
     FRONTEND_URL: str = "http://localhost:5173"
     ADMIN_PHONE: str = "992000000000"
