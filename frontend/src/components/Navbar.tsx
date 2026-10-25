@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Check, ChevronDown, LayoutGrid, LogOut, Menu, Package, Settings, User } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { LANGS } from "../i18n";
-import { GoldCoin, Ic, TajikFlag } from "./Icons";
+import { GoldCoin, Ic, RussianFlag, TajikFlag, USAFlag, UzbekFlag } from "./Icons";
 import Logo from "./Logo";
 
 /**
@@ -98,8 +98,12 @@ export default function Navbar() {
           >
             {cur.code === "tj" ? (
               <TajikFlag className="w-4 h-2.5 rounded-xs" />
+            ) : cur.code === "ru" ? (
+              <RussianFlag className="w-4 h-2.5 rounded-xs" />
+            ) : cur.code === "en" ? (
+              <USAFlag className="w-4 h-2.5 rounded-xs" />
             ) : (
-              <span>{cur.flag}</span>
+              <UzbekFlag className="w-4 h-2.5 rounded-xs" />
             )}
             <span className="uppercase">{cur.code}</span>
             <Ic
@@ -133,8 +137,12 @@ export default function Navbar() {
                 >
                   {l.code === "tj" ? (
                     <TajikFlag className="w-4 h-2.5 rounded-xs" />
+                  ) : l.code === "ru" ? (
+                    <RussianFlag className="w-4 h-2.5 rounded-xs" />
+                  ) : l.code === "en" ? (
+                    <USAFlag className="w-4 h-2.5 rounded-xs" />
                   ) : (
-                    <span>{l.flag}</span>
+                    <UzbekFlag className="w-4 h-2.5 rounded-xs" />
                   )}
                   <span>{l.label}</span>
                   {lang === l.code && (

@@ -298,3 +298,60 @@ export function GiftBox3D({ className = "w-8 h-8" }: { className?: string }) {
     </svg>
   );
 }
+
+/** 🇷🇺 Парчами ҳақиқии Русия (Real Russian Flag) */
+export function RussianFlag({ className = "w-4 h-3 rounded-xs shadow-xs" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 16" className={`inline-block shrink-0 overflow-hidden ${className}`} aria-label="Россия">
+      <rect width="24" height="5.33" fill="#d52b1e" />
+      <rect y="5.33" width="24" height="5.34" fill="#ffffff" />
+      <rect y="10.67" width="24" height="5.33" fill="#0039a8" />
+    </svg>
+  );
+}
+
+/** 🇺🇸 Парчами ҳақиқии Америка (Real USA Flag) */
+export function USAFlag({ className = "w-4 h-3 rounded-xs shadow-xs" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 16" className={`inline-block shrink-0 overflow-hidden ${className}`} aria-label="United States">
+      <rect width="24" height="16" fill="#b22234" />
+      <rect y="0" width="24" height="10" fill="#3c3b6e" />
+      <g fill="#ffffff">
+        {[...Array(50)].map((_, i) => {
+          const row = Math.floor(i / 9);
+          const col = i % 9;
+          return (
+            <circle key={i} cx={2.5 + col * 2} cy={1.5 + row * 1.6} r="0.55" />
+          );
+        })}
+      </g>
+    </svg>
+  );
+}
+
+/** 🇺🇿 Парчами ҳақиқии Ўзбекистон (Real Uzbekistan Flag) */
+export function UzbekFlag({ className = "w-4 h-3 rounded-xs shadow-xs" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 16" className={`inline-block shrink-0 overflow-hidden ${className}`} aria-label="Oʻzbekiston">
+      <rect width="24" height="5.33" fill="#1eb53a" />
+      <rect y="5.33" width="24" height="5.34" fill="#ffffff" />
+      <rect y="10.67" width="24" height="5.33" fill="#1eb53a" />
+      <rect y="5.33" width="24" height="1" fill="#ce1126" />
+      <rect y="9.67" width="24" height="1" fill="#ce1126" />
+      <rect x="0" y="5.33" width="3" height="5.34" fill="#1eb53a" />
+      <g transform="translate(1, 7)" fill="#f7d51d">
+        {[...Array(12)].map((_, i) => {
+          const row = Math.floor(i / 4);
+          const col = i % 4;
+          return (
+            <path
+              key={i}
+              d="M0 0 L0.8 0.4 L0.2 0.8 L0.8 1.2 L0 1.6 L-0.4 1.2 L0.2 0.8 L-0.4 0.4 Z"
+              transform={`translate(${col * 1.2} ${row * 1.2}) scale(0.7)`}
+            />
+          );
+        })}
+      </g>
+    </svg>
+  );
+}

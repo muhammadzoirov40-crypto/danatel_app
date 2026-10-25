@@ -4,11 +4,11 @@
  */
 export type Lang = "tj" | "ru" | "en" | "uz";
 
-export const LANGS: { code: Lang; label: string; flag: string }[] = [
-  { code: "tj", label: "Тоҷикӣ", flag: "🇹🇯" },
-  { code: "ru", label: "Русский", flag: "🇷🇺" },
-  { code: "en", label: "English", flag: "🇺🇸" },
-  { code: "uz", label: "Oʻzbek", flag: "🇺🇿" },
+export const LANGS: { code: Lang; label: string }[] = [
+  { code: "tj", label: "Тоҷикӣ" },
+  { code: "ru", label: "Русский" },
+  { code: "en", label: "English" },
+  { code: "uz", label: "Oʻzbek" },
 ];
 
 type Dict = Record<string, string>;
