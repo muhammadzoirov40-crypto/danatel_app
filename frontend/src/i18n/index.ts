@@ -265,6 +265,38 @@ const tj: Dict = {
     "Пас аз он ки шумо чеки пардохтро мефиристед, админ онро санҷида тасдиқ мекунад ва маҳсулот ба ҳисоби шумо ворид мешавад.",
   seoSupport: "Дастгирӣ ва тамос",
   seoTgLabel: "Дастгирӣ дар Telegram",
+
+  // ===== 👤 САҲИФАИ ПРОФИЛ (тарҳи нав) =====
+  profileIdLabel: "ID-и шумо:",
+  registeredAt: "Санаи қайд",
+  ordersHint: "Ҳолати фармоишҳои шумо",
+  gameIds: "IDҳои бозии ман",
+  gameIdsHint: "IDҳои истифодашуда дар фармоишҳои шумо",
+  noGameIds: "Ҳанӯз ID истифода нашудааст",
+  personalInfo: "Маълумоти шахсӣ",
+  personalInfoHint: "Ном ва телефон барои тамос",
+  security: "Амният",
+  securityHint: "Ивазкунии парол",
+  bonusesInvites: "Бонусҳо ва даъватҳо",
+  bonusesInvitesHint: "Тангаҳо ва линки даъват",
+  // ===== 🪙 PERS COINS =====
+  coinsHint: "Танга барои ҳар фармоиши иҷрочуда",
+  coinsRate: "{n} танга = 1 сомонӣ",
+  exchangeCoins: "Иваз ба баланс",
+  exchangeDone: "Иваз шуд: +{amount} сомонӣ",
+  coinHistory: "Таърихи тангаҳо",
+  noCoins: "Танга ҳанӯз нест",
+  kindCashback: "Cashback",
+  kindReferral: "Даъват",
+  kindReferralWelcome: "Бонуси даъват",
+  kindAdminGrant: "Аз ҷониби админ",
+  kindExchange: "Иваз ба баланс",
+  // ===== 🔗 ДАЪВАТ =====
+  inviteLink: "Линки даъвати шумо",
+  inviteHint:
+    "Дӯст тавассути ин линк қайд мекунад ва ҳар ду шумо танга мегиред",
+  referralCount: "Даъватшудагон: {n}",
+  noReferrals: "Ҳанӯз касеро даъват накардаед",
 };
 
 const ru: Dict = {
@@ -519,6 +551,38 @@ const ru: Dict = {
     "После того как вы присылаете чек об оплате, администратор проверяет его и подтверждает заказ, после чего товар появляется на вашем счёте.",
   seoSupport: "Поддержка и контакты",
   seoTgLabel: "Поддержка в Telegram",
+
+  // ===== 👤 ПРОФИЛЬ (новый дизайн) =====
+  profileIdLabel: "Ваш ID:",
+  registeredAt: "Дата регистрации",
+  ordersHint: "Статус ва таърихи заказов",
+  gameIds: "Мои игровые ID",
+  gameIdsHint: "ID, использованные в ваших заказах",
+  noGameIds: "ID пока не использовались",
+  personalInfo: "Личная информация",
+  personalInfoHint: "Имя и телефон для связи",
+  security: "Безопасность",
+  securityHint: "Смена пароля",
+  bonusesInvites: "Бонусы и приглашения",
+  bonusesInvitesHint: "Монеты и ссылка-приглашение",
+  // ===== 🪙 PERS COINS =====
+  coinsHint: "Монеты за каждый выполненный заказ",
+  coinsRate: "{n} монет = 1 сомони",
+  exchangeCoins: "Обменять в баланс",
+  exchangeDone: "Обменяно: +{amount} сомони",
+  coinHistory: "История монет",
+  noCoins: "Монет пока нет",
+  kindCashback: "Cashback",
+  kindReferral: "Приглашение",
+  kindReferralWelcome: "Бонус за приглашение",
+  kindAdminGrant: "От администратора",
+  kindExchange: "Обмен в баланс",
+  // ===== 🔗 ПРИГЛАШЕНИЕ =====
+  inviteLink: "Ваша ссылка-приглашение",
+  inviteHint:
+    "Друг регистрируется по этой ссылке — вы оба получаете монеты",
+  referralCount: "Приглашено: {n}",
+  noReferrals: "Вы ещё никого не пригласили",
 };
 
 const en: Dict = {
@@ -773,6 +837,38 @@ const en: Dict = {
     "Once you send your payment receipt, the admin checks it and confirms the order, then the items are added to your account.",
   seoSupport: "Support & contacts",
   seoTgLabel: "Support on Telegram",
+
+  // ===== 👤 PROFILE (new design) =====
+  profileIdLabel: "Your ID:",
+  registeredAt: "Registered on",
+  ordersHint: "Status and history of your orders",
+  gameIds: "My game IDs",
+  gameIdsHint: "IDs used in your orders",
+  noGameIds: "No IDs used yet",
+  personalInfo: "Personal information",
+  personalInfoHint: "Name and phone",
+  security: "Security",
+  securityHint: "Change password",
+  bonusesInvites: "Bonuses and invites",
+  bonusesInvitesHint: "Coins and invite link",
+  // ===== 🪙 PERS COINS =====
+  coinsHint: "Coins for every completed order",
+  coinsRate: "{n} coins = 1 TJS",
+  exchangeCoins: "Convert to balance",
+  exchangeDone: "Converted: +{amount} TJS",
+  coinHistory: "Coin history",
+  noCoins: "No coins yet",
+  kindCashback: "Cashback",
+  kindReferral: "Invite",
+  kindReferralWelcome: "Invite bonus",
+  kindAdminGrant: "From admin",
+  kindExchange: "Converted to balance",
+  // ===== 🔗 INVITE =====
+  inviteLink: "Your invite link",
+  inviteHint:
+    "A friend signs up with this link and you both get coins",
+  referralCount: "Invited: {n}",
+  noReferrals: "You haven't invited anyone yet",
 };
 
 const uz: Dict = {
@@ -1027,6 +1123,38 @@ const uz: Dict = {
     "To'lov chekini yuborganingizdan so'ng admin uni tekshirib, buyurtmani tasdiqlaydi va mahsulot hisobingizga qo'shiladi.",
   seoSupport: "Qo'llab-quvvatlash va aloqa",
   seoTgLabel: "Telegramda qo'llab-quvvatlash",
+
+  // ===== 👤 PROFIL (yangi dizayn) =====
+  profileIdLabel: "Sizning ID-ingiz:",
+  registeredAt: "Ro'yxatdan o'tgan sana",
+  ordersHint: "Buyurtmalaringiz holati va tarixi",
+  gameIds: "Mening o'yin ID larim",
+  gameIdsHint: "Buyurtmalaringizda ishlatilgan IDlar",
+  noGameIds: "Hali ID ishlatilmagan",
+  personalInfo: "Shaxsiy ma'lumotlar",
+  personalInfoHint: "Aloqa uchun ism va telefon",
+  security: "Xavfsizlik",
+  securityHint: "Parolni o'zgartirish",
+  bonusesInvites: "Bonuslar va takliflar",
+  bonusesInvitesHint: "Tangalar va taklif havolasi",
+  // ===== 🪙 PERS COINS =====
+  coinsHint: "Har bir bajarilgan buyurtma uchun tanga",
+  coinsRate: "{n} tanga = 1 somoni",
+  exchangeCoins: "Balansga almashtirish",
+  exchangeDone: "Almashtirildi: +{amount} somoni",
+  coinHistory: "Tangalar tarixi",
+  noCoins: "Hali tanga yo'q",
+  kindCashback: "Cashback",
+  kindReferral: "Taklif",
+  kindReferralWelcome: "Taklif bonusi",
+  kindAdminGrant: "Admin tomonidan",
+  kindExchange: "Balansga almashtirish",
+  // ===== 🔗 TAKLIF =====
+  inviteLink: "Sizning taklif havolangiz",
+  inviteHint:
+    "Do'st bu havola orqali ro'yxatdan o'tadi — ikkalangizga tanga",
+  referralCount: "Taklif qilinganlar: {n}",
+  noReferrals: "Hali birortani taklif qilmadingiz",
 };
 
 export const dictionaries: Record<Lang, Dict> = { tj, ru, en, uz };

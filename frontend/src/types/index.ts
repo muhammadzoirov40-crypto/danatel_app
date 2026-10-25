@@ -99,6 +99,36 @@ export interface BalanceTx {
   admin_name?: string | null;
 }
 
+/** 🪙 Як сатри таърихи тангаҳо (Pers Coins) */
+export interface CoinTx {
+  id: number;
+  kind: string;
+  amount: number;
+  coins_after: number;
+  reason?: string | null;
+  created_at: string;
+}
+
+/** 🪙 Тангаҳои корбар + қоидаҳои ҳисоб (аз backend) */
+export interface CoinsInfo {
+  coins: number;
+  coins_per_tjs: number;
+  exchange_rate: number;
+  min_exchange: number;
+  spin_cost: number;
+  referral_code: string;
+  referred_count: number;
+  history: CoinTx[];
+}
+
+/** 🪙 Натиҷаи ивази танга ба баланс */
+export interface CoinsExchange {
+  coins: number;
+  balance: number;
+  credited_tjs: number;
+  spent_coins: number;
+}
+
 export interface AdminUser {
   id: number;
   phone?: string | null;

@@ -9,6 +9,8 @@ import type {
   AdminUser,
   BalanceInfo,
   BalanceTx,
+  CoinsExchange,
+  CoinsInfo,
   Game,
   Order,
   PaymentInit,
@@ -211,6 +213,8 @@ export const api = {
     password: string;
     full_name?: string;
     language?: string;
+    /** 🔗 Коди даъвати дӯст (аз линки ?ref=) */
+    referral_code?: string;
   }) => {
     const res = await request<{ access_token: string; is_admin: boolean }>(
       "/auth/register",
@@ -257,6 +261,13 @@ export const api = {
   // ========================== 💰 БАЛАНС ==========================
   myBalance: () => request<BalanceInfo>("/auth/me/balance"),
   myOrders: (lang = "tj") => request<Order[]>(`/orders/my?lang=${lang}`),
+
+  // ========================== 🪙 PERS COINS ==========================
+  /** Тангаҳо + қоидаҳои ҳисоб + коди даъват + таърих */
+  myCoins: () => request<CoinsInfo>("/coins/me"),
+  /** 💱 Ивази танга ба баланс (танҳо адади куллӣ, 100 танга = 1 сомонӣ) */
+  exchangeCoins: () =>
+    request<CoinsExchange>("/coins/exchange", { method: "POST" }),
 
   // ========================== АДМИН ==========================
   stats: () => request<AdminStats>("/admin/stats"),

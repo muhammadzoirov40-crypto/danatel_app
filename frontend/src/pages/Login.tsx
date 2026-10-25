@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Loader2, LogIn, UserPlus } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { api, ApiError } from "../api/client";
@@ -16,7 +16,15 @@ import { Ic } from "../components/Icons";
 export default function Login() {
   const { t, lang, refreshUser } = useApp();
   const nav = useNavigate();
-  const [mode, setMode] = useState<"login" | "register">("login");
+
+  // 🔗 Линки даъвати дӯст (?ref=CODE) — агар мавҷуд бошад, қайдро
+  //    пешакӣ мекушоем ва кодро ҳангоми қайд мефиристем.
+  const [searchParams] = useSearchParams();
+  const refCode = (searchParams.get("ref") || "").trim().slice(0, 16);
+
+  const [mode, setMode] = useState<"login" | "register">(
+    refCode ? "register" : "login",
+  );
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -53,6 +61,7 @@ export default function Login() {
           password,
           full_name: fullName.trim() || undefined,
           language: lang,
+          referral_code: refCode || undefined,
         });
       }
       await refreshUser();
