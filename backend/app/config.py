@@ -10,6 +10,9 @@ class Settings(BaseSettings):
 
     # АМНИЯТ
     SECRET_KEY: str = "dev_secret_change_me"
+    # ⚠️ Ин танҳо барои иттилоот аст: алгоритми воқеии имзо дар
+    #    app/security.py ба `HS256` маҳкам шудааст ва аз .env ҚАБУЛ НАМЕШАВАД
+    #    (то касе алгоритми `none` ё дигарро ҷорӣ карда натавонад).
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
 
