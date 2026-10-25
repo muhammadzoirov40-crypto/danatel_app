@@ -136,9 +136,9 @@ export default function Navbar() {
             <span>{t("navCatalog")}</span>
           </Link>
           <Link
-            to={user ? "/profile" : "/login"}
-            className={pillCls(pathname === "/profile" || pathname === "/login")}
-            aria-current={pathname === "/profile" ? "page" : undefined}
+            to={user ? "/orders" : "/login"}
+            className={pillCls(pathname === "/orders" || pathname === "/login")}
+            aria-current={pathname === "/orders" ? "page" : undefined}
           >
             <Ic icon={Package} className="opacity-90" />
             <span>{t("navOrders")}</span>

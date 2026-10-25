@@ -12,6 +12,7 @@ import GameDetail from "./pages/GameDetail";
 import OrderPage from "./pages/OrderPage";
 import Admin from "./pages/admin/Admin";
 import Login from "./pages/Login";
+import MyOrders from "./pages/MyOrders";
 import Profile from "./pages/Profile";
 import ReviewsPage from "./pages/ReviewsPage";
 
@@ -40,6 +41,8 @@ export default function App() {
               <Route path="/order/:id" element={<OrderPage />} />
               <Route path="/login" element={<Login />} />
               <Route path="/profile" element={<Profile />} />
+              {/* 📦 Фармоишҳои ман — саҳифаи алоҳида (аз сарлавҳа) */}
+              <Route path="/orders" element={<MyOrders />} />
               {/* 📇 Муштариёни мо + Тақризҳои муштариён — саҳифаи алоҳида */}
               <Route path="/reviews" element={<ReviewsPage />} />
               <Route path="/admin" element={<Admin />} />

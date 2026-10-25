@@ -44,6 +44,7 @@ export default function BottomNav() {
 
   const isHome = pathname === "/";
   const isProfile = pathname === "/profile";
+  const isOrders = pathname === "/orders";
   const isLogin = pathname === "/login";
 
   const labels = {
@@ -208,10 +209,10 @@ export default function BottomNav() {
 
         {/* 4) Фармоишҳо (сабад НЕСТ — ин фармоишҳои воқеӣ) */}
         <Link
-          to={user ? "/profile" : "/login"}
+          to={user ? "/orders" : "/login"}
           onClick={handleOrdersClick}
           aria-label={labels.orders}
-          className={itemCls(isProfile && !isHome)}
+          className={itemCls(isOrders && !isHome)}
         >
           <Ic icon={Package} size="md" />
           <span className="w-full text-center text-[10px] font-bold leading-none mt-0.5 truncate">
