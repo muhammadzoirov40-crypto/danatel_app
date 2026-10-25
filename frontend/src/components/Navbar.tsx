@@ -155,12 +155,8 @@ export default function Navbar() {
             <Ic icon={Info} className="opacity-90" />
             <span>{t("navAbout")}</span>
           </button>
-          {isAdmin && (
-            <Link to="/admin" className={pillCls(pathname === "/admin")}>
-              <Ic icon={Settings} className="opacity-90" />
-              <span>{t("adminPanel")}</span>
-            </Link>
-          )}
+          {/* ⚠️ Тугмаи «Панели идора» аз сарлавҳа БАРДОШТА ШУД →
+              акнун тангмаи шинокунандаи иконкаӣ дар поён-чап (BottomNav) */}
         </nav>
 
         <div className="flex-1" />

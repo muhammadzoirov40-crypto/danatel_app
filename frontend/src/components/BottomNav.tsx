@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { House, LayoutGrid, Package, Plus, Send, User } from "lucide-react";
+import { House, LayoutGrid, Package, Plus, Send, Settings, User } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import TopUpModal from "./TopUpModal";
 import OrderSearchModal from "./OrderSearchModal";
@@ -19,7 +19,7 @@ import { Ic } from "./Icons";
 export default function BottomNav() {
   const { pathname } = useLocation();
   const nav = useNavigate();
-  const { user, lang, t } = useApp();
+  const { user, lang, t, isAdmin, authReady } = useApp();
 
   const [topUpOpen, setTopUpOpen] = useState(false);
   const [orderSearchOpen, setOrderSearchOpen] = useState(false);
@@ -111,6 +111,28 @@ export default function BottomNav() {
       >
         <Ic icon={Send} size="lg" />
       </a>
+
+      {/* ⚙️ Тугмаи шинокунандаи «Панели идора» — ТАНҲО барои админ, ТАНҲО иконка.
+          `authReady` лозим аст: то расидани /auth/me тугма пинҳон мемонад,
+          то корбари ғайриадмин тугмаи бемаъниро набинад.
+          Мобилӣ: поён-чап, ДАР БОЛОИ тугмаи Telegram (Telegram = bottom-20, 80px;
+          ин = 140px → танаффур 12px, ягон пӯшиш нест).
+          Компютер (md+): поён-чап — Telegram дар он ҷо нест (= рост). */}
+      {isAdmin && authReady && (
+        <Link
+          to="/admin"
+          aria-label={t("adminPanel")}
+          title={t("adminPanel")}
+          className="fixed left-4 bottom-[8.75rem] z-40 md:left-6 md:bottom-6
+                     w-12 h-12 rounded-full bg-gradient-to-tr from-slate-600 to-slate-800
+                     text-white ring-1 ring-white/20
+                     shadow-[0_8px_24px_-6px_rgba(15,23,42,0.55)]
+                     grid place-items-center hover:scale-105 active:scale-95 transition-transform
+                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+        >
+          <Ic icon={Settings} size="lg" />
+        </Link>
+      )}
 
       {/* Панели навигатсияи поёнӣ (Bottom Navigation Dock) — дар телефон/планшет */}
       <nav
