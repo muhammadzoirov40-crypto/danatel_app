@@ -1,43 +1,47 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 420" width="480" height="420">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 500" width="480" height="500">
   <title>danatel.tj</title>
   <defs>
-    <linearGradient id="lb" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#4f9bff"/>
-      <stop offset="0.55" stop-color="#2f7cf6"/>
-      <stop offset="1" stop-color="#0b3fd8"/>
-    </linearGradient>
-    <linearGradient id="la" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#7db4ff"/>
-      <stop offset="1" stop-color="#1546dd"/>
-    </linearGradient>
     <clipPath id="lc">
-      <path fill-rule="evenodd" d="M4 6 H30 L44 21 V43 L30 58 H4 Z M16 18 H29 L34 25 V39 L29 46 H16 Z"/>
+      <path fill-rule="evenodd" d="M14 18 H94 L126 30 L148 50 L170 38 L166 72 L188 86 L166 112 L180 136 L152 158 L122 176 L94 182 L14 182 Z M50 56 H96 L116 76 L124 100 L116 124 L96 144 L50 144 Z"/>
     </clipPath>
   </defs>
 
   <!-- Заминаи хокистарии равшан -->
-  <rect width="480" height="420" fill="#f2f4f8"/>
+  <rect width="480" height="500" fill="#f2f4f8"/>
 
-  <!-- Нишон: ҳарфи «D»-и гавҳаракӣ + тирҳои боло -->
-  <g transform="translate(110,56) scale(3.6)">
-    <path fill-rule="evenodd" fill="url(#lb)"
-          d="M4 6 H30 L44 21 V43 L30 58 H4 Z M16 18 H29 L34 25 V39 L29 46 H16 Z"/>
+  <!-- Нишон: ҳарфи «D»-и камбӯғали кабуд (low-poly crystal) -->
+  <g transform="translate(70,44) scale(1.7)">
+    <path fill-rule="evenodd" fill="#1546dd"
+          d="M14 18 H94 L126 30 L148 50 L170 38 L166 72 L188 86 L166 112 L180 136 L152 158 L122 176 L94 182 L14 182 Z M50 56 H96 L116 76 L124 100 L116 124 L96 144 L50 144 Z"/>
     <g clip-path="url(#lc)">
-      <path d="M4 6 H44 V22 L4 40 Z" fill="#ffffff" opacity="0.34"/>
-      <path d="M4 40 L44 22 V40 L4 52 Z" fill="#ffffff" opacity="0.10"/>
-      <path d="M4 52 L44 40 V58 H4 Z" fill="#0a2a8f" opacity="0.32"/>
+      <polygon points="14,18 50,56 32,96" fill="#1f6fe0"/>
+      <polygon points="14,18 32,96 14,182" fill="#1140b8"/>
+      <polygon points="32,96 50,144 14,182" fill="#0a2a8f"/>
+      <polygon points="50,56 50,144 32,96" fill="#2f8cf0"/>
+      <polygon points="14,18 94,18 50,56" fill="#4f9bff"/>
+      <polygon points="94,18 96,56 50,56" fill="#2f8cf0"/>
+      <polygon points="94,18 126,30 96,56" fill="#7cc0fb"/>
+      <polygon points="126,30 116,76 96,56" fill="#4f9bff"/>
+      <polygon points="126,30 148,50 116,76" fill="#7cc0fb"/>
+      <polygon points="148,50 170,38 116,76" fill="#a9d8fd"/>
+      <polygon points="170,38 166,72 116,76" fill="#7cc0fb"/>
+      <polygon points="166,72 188,86 124,100" fill="#cfe8ff"/>
+      <polygon points="166,72 124,100 116,76" fill="#4f9bff"/>
+      <polygon points="188,86 166,112 124,100" fill="#a9d8fd"/>
+      <polygon points="166,112 180,136 124,100" fill="#7cc0fb"/>
+      <polygon points="166,112 116,124 124,100" fill="#4f9bff"/>
+      <polygon points="166,112 180,136 116,124" fill="#4f9bff"/>
+      <polygon points="180,136 152,158 116,124" fill="#7cc0fb"/>
+      <polygon points="152,158 96,144 116,124" fill="#2f8cf0"/>
+      <polygon points="152,158 122,176 96,144" fill="#1f6fe0"/>
+      <polygon points="122,176 94,182 96,144" fill="#1f6fe0"/>
+      <polygon points="50,144 96,144 94,182" fill="#1546dd"/>
+      <polygon points="94,182 14,182 50,144" fill="#1140b8"/>
     </g>
-    <path d="M4 6 H30 L44 21 V43 L30 58 H4 Z" fill="none" stroke="#ffffff" stroke-opacity="0.5" stroke-width="1.2"/>
-    <path d="M16 18 H29 L34 25 V39 L29 46 H16 Z" fill="none" stroke="#ffffff" stroke-opacity="0.5" stroke-width="1.2"/>
-    <path d="M39 58 H51 L45 34 Z" fill="url(#la)"/>
-    <path d="M39 58 H45 L45 34 Z" fill="#ffffff" opacity="0.35"/>
-    <path d="M53 58 H69 L61 6 Z" fill="url(#la)"/>
-    <path d="M53 58 H61 L61 6 Z" fill="#ffffff" opacity="0.40"/>
-    <path d="M61 6 L69 58 L61 58 Z" fill="#0b3fd8" opacity="0.55"/>
   </g>
 
   <!-- Номи расмӣ -->
-  <text x="240" y="374" text-anchor="middle"
-        font-family="Arial, Helvetica, sans-serif" font-size="66"
+  <text x="240" y="452" text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif" font-size="68"
         font-weight="800" letter-spacing="-2" fill="#0f1e3d">danatel.tj</text>
 </svg>
