@@ -125,7 +125,7 @@ export default function Navbar() {
     <header className="sticky top-0 z-40 nav-blue text-white">
       <div className="mx-auto max-w-6xl px-3 sm:px-4 h-14 sm:h-16 flex items-center gap-1.5 sm:gap-2">
         {/* 💎 Логотипи расмӣ (SVG) */}
-        <Link to="/" className="shrink-0" title="danatel.tj" aria-label="danatel.tj">
+        <Link to="/" className="shrink-0" title="donatshop" aria-label="donatshop">
           <Logo size={32} variant="onDark" withText textClass="hidden sm:inline" />
         </Link>
 

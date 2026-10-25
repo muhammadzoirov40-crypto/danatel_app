@@ -14,7 +14,7 @@ export const LANGS: { code: Lang; label: string }[] = [
 type Dict = Record<string, string>;
 
 const tj: Dict = {
-  brand: "danatel.tj",
+  brand: "donatshop",
   tagline: "Донати бозиҳо — зуд, осон, бо бехатарӣ",
   chooseGame: "Бозиро барои донат интихоб кунед",
   heroTitle: "Арзиши бозӣ дар сонияҳо",
@@ -267,7 +267,7 @@ const tj: Dict = {
 };
 
 const ru: Dict = {
-  brand: "danatel.tj",
+  brand: "donatshop",
   tagline: "Пополнение игр — быстро, удобно и безопасно",
   chooseGame: "Выберите игру для пополнения",
   heroTitle: "Игровая валюта за секунды",
@@ -520,7 +520,7 @@ const ru: Dict = {
 };
 
 const en: Dict = {
-  brand: "danatel.tj",
+  brand: "donatshop",
   tagline: "Game top-ups — fast, easy and secure",
   chooseGame: "Choose a game to top up",
   heroTitle: "Game currency in seconds",
@@ -773,7 +773,7 @@ const en: Dict = {
 };
 
 const uz: Dict = {
-  brand: "danatel.tj",
+  brand: "donatshop",
   tagline: "O'yinlar to'ldirish — tez, oson va xavfsiz",
   chooseGame: "To'ldirish uchun o'yinni tanlang",
   heroTitle: "O'yin valyutasi soniyalarda",

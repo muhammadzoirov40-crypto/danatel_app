@@ -109,7 +109,7 @@ export default function Logo({
         height={size}
         viewBox="6 10 188 188"
         role="img"
-        aria-label="danatel.tj"
+        aria-label="donatshop"
         className="shrink-0"
       >
         <defs>

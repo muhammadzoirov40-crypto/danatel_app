@@ -108,7 +108,7 @@ export default function Footer() {
       <div className="mx-auto max-w-6xl px-4 py-10 grid grid-cols-1 md:grid-cols-4 gap-8">
         {/* Сутуни 1: Логотип ва тавсиф */}
         <div className="md:col-span-1 space-y-3">
-          <Link to="/" className="inline-block" title="danatel.tj">
+          <Link to="/" className="inline-block" title="donatshop">
             <Logo size={28} withText textClass="text-base font-black" />
           </Link>
           <p className="text-xs text-slate-500 leading-relaxed">
