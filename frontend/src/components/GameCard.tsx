@@ -21,7 +21,6 @@ interface GameCardProps {
  */
 export default function GameCard({ game, isFavorite = false, onToggleFavorite }: GameCardProps) {
   const { t } = useApp();
-  const min = game.min_price_tjs;
 
   return (
     <Link
@@ -68,17 +67,11 @@ export default function GameCard({ game, isFavorite = false, onToggleFavorite }:
       {/* Тасвир — squircle калон, мисли app-icon */}
       <GameLogo game={game} size="card" />
 
-      {/* Ном — то 2 сатр */}
+      {/* Ном — то 2 сатр.
+          ⚠️ Нарх дар корт НЕСТ (дархости соҳиб): танҳо логотип ва ном. */}
       <div className="w-full text-[11px] sm:text-xs font-bold leading-tight line-clamp-2 text-slate-800">
         {game.name}
       </div>
-
-      {/* Нарх — хурд, кабуд */}
-      {min != null && (
-        <div className="text-[10px] sm:text-[11px] font-bold text-brand-600 tabular-nums">
-          {t("from")} {Number(min).toLocaleString("tj-TJ")}
-        </div>
-      )}
     </Link>
   );
 }

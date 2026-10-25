@@ -27,29 +27,33 @@ const tj: Dict = {
   statDelivered: "фармоиш иҷро шуд",
   statCustomers: "муштарӣ",
 
-  // ⭐ Отзывҳо
-  reviewsTitle: "Отзывҳои муштариён",
-  reviewsCount: "отзыв",
-  reviewsEmpty: "Ҳанӯз отзыв нест",
-  reviewsNoYet: "Ҳанӯз ягон отзыв нест. Аввалин шумо шавед!",
-  writeReview: "Отзив навиштан",
+  // ⭐ Тақризҳо (таърифҳо) — танҳо забони тоҷикӣ, бе воридоти русӣ
+  reviewsTitle: "Тақризҳои муштариён",
+  reviewsCount: "тақриз",
+  reviewsEmpty: "Ҳанӯз тақриз нест",
+  reviewsNoYet: "Ҳанӯз ягон тақриз нест. Аввалин шавед!",
+  writeReview: "Тақриз навиштан",
   ratedPeople: "нафар хол дод",
   yourRating: "Холи шумо",
   reviewPlaceholder: "Дар бораи хизматрасонӣ нависед…",
   reviewModerated: "Пеш аз намоиш админ тасдиқ мекунад",
-  reviewSent: "Отзив фиристода шуд — пас аз тасдиқ намоиш дода мешавад",
+  reviewSent: "Тақриз фиристода шуд — пас аз тасдиқ намоиш дода мешавад",
   send: "Фиристодан",
   // 👥 Муштариёни воқеӣ
   customersTitle: "Муштариёни мо",
   customersTotal: "муштарӣ бо фармоиш",
   customersOrders: "фармоиш",
+  // 📇 Саҳифаи алоҳидаи /reviews
+  reviewsPageTitle: "Муштариёни мо ва тақризҳо",
+  reviewsPageSub: "Муштариёни воқеӣ бо фармоишҳои иҷрочуда ва тақризҳои тасдиқшуда",
+  customersEmpty: "Ҳанӯз муштарӣ бо фармоиш нест",
   // 🛡️ Панели админ — санҷиши отзывҳо
-  reviews: "Отзывҳо",
+  reviews: "Тақризҳо",
   rating: "Рейтинг",
   approved: "Тасдиқшуда",
   pendingReview: "Дар интизор",
-  nothingPending: "Отзыве барои санҷиш нест",
-  nothingApproved: "Ҳанӯз ягон отзыв тасдиқ нашудааст",
+  nothingPending: "Тақризе барои санҷиш нест",
+  nothingApproved: "Ҳанӯз ягон тақриз тасдиқ нашудааст",
   featured: "Тавсия",
   playerId: "Player ID",
   enterPlayerId: "Player ID-ро дохил кунед",
@@ -147,8 +151,12 @@ const tj: Dict = {
 
   // 🎨 Сарлавҳа (мисли persshop)
   searchPlaceholder: "Ҷустуҷӯи бозӣ ё хизматрасонӣ...",
-  navCatalog: "Каталог",
+  navCatalog: "Феҳрист",
   navOrders: "Фармоишҳои ман",
+  navReviews: "Тақризҳо",
+  navAbout: "Дар бораи мо",
+  themeLight: "Мавзӯи равшан",
+  themeDark: "Мавзӯи торик",
   noResults: "Бозӣ ёфт нашуд",
   resultsFor: "Натиҷаҳо",
 
@@ -288,6 +296,10 @@ const ru: Dict = {
   customersTitle: "Наши клиенты",
   customersTotal: "клиентов с заказами",
   customersOrders: "заказов",
+  // 📇 Отдельная страница /reviews
+  reviewsPageTitle: "Наши клиенты и отзывы",
+  reviewsPageSub: "Реальные клиенты с выполненными заказами и подтверждённые отзывы",
+  customersEmpty: "Пока нет клиентов с заказами",
   // 🛡️ Панель админа — модерация отзывов
   reviews: "Отзывы",
   rating: "Рейтинг",
@@ -394,6 +406,10 @@ const ru: Dict = {
   searchPlaceholder: "Найти игру или услугу...",
   navCatalog: "Каталог",
   navOrders: "Мои покупки",
+  navReviews: "Отзывы",
+  navAbout: "О нас",
+  themeLight: "Светлая тема",
+  themeDark: "Тёмная тема",
   noResults: "Игра не найдена",
   resultsFor: "Результаты",
 
@@ -533,6 +549,10 @@ const en: Dict = {
   customersTitle: "Our customers",
   customersTotal: "customers with orders",
   customersOrders: "orders",
+  // 📇 Dedicated /reviews page
+  reviewsPageTitle: "Our customers and reviews",
+  reviewsPageSub: "Real customers with delivered orders and approved reviews",
+  customersEmpty: "No customers with orders yet",
   // 🛡️ Admin panel — review moderation
   reviews: "Reviews",
   rating: "Rating",
@@ -639,6 +659,10 @@ const en: Dict = {
   searchPlaceholder: "Find a game or service...",
   navCatalog: "Catalog",
   navOrders: "My orders",
+  navReviews: "Reviews",
+  navAbout: "About us",
+  themeLight: "Light theme",
+  themeDark: "Dark theme",
   noResults: "No game found",
   resultsFor: "Results",
 
@@ -778,6 +802,10 @@ const uz: Dict = {
   customersTitle: "Mijozlarimiz",
   customersTotal: "buyurtmali mijoz",
   customersOrders: "buyurtma",
+  // 📇 Alohida /reviews sahifasi
+  reviewsPageTitle: "Mijozlarimiz va sharhlar",
+  reviewsPageSub: "Bajarilgan buyurtmalari bo'lgan haqiqiy mijozlar va tasdiqlangan sharhlar",
+  customersEmpty: "Hozircha buyurtmali mijoz yo'q",
   // 🛡️ Admin panel — sharhlarni moderatsiya qilish
   reviews: "Sharhlar",
   rating: "Reyting",
@@ -884,6 +912,10 @@ const uz: Dict = {
   searchPlaceholder: "Oʻyin yoki xizmat qidiring...",
   navCatalog: "Katalog",
   navOrders: "Buyurtmalarim",
+  navReviews: "Sharhlar",
+  navAbout: "Biz haqimizda",
+  themeLight: "Yorug' tema",
+  themeDark: "Qorong'i tema",
   noResults: "Oʻyin topilmadi",
   resultsFor: "Natijalar",
 

@@ -79,13 +79,16 @@ export default function BottomNav() {
     }
   };
 
-  /** Класси ягона барои итеми ғайрифаъол (ҳамеша ҳамон андоза ва фосила) */
+  /** Класси ягона барои итеми ғайрифаъол.
+   *  `flex-1 min-w-0` → ҳамаи 5 банд дар экранҳои танг (320–390px) ҷой мегиранд;
+   *  `max-w-[84px]` → дар экранҳои васеъ қуттиҳо аз ҳад васта намешаванд;
+   *  `truncate` → агар матн ҷой надошад, бо нуқтаҳо нишон дода мешавад. */
   const itemCls = (active: boolean) =>
-    `flex flex-col items-center justify-center transition-all active:scale-95
+    `flex-1 min-w-0 max-w-[84px] flex flex-col items-center justify-center transition-all active:scale-95
      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 ${
        active
-         ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl px-3.5 py-1.5 shadow-md shadow-blue-500/25"
-         : "text-slate-500 hover:text-slate-900 hover:bg-slate-100 px-2 py-1 rounded-2xl"
+         ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl px-2.5 py-1.5 shadow-md shadow-blue-500/25"
+         : "text-slate-500 hover:text-slate-900 hover:bg-slate-100 px-1 py-1 rounded-2xl"
      }`;
 
   return (
@@ -120,7 +123,9 @@ export default function BottomNav() {
         {/* 1) Асосӣ */}
         <Link to="/" onClick={handleHomeClick} aria-label={labels.home} className={itemCls(isHome)}>
           <Ic icon={House} size="md" />
-          <span className="text-[10px] font-bold leading-none mt-0.5">{labels.home}</span>
+          <span className="w-full text-center text-[10px] font-bold leading-none mt-0.5 truncate">
+            {labels.home}
+          </span>
         </Link>
 
         {/* 2) Каталог */}
@@ -131,7 +136,9 @@ export default function BottomNav() {
           className={itemCls(false)}
         >
           <Ic icon={LayoutGrid} size="md" />
-          <span className="text-[10px] font-bold leading-none mt-0.5">{labels.catalog}</span>
+          <span className="w-full text-center text-[10px] font-bold leading-none mt-0.5 truncate">
+            {labels.catalog}
+          </span>
         </button>
 
         {/* 3) Тугмаи калони марказӣ «Пур кардан» */}
@@ -139,15 +146,16 @@ export default function BottomNav() {
           type="button"
           onClick={handleTopUpClick}
           aria-label={labels.topup}
-          className="relative -mt-6 flex flex-col items-center group active:scale-95 transition-transform
-                     cursor-pointer focus-visible:outline-none"
+          className="relative -mt-6 flex-1 min-w-0 max-w-[84px] flex flex-col items-center group
+                     active:scale-95 transition-transform cursor-pointer
+                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 rounded-2xl"
         >
           <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600
                           text-white shadow-lg shadow-blue-600/35 flex items-center justify-center
                           ring-4 ring-white group-hover:scale-105 transition-transform">
             <Ic icon={Plus} size="lg" strokeWidth={2.75} />
           </div>
-          <span className="text-[10px] font-extrabold text-slate-700 mt-1 leading-none">
+          <span className="w-full text-center text-[10px] font-extrabold text-slate-700 mt-1 leading-none truncate">
             {labels.topup}
           </span>
         </button>
@@ -160,7 +168,9 @@ export default function BottomNav() {
           className={itemCls(isProfile && !isHome)}
         >
           <Ic icon={Package} size="md" />
-          <span className="text-[10px] font-bold leading-none mt-0.5">{labels.orders}</span>
+          <span className="w-full text-center text-[10px] font-bold leading-none mt-0.5 truncate">
+            {labels.orders}
+          </span>
         </Link>
 
         {/* 5) Профил */}
@@ -170,7 +180,9 @@ export default function BottomNav() {
           className={itemCls((isProfile || isLogin) && !isHome)}
         >
           <Ic icon={User} size="md" />
-          <span className="text-[10px] font-bold leading-none mt-0.5">{labels.profile}</span>
+          <span className="w-full text-center text-[10px] font-bold leading-none mt-0.5 truncate">
+            {labels.profile}
+          </span>
         </Link>
       </nav>
     </>

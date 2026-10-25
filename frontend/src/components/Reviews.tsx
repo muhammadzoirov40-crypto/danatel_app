@@ -36,7 +36,7 @@ function Stars({ value, size = "md" }: { value: number; size?: "sm" | "md" }) {
  *  - танҳо муштарии фармоиши иҷрочуда метавонад нависад;
  *  - админ пеш аз намоиш тасдиқ мекунад.
  */
-export default function Reviews() {
+export default function Reviews({ hideTitle = false }: { hideTitle?: boolean }) {
   const { t, user } = useApp();
   const navigate = useNavigate();
   const [items, setItems] = useState<Review[]>([]);
@@ -77,12 +77,21 @@ export default function Reviews() {
   const total = sum?.reviews_total ?? 0;
 
   return (
-    <section id="reviews" className="mt-10 sm:mt-14 scroll-mt-20">
-      <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-        <h2 className="text-xl sm:text-2xl font-bold inline-flex items-center gap-2">
-          <Ic icon={Star} size="md" className="text-amber-400 fill-current" />
-          {t("reviewsTitle")}
-        </h2>
+    <section
+      id="reviews"
+      className={`${hideTitle ? "mt-4 sm:mt-6" : "mt-10 sm:mt-14"} scroll-mt-20`}
+    >
+      <div
+        className={`flex items-center gap-3 mb-4 flex-wrap ${
+          hideTitle ? "justify-start" : "justify-between"
+        }`}
+      >
+        {!hideTitle && (
+          <h2 className="text-xl sm:text-2xl font-bold inline-flex items-center gap-2">
+            <Ic icon={Star} size="md" className="text-amber-400 fill-current" />
+            {t("reviewsTitle")}
+          </h2>
+        )}
 
         <div className="flex items-center gap-3">
           {total > 0 ? (

@@ -41,6 +41,10 @@ interface AppState {
   /** 🔍 Ҷустуҷӯи муштарак: Navbar (header) менависад → саҳифаи асосӣ филтр мекунад */
   search: string;
   setSearch: (q: string) => void;
+
+  /** 🌙 Мавзӯи равшан / торик (localStorage, бе "флеш") */
+  theme: "light" | "dark";
+  toggleTheme: () => void;
 }
 
 const Ctx = createContext<AppState | null>(null);
@@ -59,6 +63,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
   const [balance, setBalance] = useState<number>(0);
   const [search, setSearch] = useState<string>("");
+
+  // 🌙 Мавзӯи равшан/торик — `.dark` дар <html>, дар localStorage нигоҳ дошта мешавад
+  const [theme, setThemeState] = useState<"light" | "dark">(() =>
+    typeof document !== "undefined" &&
+    document.documentElement.classList.contains("dark")
+      ? "dark"
+      : "light",
+  );
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    try {
+      localStorage.setItem("danatel_theme", theme);
+    } catch {
+      /* localStorage дастрас нест */
+    }
+  }, [theme]);
+
+  const toggleTheme = useCallback(() => {
+    setThemeState((v) => (v === "dark" ? "light" : "dark"));
+  }, []);
 
   const setLang = useCallback((l: Lang) => {
     setLangState(l);
@@ -155,8 +180,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setAdmin: setIsAdmin,
       search,
       setSearch,
+      theme,
+      toggleTheme,
     }),
-    [lang, setLang, t, user, isAdmin, balance, refreshUser, login, register, logout, search],
+    [lang, setLang, t, user, isAdmin, balance, refreshUser, login, register, logout, search, theme, toggleTheme],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

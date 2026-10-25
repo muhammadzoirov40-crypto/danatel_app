@@ -12,12 +12,24 @@ interface Row {
 /**
  * 👥 Рӯйхати муштариёни ВОҚЕӢ.
  *  Танҳо онҳое, ки дар база фармоиши иҷрочуда (delivered) доранд.
- *  Номҳо ниқобшуда: номи пурра ё •••5678. Ҳеҷ рейтинги сохта нест.
+ *  Номҳои ПУРРА нишон дода мешаванд (дархости соҳиб); телефон аз backend
+ *  ҳанӯз ҳам ниқобшуда аст (•••5678). Ҳеҷ рейтинги сохта нест.
+ *
+ *  `showEmpty` — дар саҳифаи алоҳидаи «Муштариёни мо» холӣ набаряд:
+ *  пайванди сафед бо матн нишон медиҳад. Дар саҳифаҳои дигар (кӯчак)
+ *  ҳамон тавр пинҳон мемонад.
  */
-export default function Customers() {
+export default function Customers({
+  showEmpty = false,
+  hideTitle = false,
+}: {
+  showEmpty?: boolean;
+  hideTitle?: boolean;
+}) {
   const { t } = useApp();
   const [rows, setRows] = useState<Row[]>([]);
   const [total, setTotal] = useState(0);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     api
@@ -26,50 +38,59 @@ export default function Customers() {
         setRows(d.items);
         setTotal(d.customers_total);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setLoaded(true));
   }, []);
 
-  if (total === 0) return null;
-
-  /** Ниқоби ном барои ҳимояи шахсий: «Муҳаммад» → «Муҳа•••д» */
-  function maskName(name: string): string {
-    if (name.length <= 4) return name;
-    const keep = name.length <= 8 ? 2 : 3;
-    return name.slice(0, keep) + "•••" + name.slice(-1);
-  }
+  // Ҳангами боркунӣ ҳеҷ чиз нишон намедиҳем → флеш-и «холӣ» намешавад
+  if (!loaded) return null;
+  if (total === 0 && !showEmpty) return null;
 
   return (
-    <section className="mt-10 sm:mt-12">
-      <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
-        <h2 className="text-xl sm:text-2xl font-bold inline-flex items-center gap-2">
-          <Ic icon={Users} size="md" className="text-brand-600" />
-          {t("customersTitle")}
-        </h2>
-        <span className="text-sm font-bold text-slate-500">
-          {total} {t("customersTotal")}
-        </span>
-      </div>
+    <section className={hideTitle ? "mt-4 sm:mt-6" : "mt-10 sm:mt-12"}>
+      {!hideTitle && (
+        <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+          <h2 className="text-xl sm:text-2xl font-bold inline-flex items-center gap-2">
+            <Ic icon={Users} size="md" className="text-brand-600" />
+            {t("customersTitle")}
+          </h2>
+          {total > 0 && (
+            <span className="text-sm font-bold text-slate-500">
+              {total} {t("customersTotal")}
+            </span>
+          )}
+        </div>
+      )}
 
-      <div className="flex flex-wrap gap-2">
-        {rows.map((r, i) => (
-          <span
-            key={`${r.name}-${i}`}
-            className="inline-flex items-center gap-2 rounded-full bg-white
-                       ring-1 ring-slate-200 px-3 py-1.5 text-sm shadow-xs"
-          >
+      {total === 0 ? (
+        <div className="card p-5 text-center text-sm text-slate-500">
+          <div className="flex justify-center mb-2 text-slate-300">
+            <Ic icon={Users} size="xl" />
+          </div>
+          {t("customersEmpty")}
+        </div>
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          {rows.map((r, i) => (
             <span
-              className="grid place-items-center w-6 h-6 rounded-full
-                         bg-brand-100 text-brand-700 text-xs font-black"
+              key={`${r.name}-${i}`}
+              className="inline-flex items-center gap-2 rounded-full bg-white
+                         ring-1 ring-slate-200 px-3 py-1.5 text-sm shadow-xs"
             >
-              {r.name.slice(0, 1).toUpperCase()}
+              <span
+                className="grid place-items-center w-6 h-6 rounded-full
+                           bg-brand-100 text-brand-700 text-xs font-black"
+              >
+                {r.name.slice(0, 1).toUpperCase()}
+              </span>
+              <span className="font-semibold text-slate-700">{r.name}</span>
+              <span className="text-xs text-slate-400">
+                · {r.delivered} {t("customersOrders")}
+              </span>
             </span>
-            <span className="font-semibold text-slate-700">{maskName(r.name)}</span>
-            <span className="text-xs text-slate-400">
-              · {r.delivered} {t("customersOrders")}
-            </span>
-          </span>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

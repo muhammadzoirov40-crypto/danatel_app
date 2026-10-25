@@ -10,6 +10,17 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <title>danatel.tj — Донати бозиҳо</title>
+    <script>
+      // 🌙 Мавзӯи нигоҳдоришуда → ПЕШ аз аввали ранг (бе "флеш"-и сафед)
+      //    ?theme=dark | light — пайванди мустақим (масалан барои санҷиш)
+      try {
+        var q = new URLSearchParams(location.search).get("theme");
+        if (q === "dark" || q === "light") localStorage.setItem("danatel_theme", q);
+        if (localStorage.getItem("danatel_theme") === "dark") {
+          document.documentElement.classList.add("dark");
+        }
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

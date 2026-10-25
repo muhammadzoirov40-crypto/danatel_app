@@ -10,7 +10,7 @@ export default function SeoBlock({ games }: { games: Game[] }) {
   const { t } = useApp();
 
   return (
-    <section className="mt-10 sm:mt-14 border-t border-slate-200 pt-8 sm:pt-10">
+    <section id="about" className="mt-10 sm:mt-14 border-t border-slate-200 pt-8 sm:pt-10 scroll-mt-20">
       <div className="max-w-3xl space-y-7 text-[13px] leading-relaxed text-slate-600">
         {/* 1️⃣ Сарлавҳаи асосӣ + муқаддима */}
         <div>

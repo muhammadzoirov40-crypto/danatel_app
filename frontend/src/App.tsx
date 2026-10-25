@@ -11,8 +11,9 @@ import Home from "./pages/Home";
 import GameDetail from "./pages/GameDetail";
 import OrderPage from "./pages/OrderPage";
 import Admin from "./pages/admin/Admin";
-import Login from "./pages/Login";
-import Profile from "./pages/Profile";
+import Login from "./pages/Login";
+import Profile from "./pages/Profile";
+import ReviewsPage from "./pages/ReviewsPage";
 
 export default function App() {
   return (
@@ -28,8 +29,10 @@ export default function App() {
               <Route path="/game/:slug" element={<GameDetail />} />
               <Route path="/order/:id" element={<OrderPage />} />
               <Route path="/login" element={<Login />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/admin" element={<Admin />} />
+              <Route path="/profile" element={<Profile />} />
+              {/* 📇 Муштариёни мо + Тақризҳои муштариён — саҳифаи алоҳида */}
+              <Route path="/reviews" element={<ReviewsPage />} />
+              <Route path="/admin" element={<Admin />} />
 
               {/* 🔁 Роҳҳои нопурра → ба саҳифаи асосӣ */}
               <Route path="/index.html" element={<Navigate to="/" replace />} />

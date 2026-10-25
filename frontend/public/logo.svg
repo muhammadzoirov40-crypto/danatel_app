@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 420" width="480" height="420">
+  <title>danatel.tj</title>
+  <defs>
+    <linearGradient id="lb" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4f9bff"/>
+      <stop offset="0.55" stop-color="#2f7cf6"/>
+      <stop offset="1" stop-color="#0b3fd8"/>
+    </linearGradient>
+    <linearGradient id="la" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7db4ff"/>
+      <stop offset="1" stop-color="#1546dd"/>
+    </linearGradient>
+    <clipPath id="lc">
+      <path fill-rule="evenodd" d="M4 6 H30 L44 21 V43 L30 58 H4 Z M16 18 H29 L34 25 V39 L29 46 H16 Z"/>
+    </clipPath>
+  </defs>
+
+  <!-- Заминаи хокистарии равшан -->
+  <rect width="480" height="420" fill="#f2f4f8"/>
+
+  <!-- Нишон: ҳарфи «D»-и гавҳаракӣ + тирҳои боло -->
+  <g transform="translate(110,56) scale(3.6)">
+    <path fill-rule="evenodd" fill="url(#lb)"
+          d="M4 6 H30 L44 21 V43 L30 58 H4 Z M16 18 H29 L34 25 V39 L29 46 H16 Z"/>
+    <g clip-path="url(#lc)">
+      <path d="M4 6 H44 V22 L4 40 Z" fill="#ffffff" opacity="0.34"/>
+      <path d="M4 40 L44 22 V40 L4 52 Z" fill="#ffffff" opacity="0.10"/>
+      <path d="M4 52 L44 40 V58 H4 Z" fill="#0a2a8f" opacity="0.32"/>
+    </g>
+    <path d="M4 6 H30 L44 21 V43 L30 58 H4 Z" fill="none" stroke="#ffffff" stroke-opacity="0.5" stroke-width="1.2"/>
+    <path d="M16 18 H29 L34 25 V39 L29 46 H16 Z" fill="none" stroke="#ffffff" stroke-opacity="0.5" stroke-width="1.2"/>
+    <path d="M39 58 H51 L45 34 Z" fill="url(#la)"/>
+    <path d="M39 58 H45 L45 34 Z" fill="#ffffff" opacity="0.35"/>
+    <path d="M53 58 H69 L61 6 Z" fill="url(#la)"/>
+    <path d="M53 58 H61 L61 6 Z" fill="#ffffff" opacity="0.40"/>
+    <path d="M61 6 L69 58 L61 58 Z" fill="#0b3fd8" opacity="0.55"/>
+  </g>
+
+  <!-- Номи расмӣ -->
+  <text x="240" y="374" text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif" font-size="66"
+        font-weight="800" letter-spacing="-2" fill="#0f1e3d">danatel.tj</text>
+</svg>

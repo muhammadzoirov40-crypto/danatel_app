@@ -1,26 +1,72 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Check, ChevronDown, LayoutGrid, LogOut, Menu, Package, Settings, User } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import {
+  Check,
+  ChevronDown,
+  Info,
+  LayoutGrid,
+  LogIn,
+  LogOut,
+  Menu,
+  Moon,
+  Package,
+  Send,
+  Settings,
+  Star,
+  Sun,
+  User,
+} from "lucide-react";
+import { api } from "../api/client";
 import { useApp } from "../context/AppContext";
 import { LANGS } from "../i18n";
 import { GoldCoin, Ic, RussianFlag, TajikFlag, USAFlag, UzbekFlag } from "./Icons";
 import Logo from "./Logo";
 
 /**
- * Сарлавҳа — тарҳи мисли persshop.com:
- *   градиенти кабуд-нил, логотип, пайвандҳо, интихоби забон,
- *   баланс, профил/вуруд.
+ * Сарлавҳа — услуби «Pers Shop»: логотип, пайвандҳои пилюлавӣ бо иконка,
+ * тугмаҳои торик-равшан, забон, баланс, профил ва баромад.
+ *
+ *  ҲАМАИ тугмаҳо ба функсияи воқеӣ пайванданд:
+ *   · Феҳрист      → /
+ *   · Фармоишҳои ман → /profile (ё /login)
+ *   · Тақризҳо     → /reviews (саҳифаи алоҳида)
+ *   · Дар бораи мo → бахши SEO дар саҳифаи асосӣ (#about)
+ *   · TG           → https://t.me/ONLAYN_ALMAZ_TJ_bot
+ *   · 🌙/☀️        → мавзӯи воқеӣ (localStorage)
+ *   · 🪙 баланс    → /profile
+ *   · 🚪 баромад   → logout (токен дар сервер бекор мешавад)
+ *
+ *  ❗ Дар лоиҳа САБАД (cart) вуҷуд надорад → тугмаи сабад гузошта НАШУД,
+ *  то тугмаи бекоркор пайдо нашавад (дар сабти корҳо қайд шудааст).
  */
 export default function Navbar() {
-  const { lang, setLang, t, user, balance, isAdmin, logout } = useApp();
+  const { lang, setLang, t, user, balance, isAdmin, logout, theme, toggleTheme } = useApp();
   const nav = useNavigate();
+  const { pathname } = useLocation();
   const [langOpen, setLangOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const langRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const cur = LANGS.find((l) => l.code === lang) ?? LANGS[0];
 
-  // Пӯшидани рӯйхатҳо ҳангами клик берун ё калиди Escape
+  /** ⭐ Рейтинги воқеӣ аз ҷадвали тақризҳои тасдиқшуда → /reviews */
+  const [sum, setSum] = useState<{ rating_avg: number; reviews_total: number } | null>(null);
+  useEffect(() => {
+    let alive = true;
+    api
+      .reviewSummary()
+      .then((d) => {
+        if (alive) setSum(d);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+  const avg = sum?.rating_avg ?? 0;
+  const total = sum?.reviews_total ?? 0;
+
+  // Пӯшидани рӯйхатҳо ҳангоми клик берун ё калиди Escape
   useEffect(() => {
     if (!langOpen && !menuOpen) return;
     const onDown = (e: MouseEvent) => {
@@ -46,36 +92,71 @@ export default function Navbar() {
     nav("/");
   };
 
-  const linkCls =
-    "inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold " +
-    "text-white/85 hover:text-white hover:bg-white/12 transition focus-visible:outline-none " +
-    "focus-visible:ring-2 focus-visible:ring-white/70";
+  /** ➡️ «Дар бораи мo» — ба бахши SEO дар саҳифаи асосӣ */
+  const goAbout = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setMenuOpen(false);
+    const scroll = () => {
+      const el = document.getElementById("about");
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+    };
+    if (pathname !== "/") {
+      nav("/");
+      setTimeout(scroll, 150);
+    } else {
+      scroll();
+    }
+  };
+
+  /** Пайвандҳои пилюлавӣ (мисли «Феҳрист / Харидхо / Тақризхо») */
+  const pillCls = (active: boolean) =>
+    `inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold transition
+     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${
+       active ? "bg-white/20 text-white" : "text-white/85 hover:text-white hover:bg-white/15"
+     }`;
+
+  /** Тугмаи гардишӣ дар сарлавҳа (забон / мавзӯ / профил / баромад / меню) */
+  const iconBtn =
+    "place-items-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/15 ring-1 ring-white/25 " +
+    "text-white hover:bg-white/25 transition active:scale-95 shrink-0 " +
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70";
 
   return (
     <header className="sticky top-0 z-40 nav-blue text-white">
-      <div className="mx-auto max-w-6xl px-4 h-14 sm:h-16 flex items-center gap-2 sm:gap-3">
-        {/* 💎 Логотипи расмӣ (SVG) — variant «onDark» барои навбари кабуд */}
-        <Link to="/" className="shrink-0" title="danatel.tj">
-          <Logo
-            size={34}
-            variant="onDark"
-            withText
-            textClass="text-base sm:text-lg"
-          />
+      <div className="mx-auto max-w-6xl px-3 sm:px-4 h-14 sm:h-16 flex items-center gap-1.5 sm:gap-2">
+        {/* 💎 Логотипи расмӣ (SVG) */}
+        <Link to="/" className="shrink-0" title="danatel.tj" aria-label="danatel.tj">
+          <Logo size={32} variant="onDark" withText textClass="hidden sm:inline" />
         </Link>
 
-        {/* 🔗 Пайвандҳо (десктоп) */}
-        <nav className="hidden md:flex items-center gap-1 ml-2">
-          <Link to="/" className={linkCls}>
+        {/* 🔗 Пайвандҳо — танҳо аз lg (дар экранҳои хурд дар меню) */}
+        <nav className="hidden lg:flex items-center gap-1 ml-1" aria-label={t("navCatalog")}>
+          <Link to="/" className={pillCls(pathname === "/")} aria-current={pathname === "/" ? "page" : undefined}>
             <Ic icon={LayoutGrid} className="opacity-90" />
             <span>{t("navCatalog")}</span>
           </Link>
-          <Link to={user ? "/profile" : "/login"} className={linkCls}>
+          <Link
+            to={user ? "/profile" : "/login"}
+            className={pillCls(pathname === "/profile" || pathname === "/login")}
+            aria-current={pathname === "/profile" ? "page" : undefined}
+          >
             <Ic icon={Package} className="opacity-90" />
             <span>{t("navOrders")}</span>
           </Link>
+          <Link
+            to="/reviews"
+            className={pillCls(pathname === "/reviews")}
+            aria-current={pathname === "/reviews" ? "page" : undefined}
+          >
+            <Ic icon={Star} className="opacity-90" />
+            <span>{t("navReviews")}</span>
+          </Link>
+          <button type="button" onClick={goAbout} className={pillCls(false)}>
+            <Ic icon={Info} className="opacity-90" />
+            <span>{t("navAbout")}</span>
+          </button>
           {isAdmin && (
-            <Link to="/admin" className={linkCls}>
+            <Link to="/admin" className={pillCls(pathname === "/admin")}>
               <Ic icon={Settings} className="opacity-90" />
               <span>{t("adminPanel")}</span>
             </Link>
@@ -84,12 +165,47 @@ export default function Navbar() {
 
         <div className="flex-1" />
 
+        {/* ⭐ Бейҷи рейтинги воқеӣ (ҳатто 0) → /reviews */}
+        {sum && (
+          <Link
+            to="/reviews"
+            title={t("reviewsTitle")}
+            aria-label={`${t("reviewsTitle")}: ${avg.toFixed(1)} / 5, ${total}`}
+            className="hidden xl:inline-flex items-center gap-1.5 rounded-full bg-amber-400/20 ring-1
+                       ring-amber-300/50 px-3 py-1.5 text-sm font-black text-white
+                       hover:bg-amber-400/30 transition active:scale-95 shrink-0
+                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+          >
+            <Ic icon={Star} size="xs" className="text-amber-300 fill-current" />
+            <span className="tabular-nums">{avg.toFixed(1)}</span>
+            <span className="font-semibold text-white/75">
+              ({total} {t("ratedPeople")})
+            </span>
+          </Link>
+        )}
+
+        {/* ✈️ Telegram — дастгирии воқеӣ */}
+        <a
+          href="https://t.me/ONLAYN_ALMAZ_TJ_bot"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Telegram"
+          title="Telegram"
+          className="hidden xl:inline-flex items-center gap-1.5 rounded-full bg-white/15 ring-1
+                     ring-white/25 px-3 py-1.5 text-sm font-black hover:bg-white/25 transition
+                     active:scale-95 shrink-0 focus-visible:outline-none focus-visible:ring-2
+                     focus-visible:ring-white/70"
+        >
+          <Ic icon={Send} size="sm" />
+          <span>TG</span>
+        </a>
+
         {/* 🌐 Забон */}
         <div className="relative" ref={langRef}>
           <button
             onClick={() => setLangOpen((v) => !v)}
             className="flex items-center gap-1.5 rounded-full bg-white/15 ring-1 ring-white/25
-                       px-3 py-1.5 text-xs sm:text-sm font-bold hover:bg-white/25 transition
+                       px-2.5 py-1.5 text-xs sm:text-sm font-bold hover:bg-white/25 transition
                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
             title={t("language")}
             aria-label={t("language")}
@@ -154,11 +270,28 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* 🪙 Баланс (танга) */}
+        {/* 🌙 Мавзӯи равшан / торик — функсияи воқеӣ */}
+        <button
+          type="button"
+          onClick={toggleTheme}
+          aria-label={theme === "dark" ? t("themeLight") : t("themeDark")}
+          title={theme === "dark" ? t("themeLight") : t("themeDark")}
+          className={`${iconBtn} grid`}
+        >
+          <Ic
+            icon={theme === "dark" ? Sun : Moon}
+            size="md"
+            className={theme === "dark" ? "text-amber-300" : "text-white/90"}
+          />
+        </button>
+
+        {/* 🪙 Баланс (тангаи воқеӣ) */}
         <Link
           to={user ? "/profile" : "/login"}
           className="flex items-center gap-1.5 rounded-full bg-white/15 ring-1 ring-white/25
-                     px-3 py-1.5 text-xs sm:text-sm font-black hover:bg-white/25 transition tabular-nums"
+                     px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-black hover:bg-white/25
+                     transition tabular-nums shrink-0
+                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
           title={t("balance")}
         >
           <GoldCoin className="w-4 h-4" />
@@ -169,16 +302,27 @@ export default function Navbar() {
         <Link
           to={user ? "/profile" : "/login"}
           aria-label={user ? t("profile") : t("login")}
-          className="grid place-items-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/20 ring-1 ring-white/30
-                     text-xs sm:text-sm font-bold hover:bg-white/30 transition active:scale-95 shrink-0
-                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
           title={user ? t("profile") : t("login")}
+          className={`${iconBtn} grid bg-white/20 ring-white/30 text-xs sm:text-sm font-bold`}
         >
           <Ic icon={isAdmin ? Settings : User} size="md" />
         </Link>
 
-        {/* ☰ Меню — рӯйхати воқеии амалҳо (профил / админ / баромад) */}
-        <div className="relative" ref={menuRef}>
+        {/* 🚪 Баромад — танҳо дар десктоп (дар телефон дар меню) */}
+        {user && (
+          <button
+            type="button"
+            onClick={onLogout}
+            aria-label={t("logout")}
+            title={t("logout")}
+            className={`${iconBtn} hidden md:grid`}
+          >
+            <Ic icon={LogOut} size="md" />
+          </button>
+        )}
+
+        {/* ☰ Меню — танҳо телефон (дар десктоп ҳама пайвандҳо намоёнанд) */}
+        <div className="relative md:hidden" ref={menuRef}>
           <button
             type="button"
             onClick={() => setMenuOpen((v) => !v)}
@@ -186,11 +330,13 @@ export default function Navbar() {
             aria-haspopup="menu"
             aria-expanded={menuOpen}
             title={t("menu")}
-            className="grid place-items-center w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/15 ring-1 ring-white/25
-                       text-sm font-bold hover:bg-white/25 transition active:scale-95 shrink-0
-                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+            className={`${iconBtn} grid`}
           >
-            <Ic icon={Menu} size="md" className={`transition-transform ${menuOpen ? "rotate-90" : ""}`} />
+            <Ic
+              icon={Menu}
+              size="md"
+              className={`transition-transform ${menuOpen ? "rotate-90" : ""}`}
+            />
           </button>
 
           {menuOpen && (
@@ -213,6 +359,41 @@ export default function Navbar() {
                 {user ? t("profile") : t("login")}
               </button>
 
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setMenuOpen(false);
+                  nav("/reviews");
+                }}
+                className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium
+                           hover:bg-slate-50 transition text-left"
+              >
+                <Ic icon={Star} className="text-amber-400 fill-current" />
+                {t("navReviews")}
+              </button>
+
+              <button type="button" role="menuitem" onClick={goAbout} className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium hover:bg-slate-50 transition text-left">
+                <Ic icon={Info} className="text-slate-400" />
+                {t("navAbout")}
+              </button>
+
+              {!user && (
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    nav("/login");
+                  }}
+                  className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium
+                             hover:bg-slate-50 transition text-left"
+                >
+                  <Ic icon={LogIn} className="text-slate-400" />
+                  {t("login")}
+                </button>
+              )}
+
               {isAdmin && (
                 <button
                   type="button"
@@ -229,21 +410,24 @@ export default function Navbar() {
                 </button>
               )}
 
-              <div className="h-px bg-slate-100 my-1" />
-
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  setMenuOpen(false);
-                  onLogout();
-                }}
-                className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold
-                           text-rose-600 hover:bg-rose-50 transition text-left"
-              >
-                <Ic icon={LogOut} />
-                {t("logout")}
-              </button>
+              {user && (
+                <>
+                  <div className="h-px bg-slate-100 my-1" />
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onLogout();
+                    }}
+                    className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold
+                               text-rose-600 hover:bg-rose-50 transition text-left"
+                  >
+                    <Ic icon={LogOut} />
+                    {t("logout")}
+                  </button>
+                </>
+              )}
             </div>
           )}
         </div>

@@ -6,10 +6,8 @@ import type { Game } from "../types";
 import GameCard from "../components/GameCard";
 import PromoCarousel from "../components/PromoCarousel";
 import TrustTicker from "../components/TrustTicker";
-import SeoBlock from "../components/SeoBlock";
-import Reviews from "../components/Reviews";
-import Customers from "../components/Customers";
-import { useApp } from "../context/AppContext";
+import SeoBlock from "../components/SeoBlock";
+import { useApp } from "../context/AppContext";
 import { Ic, CreditCard3D, Diamond3D, Gamepad3D, GiftBox3D, GoldCoin, IdBadge3D, TajikFlag } from "../components/Icons";
 
 /**
@@ -354,13 +352,9 @@ export default function Home() {
           <span className="font-medium">{t("secureNote")}</span>
         </div>
 
-        {/* 👥 Муштариёни воқеӣ — аз фармоишҳои иҷрочуда */}
-        {!loading && !error && <Customers />}
-
-        {/* ⭐ Отзывҳои воқеӣ — танҳо аз муштариён, админ тасдиқ мекунад */}
-        {!loading && !error && <Reviews />}
-
-        {/* 📝 Блоки SEO — маълумоти воқеӣ (мисли persshop) */}
+        {/* 👥 Муштариёни воқеӣ ва ⭐ тақризҳо → акнун дар саҳифаи алоҳидаи /reviews */}
+
+        {/* 📝 Блоки SEO — маълумоти воқеӣ (мисли persshop) */}
         {!loading && !error && games.length > 0 && <SeoBlock games={games} />}
       </div>
     </div>
