@@ -5,13 +5,10 @@ import {
   Check,
   House,
   LayoutGrid,
-  Lock,
   Package,
   Send,
   Share2,
-  ShieldCheck,
   User,
-  Zap,
 } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import Logo from "./Logo";
@@ -51,58 +48,9 @@ export default function Footer() {
 
   return (
     <footer className="mt-14 border-t border-slate-200 bg-white">
-      {/* 🛡️ Блоки боэътимодӣ (Trust & Guarantees) */}
-      <div className="border-b border-slate-100 bg-slate-50/60 py-8">
-        <div className="mx-auto max-w-6xl px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="flex items-start gap-3">
-            <div className="grid place-items-center w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 shrink-0">
-              <Ic icon={ShieldCheck} size="md" />
-            </div>
-            <div>
-              <h4 className="text-sm font-bold text-slate-800">100% Бехатар</h4>
-              <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
-                Танҳо Player ID лозим аст — паролро ба ҳеҷ кас надиҳед.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <div className="grid place-items-center w-10 h-10 rounded-2xl bg-amber-100 text-amber-700 shrink-0">
-              <Ic icon={Zap} size="md" />
-            </div>
-            <div>
-              <h4 className="text-sm font-bold text-slate-800">Интиқоли фаврӣ</h4>
-              <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
-                Алмосҳо ва кредитҳо дар сонияҳо ба ҳисоби бозӣ ворид мешаванд.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <div className="grid place-items-center w-10 h-10 rounded-2xl bg-blue-100 text-blue-700 shrink-0">
-              <Ic icon={Lock} size="md" />
-            </div>
-            <div>
-              <h4 className="text-sm font-bold text-slate-800">Пардохти расмӣ</h4>
-              <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
-                DC Wallet ва кортҳои миллии Тоҷикистон бо пули сомонӣ (TJS).
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <div className="grid place-items-center w-10 h-10 rounded-2xl bg-indigo-100 text-indigo-700 shrink-0">
-              <Ic icon={Send} size="md" />
-            </div>
-            <div>
-              <h4 className="text-sm font-bold text-slate-800">Дастгирии 24/7</h4>
-              <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
-                Боти расмии Telegram барои ёрии техникӣ ва санҷиши чек.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* ⚠️ Блоки «Trust & Guarantees» (4 тилка) БА ОМӮЗИ САФАРӢ НАБУД:
+          «Интиқоли фаврӣ — дар сонияҳо» даъвои суръат/интиқол буд.
+          Барфурӯш: ҳеҷ тилкаи эътибории сохта илова карда нашавад. */}
 
       {/* 🧭 Сутунҳои навигатсия */}
       <div className="mx-auto max-w-6xl px-4 py-10 grid grid-cols-1 md:grid-cols-4 gap-8">
