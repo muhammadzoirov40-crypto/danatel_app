@@ -1,5 +1,5 @@
 import { ShieldAlert } from "lucide-react";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { AppProvider } from "./context/AppContext";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Navbar from "./components/Navbar";
@@ -15,6 +15,16 @@ import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 import ReviewsPage from "./pages/ReviewsPage";
 
+/**
+ * 🦶 Футер танҳо дар саҳифаи асосӣ.
+ * `useLocation` бояд дар дохили Router истифода шавад → ҷудо карда шуд.
+ */
+function FooterOnlyHome() {
+  const { pathname } = useLocation();
+  if (pathname !== "/") return null;
+  return <Footer />;
+}
+
 export default function App() {
   return (
     <AppProvider>
@@ -49,9 +59,10 @@ export default function App() {
         {/* 📱 Навигатсияи поёнӣ дар телефон */}
         <BottomNav />
 
-        {/* 🦶 Футери касбӣ ва расмӣ */}
-        <Footer />
-      </BrowserRouter>
+        {/* 🦶 Футер — ТАНҲО дар саҳифаи асосӣ (тибқи дархости корбар):
+            дар /game/…, /admin, /reviews, /login, /profile футер НЕСТ */}
+        <FooterOnlyHome />
+      </BrowserRouter>
     </AppProvider>
   );
 }
