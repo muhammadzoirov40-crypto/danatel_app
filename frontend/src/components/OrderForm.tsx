@@ -57,7 +57,7 @@ function packView(p: Product, game: Game): { icon: LucideIcon; text: string; sub
   const voucherMatch = text.match(/^(Weekly|Monthly)(?:\s+(Lite|Basic|Pro|Plus))?/i);
   if (voucherMatch) {
     const tier = voucherMatch[2] ? voucherMatch[2].toLowerCase() : undefined;
-    sub = tier ? tier : voucherMatch[1].toLowerCase() === "weekly" ? "lite" : "month";
+    sub = tier ? tier : voucherMatch[1].toLowerCase() === "weekly" ? "week" : "month";
     text = text.replace(/^(Weekly|Monthly)(?:\s+(Lite|Basic|Pro|Plus))?/i, "").trim() || text;
   }
   // 📅 «1 Lite» / «2 Week» / «3 Month» — барои нишон додани давра
