@@ -109,8 +109,21 @@ export default function GameDetail() {
 
   return (
     <div className="mx-auto max-w-6xl px-3 sm:px-4 py-5 sm:py-8">
-      {/* ============ САРПӯШИ БОЗӢ (COVER) ============
-          Тугмаи «Бозгашт» акнун ДАР ДОХИЛИ баннер (торуши) — мисли тарҳи нав */}
+      {/* ⬅️ Тугмаи бозгашт — ДАР ЗЕРИ navbar (болои баннер, берун аз он) */}
+      <button
+        type="button"
+        onClick={() => nav(-1)}
+        className="mb-3 inline-flex items-center gap-1.5
+                   rounded-full bg-slate-900/60 hover:bg-slate-900/75 border border-white/25
+                   text-white text-xs sm:text-sm font-semibold px-3.5 py-2 backdrop-blur-md
+                   transition active:scale-95 focus-visible:outline-none focus-visible:ring-2
+                   focus-visible:ring-white/70"
+      >
+        <Ic icon={ArrowLeft} size="xs" />
+        {t("back")}
+      </button>
+
+      {/* ============ САРПӯШИ БОЗӢ (COVER) ============ */}
       <div
         className="relative rounded-3xl overflow-hidden shadow-[0_22px_50px_-25px_rgba(37,99,235,0.7)] mb-5"
         style={{ background: bg }}
@@ -148,20 +161,6 @@ export default function GameDetail() {
           aria-hidden
           className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/25 to-transparent pointer-events-none"
         />
-
-        {/* ⬅️ Тугмаи бозгашт — дар боло-рост, шишаӣ */}
-        <button
-          type="button"
-          onClick={() => nav(-1)}
-          className="absolute top-0 left-3 sm:top-1 sm:left-4 z-10 inline-flex items-center gap-1.5
-                     rounded-full bg-white/20 hover:bg-white/35 border border-white/35
-                     text-white text-xs sm:text-sm font-semibold px-3.5 py-2 backdrop-blur-md
-                     transition active:scale-95 focus-visible:outline-none focus-visible:ring-2
-                     focus-visible:ring-white"
-        >
-          <Ic icon={ArrowLeft} size="xs" />
-          {t("back")}
-        </button>
 
         {/* Мазмуни сарпӯш */}
         <div className="relative flex items-center gap-4 sm:gap-6 p-5 sm:p-8 text-white">
