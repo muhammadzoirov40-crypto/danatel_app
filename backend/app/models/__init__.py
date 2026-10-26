@@ -28,6 +28,8 @@ class User(Base):
     telegram_id: Mapped[str | None] = mapped_column(String(32), unique=True, index=True)
     # 📱 Вуруди оддӣ ( телефон + парол )
     phone: Mapped[str | None] = mapped_column(String(32), unique=True, index=True)
+    # 📧 Имола / Email — барои огоҳисозни дохилӣ
+    email: Mapped[str | None] = mapped_column(String(255), unique=True, index=True, nullable=True)
     password_hash: Mapped[str | None] = mapped_column(String(255))
     username: Mapped[str | None] = mapped_column(String(64))
     full_name: Mapped[str | None] = mapped_column(String(128))

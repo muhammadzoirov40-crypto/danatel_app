@@ -377,6 +377,21 @@ def add_balance(
     )
     db.commit()
 
+    # 📧 Email notification (async-safe, won't block response)
+    if user.email:
+        try:
+            from app.services.email_service import send_balance_topup_email
+            from datetime import datetime
+            send_balance_topup_email(
+                to_email=user.email,
+                user_id=user.id,
+                amount_added=float(payload.amount),
+                new_balance=float(user.balance),
+                date_str=datetime.utcnow().strftime("%Y-%m-%d %H:%M"),
+            )
+        except Exception:
+            pass  # Email failure won't block balance credit
+
     orders_count = db.scalar(
         select(func.count(Order.id)).where(Order.user_id == user.id)
     ) or 0

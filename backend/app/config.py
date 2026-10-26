@@ -64,6 +64,14 @@ class Settings(BaseSettings):
     ADMIN_PHONE: str = "992000000000"
     ADMIN_PASSWORD: str = "admin"
 
+    # 📧 ИМОЛА / EMAIL (SMTP)
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 587
+    SMTP_USERNAME: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM_EMAIL: str = "noreply@danatel.tj"
+    SMTP_FROM_NAME: str = "Danatel.tj"
+
     # 🏭 МУҲИТ: production / development / test
     ENVIRONMENT: str = "production"
     # 📄 Swagger UI + OpenAPI. Дар production беҳтар хомӯш аст
