@@ -25,7 +25,7 @@ import Logo from "./Logo";
 
 /**
  * Сарлавҳа — услуби «Pers Shop»: логотип, пайвандҳои пилюлавӣ бо иконка,
- * тугмаҳои торик-равшан, забон, баланс, профил ва баромад.
+ * тугмаҳои торик-равшан, забон, баланс ва «сурати профил».
  *
  *  ҲАМАИ тугмаҳо ба функсияи воқеӣ пайванданд:
  *   · Феҳрист      → /
@@ -36,7 +36,7 @@ import Logo from "./Logo";
  *   · TG           → https://t.me/ONLAYN_ALMAZ_TJ_bot
  *   · 🌙/☀️        → мавзӯи воқеӣ (localStorage)
  *   · 🪙 баланс    → /profile
- *   · 🚪 баромад   → logout (токен дар сервер бекор мешавад)
+ *   · 🚪 баромад   → танҳо дар менюи телефон (дар десктоп нест — талаби корбар)
  *
  *  ❗ Дар лоиҳа САБАД (cart) вуҷуд надорад → тугмаи сабад гузошта НАШУД,
  *  то тугмаи бекоркор пайдо нашавад (дар сабти корҳо қайд шудааст).
@@ -50,6 +50,12 @@ export default function Navbar() {
   const langRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const cur = LANGS.find((l) => l.code === lang) ?? LANGS[0];
+
+  /** 👤 Ҳарфи аввали ном — «сурати профил» дар сарлавҳа (ҳамон услуби Профил) */
+  const initial = (user?.full_name || user?.username || "")
+    .trim()
+    .charAt(0)
+    .toUpperCase();
 
   /** ⭐ Рейтинги воқеӣ аз ҷадвали тақризҳои тасдиқшуда → /reviews */
   const [sum, setSum] = useState<{ rating_avg: number; reviews_total: number } | null>(null);
@@ -305,28 +311,27 @@ export default function Navbar() {
           <span>{user ? Number(balance || 0).toLocaleString("tj-TJ") : "0"}</span>
         </Link>
 
-        {/* 👤 Профил / Вуруд */}
+        {/* 👤 «Сурати профил» / Вуруд — ҳарфи аввали ном (танҳо пайванд ба /profile) */}
         <Link
           to={user ? "/profile" : "/login"}
           aria-label={user ? t("profile") : t("login")}
           title={user ? t("profile") : t("login")}
           className={`${iconBtn} grid bg-white/20 ring-white/30 text-xs sm:text-sm font-bold`}
         >
-          <Ic icon={isAdmin ? Settings : User} size="md" />
+          {user && initial ? (
+            <span
+              aria-hidden
+              className="grid h-6 w-6 place-items-center rounded-full bg-white leading-none
+                         text-[11px] font-black text-blue-700 sm:h-7 sm:w-7 sm:text-xs"
+            >
+              {initial}
+            </span>
+          ) : (
+            <Ic icon={User} size="md" />
+          )}
         </Link>
 
-        {/* 🚪 Баромад — танҳо дар десктоп (дар телефон дар меню) */}
-        {user && (
-          <button
-            type="button"
-            onClick={onLogout}
-            aria-label={t("logout")}
-            title={t("logout")}
-            className={`${iconBtn} hidden md:grid`}
-          >
-            <Ic icon={LogOut} size="md" />
-          </button>
-        )}
+        {/* 🚪 Баромад — ДАР ДЕСКТОП НЕСТ (талаби корбар); дар менюи телефон монд */}
 
         {/* ☰ Меню — танҳо телефон (дар десктоп ҳама пайвандҳо намоёнанд) */}
         <div className="relative md:hidden" ref={menuRef}>
