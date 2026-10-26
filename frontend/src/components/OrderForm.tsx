@@ -52,6 +52,7 @@ function packView(p: Product, game: Game): { icon: LucideIcon; text: string } {
   // 🎫 «Level Up Pass 6» → «Level 6» (танқо сатр ва рақам)
   text = text.replace(/^Level Up Pass\s+(\d+)/i, "Level $1");
   return { icon: Ticket, text: text || p.name };
+}
 
 /**
  * Формаи фармоиш — тарҳи мисли persshop:
