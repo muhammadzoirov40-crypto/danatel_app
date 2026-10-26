@@ -88,6 +88,7 @@ export function TajikFlag({ className = "w-4 h-3 rounded-xs shadow-xs" }: { clas
         <circle cx="3.4" cy="-5.8" r="0.6" />
         <circle cx="5" cy="-4.8" r="0.6" />
       </g>
+      <FlagOutline />
     </svg>
   );
 }
@@ -299,59 +300,130 @@ export function GiftBox3D({ className = "w-8 h-8" }: { className?: string }) {
   );
 }
 
-/** 🇷🇺 Парчами ҳақиқии Русия (Real Russian Flag) */
+/** 🇷🇺 Парчами ҳақиқии Русия — САФЕД / КАБУД / СУРХ (тартиби расмӣ) */
 export function RussianFlag({ className = "w-4 h-3 rounded-xs shadow-xs" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 16" className={`inline-block shrink-0 overflow-hidden ${className}`} aria-label="Россия">
-      <rect width="24" height="5.33" fill="#d52b1e" />
-      <rect y="5.33" width="24" height="5.34" fill="#ffffff" />
-      <rect y="10.67" width="24" height="5.33" fill="#0039a8" />
+      {/* Сафед (Боло) */}
+      <rect width="24" height="5.33" fill="#ffffff" />
+      {/* Кабуд (Мобайн) */}
+      <rect y="5.33" width="24" height="5.34" fill="#0039a8" />
+      {/* Сурх (Поён) */}
+      <rect y="10.67" width="24" height="5.33" fill="#d52b1e" />
+      <FlagOutline />
     </svg>
   );
 }
 
-/** 🇺🇸 Парчами ҳақиқии Америка (Real USA Flag) */
+/** Ситораи 5-типа — барои парчамҳои Америка ва Ўзбекистон */
+function starPath(cx: number, cy: number, r: number): string {
+  const pts: string[] = [];
+  for (let i = 0; i < 10; i++) {
+    const a = ((-90 + i * 36) * Math.PI) / 180;
+    const rr = i % 2 === 0 ? r : r * 0.42;
+    pts.push(
+      `${(cx + rr * Math.cos(a)).toFixed(2)} ${(cy + rr * Math.sin(a)).toFixed(2)}`,
+    );
+  }
+  return `M${pts.join("L")}Z`;
+}
+
+/** Рамзиёти нозук — то кунҷҳои сафед дар заминаи сафед дида шаванд */
+function FlagOutline() {
+  return (
+    <rect
+      x="0.5"
+      y="0.5"
+      width="23"
+      height="15"
+      fill="none"
+      stroke="rgba(15,23,42,0.2)"
+      strokeWidth="1"
+    />
+  );
+}
+
+/** 🇺🇸 Парчами ҳақиқии Америка — 13 сатр + қисми кабуд дар чап-боло бо 50 ситора */
 export function USAFlag({ className = "w-4 h-3 rounded-xs shadow-xs" }: { className?: string }) {
+  const W = 24;
+  const H = 16;
+  const stripe = H / 13; // ҳар сатр = 1/13 баландӣ
+  const cantonW = W * 0.4; // қисми кабуд = 40% паҳноӣ
+  const cantonH = stripe * 7; // = 7 сатр
+  const rows = [6, 5, 6, 5, 6, 5, 6, 5, 6]; // 5×6 + 4×5 = 50 ситора
+
+  const stars = rows
+    .map((count, r) => {
+      const y = (r + 0.5) * (cantonH / rows.length);
+      let d = "";
+      for (let c = 0; c < count; c++) {
+        const x = ((c + 1) * cantonW) / (count + 1);
+        d += starPath(x, y, 0.62) + " ";
+      }
+      return d;
+    })
+    .join(" ");
+
   return (
-    <svg viewBox="0 0 24 16" className={`inline-block shrink-0 overflow-hidden ${className}`} aria-label="United States">
-      <rect width="24" height="16" fill="#b22234" />
-      <rect y="0" width="24" height="10" fill="#3c3b6e" />
-      <g fill="#ffffff">
-        {[...Array(50)].map((_, i) => {
-          const row = Math.floor(i / 9);
-          const col = i % 9;
-          return (
-            <circle key={i} cx={2.5 + col * 2} cy={1.5 + row * 1.6} r="0.55" />
-          );
-        })}
-      </g>
+    <svg
+      viewBox="0 0 24 16"
+      className={`inline-block shrink-0 overflow-hidden ${className}`}
+      aria-label="United States"
+    >
+      <rect width={W} height={H} fill="#b22234" />
+      {/* 6 сатри сафед аз 13 */}
+      {[1, 3, 5, 7, 9, 11].map((i) => (
+        <rect key={i} y={i * stripe} width={W} height={stripe} fill="#ffffff" />
+      ))}
+      {/* Қисми кабуд — танҳо чап-боло */}
+      <rect width={cantonW} height={cantonH} fill="#3c3b6e" />
+      <path d={stars} fill="#ffffff" />
+      <FlagOutline />
     </svg>
   );
 }
 
-/** 🇺🇿 Парчами ҳақиқии Ўзбекистон (Real Uzbekistan Flag) */
+/** 🇺🇿 Парчами ҳақиқии Ўзбекистон — КАБУД / САФЕД / САБЗ бо сатрҳои нозуки сурх;
+ *  ҳалқаи сафед ва 12 ситора дар камони КАБУД (расмӣ) */
 export function UzbekFlag({ className = "w-4 h-3 rounded-xs shadow-xs" }: { className?: string }) {
+  const BLUE = "#0099b5";
+  const WHITE = "#ffffff";
+  const GREEN = "#1eb53a";
+  const RED = "#ce1126";
+
+  // 12 ситора — 3 сатр × 4, дар дохили камони кабуд
+  const rows = [4, 4, 4];
+  const stars = rows
+    .map((count, r) => {
+      const y = 1.35 + r * 1.4;
+      let d = "";
+      for (let c = 0; c < count; c++) {
+        d += starPath(8.4 + c * 2.6, y, 0.62) + " ";
+      }
+      return d;
+    })
+    .join(" ");
+
   return (
-    <svg viewBox="0 0 24 16" className={`inline-block shrink-0 overflow-hidden ${className}`} aria-label="Oʻzbekiston">
-      <rect width="24" height="5.33" fill="#1eb53a" />
-      <rect y="5.33" width="24" height="5.34" fill="#ffffff" />
-      <rect y="10.67" width="24" height="5.33" fill="#1eb53a" />
-      <rect y="5.33" width="24" height="1" fill="#ce1126" />
-      <rect y="9.67" width="24" height="1" fill="#ce1126" />
-      <rect x="0" y="5.33" width="3" height="5.34" fill="#1eb53a" />
-      <g transform="translate(1, 7)" fill="#f7d51d">
-        {[...Array(12)].map((_, i) => {
-          const row = Math.floor(i / 4);
-          const col = i % 4;
-          return (
-            <path
-              key={i}
-              d="M0 0 L0.8 0.4 L0.2 0.8 L0.8 1.2 L0 1.6 L-0.4 1.2 L0.2 0.8 L-0.4 0.4 Z"
-              transform={`translate(${col * 1.2} ${row * 1.2}) scale(0.7)`}
-            />
-          );
-        })}
-      </g>
+    <svg
+      viewBox="0 0 24 16"
+      className={`inline-block shrink-0 overflow-hidden ${className}`}
+      aria-label="Oʻzbekiston"
+    >
+      {/* Кабуд (Боло) */}
+      <rect width="24" height="5.5" fill={BLUE} />
+      {/* Сафед (Мобайн) */}
+      <rect y="5.8" width="24" height="4.4" fill={WHITE} />
+      {/* Сабз (Поён) */}
+      <rect y="10.5" width="24" height="5.5" fill={GREEN} />
+      {/* Сатрҳои нозуки сурх дар марзи камонҳо */}
+      <rect y="5.5" width="24" height="0.3" fill={RED} />
+      <rect y="10.2" width="24" height="0.3" fill={RED} />
+      {/* Ҳалқаи сафед (сурхи моҳӣ) */}
+      <circle cx="4.4" cy="2.75" r="2.05" fill={WHITE} />
+      <circle cx="5.6" cy="2.75" r="1.7" fill={BLUE} />
+      <path d={stars} fill={WHITE} />
+      <FlagOutline />
     </svg>
   );
 }
