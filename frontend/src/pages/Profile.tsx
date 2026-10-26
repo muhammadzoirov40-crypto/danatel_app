@@ -44,8 +44,10 @@ import TopUpModal from "../components/TopUpModal";
  *   1) Картҳои гурӯҳӣ бо рӯйхатҳои иттилоотӣ (accordion):
  *      Фармоишҳо · IDҳои бозии ман | Маълумоти шахсӣ · Амният |
  *      Бонусҳо ва даъватҳо
- *   2) Карткаи асосӣ: аватар + ном + телефон + «ID-и шумо» бо нусха,
- *      зер-карти баланс бо тугмаи «Пур кардан» (TopUpModal — мавҷуда),
+ *   2) Карткаи асосӣ: аватар + ном + телефон + «ID-и шумо» бо нусха +
+ *      «Кушодашуда: <сана>» (user.created_at),
+ *      зер-карти баланси КӯЛобӢ бо ду тугма: «Пур кардан» (TopUpModal) +
+ *      «Фармоишҳои ман» (/orders); Тугмаи тағйир додани ном НЕСТ (backend нест),
  *      корти `CoinsCard` (Pers Coins + «То гардиш» + тугмаи «Гардондан» → /wheel)
  *
  * ҲЕҶ маълумоти сохта нест:
@@ -299,31 +301,55 @@ export default function Profile() {
                 />
                 {idCopied && <span className="text-emerald-600">{t("copied")}</span>}
               </button>
+
+              {/* 📅 «Кушодашуда: <сана>» — аз backend (user.created_at) */}
+              <div className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+                {t("registeredAt")}: {new Date(user.created_at).toLocaleDateString(lang)}
+              </div>
             </div>
           </div>
 
-          {/* 💰 Зер-карти баланс + «Пур кардан» */}
-          <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl border border-slate-200/70 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5">
-            <div className="min-w-0">
-              <div className="text-xs font-semibold text-slate-500 inline-flex items-center gap-1.5">
-                <Ic icon={Wallet} size="xs" />
-                {t("balance")}
-              </div>
-              <div className="text-2xl font-black tabular-nums mt-0.5">
-                {balance.toLocaleString("tj-TJ")}
-                <span className="ml-1.5 text-sm font-semibold text-slate-500">
-                  {t("currency")}
-                </span>
-              </div>
+          {/* 💰 ЗЕР-КАРТИ БАЛАНС — кӯлобӣ + тугмаҳои «Пур кардан» · «Фармоишҳои ман»
+             (Тугмаи тағйир додани ном НЕСТ — талаботи корбар) */}
+          <div
+            className="mt-4 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 p-4
+                       text-white shadow-sm shadow-blue-600/25
+                       dark:from-blue-700 dark:to-indigo-800 dark:shadow-none"
+          >
+            <div className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-100">
+              <Ic icon={Wallet} size="xs" />
+              {t("balance")}:
             </div>
-            <button
-              type="button"
-              onClick={() => setTopUpOpen(true)}
-              className="btn-primary text-sm shrink-0"
-            >
-              <Ic icon={Plus} />
-              {t("topup")}
-            </button>
+            <div className="mt-0.5 text-3xl font-black leading-none tabular-nums">
+              {balance.toLocaleString("tj-TJ")}
+              <span className="ml-1.5 text-base font-semibold text-blue-100">
+                {t("currency")}
+              </span>
+            </div>
+
+            <div className="mt-4 flex gap-2">
+              <button
+                type="button"
+                onClick={() => setTopUpOpen(true)}
+                className="flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap
+                           rounded-xl bg-white px-3 py-2.5 text-sm font-bold text-blue-700
+                           transition hover:bg-blue-50 active:scale-[0.98]
+                           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+              >
+                <Ic icon={Plus} className="text-blue-600" />
+                {t("topup")}
+              </button>
+              <Link
+                to="/orders"
+                className="flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap
+                           rounded-xl bg-white/15 px-3 py-2.5 text-sm font-bold text-white
+                           ring-1 ring-white/25 transition hover:bg-white/25 active:scale-[0.98]
+                           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+              >
+                <Ic icon={Package} />
+                {t("myOrders")}
+              </Link>
+            </div>
           </div>
 
           {/* 🪙 КОРТИ PERS COINS — «Pers Coins: N» + «То гардиш» + «Гардондан» */}
