@@ -52,13 +52,20 @@ function packView(p: Product, game: Game): { icon: LucideIcon; text: string; sub
     .replace(/^[A-Z]{2,8}(?:\s+[A-Z]{2,8})?\s+/, "");
   // 🎫 «Level Up Pass 6» → «Level 6» (танқо сатр ва рақам)
   text = text.replace(/^Level Up Pass\s+(\d+)/i, "Level $1");
-  // 📅 «1 Lite» / «2 Week» / «3 Month» — барои нишон додани давра
+  // 📅 «Weekly Lite Voucher» → «Weekly», «Monthly Voucher» → «Monthly»
   let sub: string | undefined;
+  const voucherMatch = text.match(/^(Weekly|Monthly)(?:\s+(Lite|Basic|Pro|Plus))?/i);
+  if (voucherMatch) {
+    const tier = voucherMatch[2] ? voucherMatch[2].toLowerCase() : undefined;
+    sub = tier ? tier : voucherMatch[1].toLowerCase() === "weekly" ? "lite" : "month";
+    text = text.replace(/^(Weekly|Monthly)(?:\s+(Lite|Basic|Pro|Plus))?/i, "").trim() || text;
+  }
+  // 📅 «1 Lite» / «2 Week» / «3 Month» — барои нишон додани давра
   const m = text.match(/^(\d+)\s+(Lite|Week|Month)/i);
   if (m) {
     const n = m[1];
     const unit = m[2].toLowerCase();
-    sub = unit === "lite" ? `${n} Lite` : unit === "week" ? `${n} Week` : `${n} Month`;
+    sub = unit === "lite" ? "lite" : unit === "week" ? "week" : "month";
     text = text.replace(/^\d+\s+(Lite|Week|Month)/i, "").trim() || text;
   }
   return { icon: Ticket, text: text || p.name, sub };
