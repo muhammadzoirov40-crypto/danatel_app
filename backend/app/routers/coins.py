@@ -3,26 +3,41 @@
 
   GET  /api/coins/me       → тангаҳо, қоидаҳо, коди даъват, таърих
   POST /api/coins/exchange → ивази танга ба баланс (100 танга = 1 сомонӣ)
+  GET  /api/coins/wheel    → чарх: сегментҳо + эҳтимолиётҳо + бурди охирин
+  POST /api/coins/spin     → як гардиш (SPIN_COST_COINS танга)
 
 Ҳамаи рақамҳо аз `.env` меоянд — фронт ҲЕҶ ГОҲ маблағ намегӯяд.
 """
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app import ratelimit
 from app.config import settings
 from app.database import get_db
 from app.models import CoinTransaction, User
-from app.schemas import CoinsExchangeOut, CoinsMeOut, CoinTxOut
+from app.schemas import (
+    CoinsExchangeOut,
+    CoinsMeOut,
+    CoinTxOut,
+    WheelOut,
+    WheelSegmentOut,
+    WheelRecentWinOut,
+    WheelSpinOut,
+)
 from app.security import get_current_user
-from app.services import coins
+from app.services import coins, wheel
 
 router = APIRouter(prefix="/api/coins", tags=["coins"])
 
 # Чанд сатри охирини таърих (барои саҳифаи профил)
 _HISTORY_LIMIT = 30
+
+# Маҳдудсозии гардиш: 30 дақиқа дар 60 сония (1 ип = 1 корбар)
+_SPIN_LIMIT = 30
+_SPIN_WINDOW = 60
 
 
 def _safe_int(value) -> int:
@@ -92,4 +107,60 @@ def exchange(
         balance=updated.balance,
         credited_tjs=credited_tjs,
         spent_coins=spent,
+    )
+
+
+# =====================================================================
+# 🎡 ЧАРХ — МАЪЛУМОТИ ОММАВӢ
+# =====================================================================
+@router.get("/wheel", response_model=WheelOut)
+def wheel_info(db: Session = Depends(get_db)):
+    """
+    Саҳифаи чарх: сегментҳо бо эҳтимолиётҳои воқеӣ + бурди охирин.
+
+    ОММАВӢ (бе токен): ҷадвали эҳтимолиёт ва бурдҳои воқеӣ барои ҳама
+    намоёнанд. Баланси корбар аз ин ҷо НАМЕОМАД — барои он `/coins/me`.
+    """
+    wins, total = wheel.recent_wins(db)
+    return WheelOut(
+        cost=_safe_int(settings.SPIN_COST_COINS),
+        exchange_rate=max(1, _safe_int(settings.COINS_TO_TJS)),
+        min_exchange=max(0, _safe_int(settings.COINS_MIN_EXCHANGE)),
+        total_spins=total,
+        segments=[WheelSegmentOut.model_validate(s) for s in wheel.segments_payload()],
+        recent_wins=[WheelRecentWinOut.model_validate(w) for w in wins],
+    )
+
+
+# =====================================================================
+# 🎡 ЯК ГАРДИШ
+# =====================================================================
+@router.post("/spin", response_model=WheelSpinOut)
+def spin(
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Як гардиши чарх: `SPIN_COST_COINS` танга ҳазм мешавад ва ҷоиза
+    фавран ба тангаҳо меафтомад. Ҳар ду дар як transaction.
+
+    Ҷоиза дар backend ҳисоб мешавад — фронт онро танҳо нишон медиҳад.
+    """
+    ratelimit.enforce(
+        request, "spin", _SPIN_LIMIT, _SPIN_WINDOW, identifier=str(user.id)
+    )
+
+    try:
+        updated, prize, price = wheel.spin(db, user_id=user.id)
+    except coins.InsufficientCoins as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except coins.CoinsError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return WheelSpinOut(
+        prize=prize,
+        jackpot=prize == wheel.JACKPOT_COINS,
+        cost=price,
+        coins_after=_safe_int(updated.coins),
     )

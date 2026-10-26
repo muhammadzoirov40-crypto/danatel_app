@@ -129,6 +129,40 @@ export interface CoinsExchange {
   spent_coins: number;
 }
 
+/** 🎡 Як сегменти чарх — эҳтимолиёт аз вазнҳои сервер */
+export interface WheelSegment {
+  coins: number;
+  weight: number;
+  probability: number;
+  jackpot: boolean;
+}
+
+/** 🎡 Бурди охирини корбарони дигар (танҳо сатрҳои воқеии DB) */
+export interface WheelRecentWin {
+  id: number;
+  name: string;
+  coins: number;
+  created_at: string;
+}
+
+/** 🎡 Маълумоти чарх (оммавӣ, бе маълумоти шахсӣ) */
+export interface WheelData {
+  cost: number;
+  exchange_rate: number;
+  min_exchange: number;
+  total_spins: number;
+  segments: WheelSegment[];
+  recent_wins: WheelRecentWin[];
+}
+
+/** 🎡 Натиҷаи як гардиш — ҷоиза танҳо аз backend меояд */
+export interface WheelSpin {
+  prize: number;
+  jackpot: boolean;
+  cost: number;
+  coins_after: number;
+}
+
 export interface AdminUser {
   id: number;
   phone?: string | null;

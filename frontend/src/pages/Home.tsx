@@ -1,14 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { Flame, Gamepad2, Heart, LayoutGrid, Search, SearchX, ShieldAlert, Star, TriangleAlert, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Flame, Gamepad2, Heart, LayoutGrid, Search, SearchX, ShieldAlert, Star, TriangleAlert, X } from "lucide-react";
 import { api } from "../api/client";
 import type { Game } from "../types";
-import GameCard from "../components/GameCard";
-import PromoCarousel from "../components/PromoCarousel";
+import GameCard from "../components/GameCard";
+import CoinsCard from "../components/CoinsCard";
+import PromoCarousel from "../components/PromoCarousel";
 import TrustTicker from "../components/TrustTicker";
 import SeoBlock from "../components/SeoBlock";
 import { useApp } from "../context/AppContext";
-import { Ic, CreditCard3D, Diamond3D, Gamepad3D, GiftBox3D, GoldCoin, IdBadge3D, TajikFlag } from "../components/Icons";
+import { Ic, CreditCard3D, Diamond3D, Gamepad3D, GiftBox3D, IdBadge3D, TajikFlag } from "../components/Icons";
 
 /**
  * Саҳифаи асосӣ — тарҳи мисли persshop.com:
@@ -157,16 +157,18 @@ export default function Home() {
             )}
           </div>
 
-          {/* ⭐️ Сатри далелҳо — мисли takrizhoi persshop (бо рейтингҳои воқеӣ) */}
-          <TrustTicker badge={ratingBadge} />
-
-          {/* ===== 2) 🪙 КОРТИ БАЛАНС — охирин чиз дар кабуд ===== */}
-          <BalanceCard />
-        </div>
+          {/* ⭐️ Сатри далелҳо — мисли takrizhoi persshop (бо рейтингҳои воқеӣ) */}
+          <TrustTicker badge={ratingBadge} />
+        </div>
       </section>
 
-      <div className="mx-auto max-w-6xl px-4">
-        {/* ===== 3) 🎠 БАННЕР — дар заминаи сафед (кабуд аз боло поён рафт) ===== */}
+      <div className="mx-auto max-w-6xl px-4">
+        {/* 🪙 KORTI PERS COINS + «Гардондан» → /wheel (танҳо баъди вуруд) */}
+        <div className="mt-3 sm:mt-4">
+          <CoinsCard />
+        </div>
+
+        {/* ===== 3) 🎠 БАННЕР — дар заминаи сафед (кабуд аз боло поён рафт) ===== */}
         {!loading && !error && promo.length > 0 && (
           <div className="mt-3 sm:mt-4">
             <PromoCarousel games={promo} />
@@ -361,44 +363,7 @@ export default function Home() {
   );
 }
 
-/** 🪙 Корти баланс — пурра аз чап то рост, мисли «Pers Coins» дар persshop.
- *  Маълумоти воқеӣ аз backend (баланси корбар). */
-function BalanceCard() {
-  const { t, user, balance } = useApp();
-  return (
-    <Link
-      to={user ? "/profile" : "/login"}
-      className="group flex items-center gap-3 sm:gap-4 rounded-3xl bg-white/85 backdrop-blur-sm
-                 ring-1 ring-white/60 px-4 py-3 sm:px-5 sm:py-4
-                 shadow-[0_12px_30px_-18px_rgba(15,23,61,0.7)]
-                 transition hover:bg-white active:scale-[0.995]"
-    >
-      <GoldCoin className="w-9 h-9 sm:w-11 sm:h-11 shrink-0" />
-
-      <div className="min-w-0 flex-1">
-        <div className="font-extrabold text-slate-900 text-sm sm:text-base leading-tight">
-          {t("balance")}:{" "}
-          {Number(user ? balance : 0).toLocaleString("tj-TJ")}{" "}
-          <span className="text-slate-500 font-bold text-xs sm:text-sm">
-            {t("currency")}
-          </span>
-        </div>
-        <div className="text-[11px] sm:text-xs text-slate-500 font-medium truncate">
-          {t("balanceHint")}
-        </div>
-      </div>
-
-      <span
-        className="shrink-0 rounded-full bg-brand-600 text-white text-[11px] sm:text-sm
-                   font-bold px-3 sm:px-4 py-2 group-hover:bg-brand-700 transition"
-      >
-        {user ? t("navOrders") : t("login")} →
-      </span>
-    </Link>
-  );
-}
-
-/** Плиткаи рақам/матн */
+/** Плиткаи рақам/матн */
 function Tile({
   icon,
   value,

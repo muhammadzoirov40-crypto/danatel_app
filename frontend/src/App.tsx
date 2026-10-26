@@ -14,6 +14,7 @@ import Admin from "./pages/admin/Admin";
 import Login from "./pages/Login";
 import MyOrders from "./pages/MyOrders";
 import Profile from "./pages/Profile";
+import Wheel from "./pages/Wheel";
 import ReviewsPage from "./pages/ReviewsPage";
 
 /**
@@ -43,6 +44,8 @@ export default function App() {
               <Route path="/profile" element={<Profile />} />
               {/* 📦 Фармоишҳои ман — саҳифаи алоҳида (аз сарлавҳа) */}
               <Route path="/orders" element={<MyOrders />} />
+              {/* 🎡 Чарх — гардиши тангаҳо (Фаза 2) */}
+              <Route path="/wheel" element={<Wheel />} />
               {/* 📇 Муштариёни мо + Тақризҳои муштариён — саҳифаи алоҳида */}
               <Route path="/reviews" element={<ReviewsPage />} />
               <Route path="/admin" element={<Admin />} />

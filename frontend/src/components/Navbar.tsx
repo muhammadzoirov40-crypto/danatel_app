@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Check,
   ChevronDown,
+  Disc3,
   Info,
   LayoutGrid,
   LogIn,
@@ -28,7 +29,8 @@ import Logo from "./Logo";
  *
  *  ҲАМАИ тугмаҳо ба функсияи воқеӣ пайванданд:
  *   · Феҳрист      → /
- *   · Фармоишҳои ман → /profile (ё /login)
+ *   · Фармоишҳои ман → /orders (ё /login)
+ *   · Чарх          → /wheel (гардиши тангаҳо)
  *   · Тақризҳо     → /reviews (саҳифаи алоҳида)
  *   · Дар бораи мo → бахши SEO дар саҳифаи асосӣ (#about)
  *   · TG           → https://t.me/ONLAYN_ALMAZ_TJ_bot
@@ -142,6 +144,15 @@ export default function Navbar() {
           >
             <Ic icon={Package} className="opacity-90" />
             <span>{t("navOrders")}</span>
+          </Link>
+          {/* 🎡 Чарх — саҳифаи воқеии гардиши тангаҳо */}
+          <Link
+            to="/wheel"
+            className={pillCls(pathname === "/wheel")}
+            aria-current={pathname === "/wheel" ? "page" : undefined}
+          >
+            <Ic icon={Disc3} className="opacity-90" />
+            <span>{t("wheel")}</span>
           </Link>
           <Link
             to="/reviews"

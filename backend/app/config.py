@@ -42,17 +42,22 @@ class Settings(BaseSettings):
     FIRELOOT_API_KEY: str = ""
 
     # 🪙 PERS COINS (тангаҳои дохилӣ) — ҳамаи рақамҳо аз .env танзим мешаванд
+    #    💱 НАРХИ ТАНИМОӢ (танзими соҳиб, 2026):
+    #       5 танга = 1 сомонӣ  →  50 танга = 10 сомонӣ
     #    cashback: ҳар 1 сомонии фармоиши ИҶРОЧУДА = COINS_PER_TJS танга
-    COINS_PER_TJS: int = 5
+    #       1 танга = 0.2 сомонӣ → cashback = 20 % аз фармоиши иҷрочуда
+    COINS_PER_TJS: int = 1
     #    иваз ба баланс: COINS_TO_TJS танга = 1 сомонӣ (адади куллӣ)
-    COINS_TO_TJS: int = 100
+    COINS_TO_TJS: int = 5
     #    даъват: ҳангоми қайди дӯст тавассути линки шахсӣ (як дафъа)
+    #       50 танга = 10 сомонӣ · дӯст 10 танга = 2 сомонӣ
     REFERRAL_COINS: int = 50
     REFERRAL_FRIEND_COINS: int = 10
-    #    хароҷоти як гардиши чарх (Фаза 2)
+    #    хароҷоти як гардиши чарх (Фаза 2) → 50 танга = 10 сомонӣ
     SPIN_COST_COINS: int = 50
-    #    ҳадди ақал барои иваз ба баланс
-    COINS_MIN_EXCHANGE: int = 100
+    #    ҳадди ақал барои иваз ба баланс = хароҷоти як гардиш
+    #       50 танга = 10 сомонӣ
+    COINS_MIN_EXCHANGE: int = 50
 
     # БАРНАМА
     FRONTEND_URL: str = "http://localhost:5173"

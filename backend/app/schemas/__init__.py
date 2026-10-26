@@ -252,6 +252,49 @@ class CoinsExchangeOut(BaseModel):
 
 
 # =====================================================================
+# 🎡 ЧАРХИ БАХТ (Фаза 2)
+# =====================================================================
+
+
+class WheelSegmentOut(BaseModel):
+    """Як сегменти чарх бо эҳтимолиёти воқеӣ аз вазнҳо."""
+
+    coins: int
+    weight: int
+    probability: float
+    jackpot: bool = False
+
+
+class WheelRecentWinOut(BaseModel):
+    """Бурди охирини корбарони дигар (танҳо сатрҳои воқеии DB)."""
+
+    id: int
+    name: str
+    coins: int
+    created_at: datetime
+
+
+class WheelOut(BaseModel):
+    """Маълумоти чарх барои саҳифа (оммавӣ, бе маълумоти шахсӣ)."""
+
+    cost: int = 50
+    exchange_rate: int = 100
+    min_exchange: int = 100
+    total_spins: int = 0
+    segments: list[WheelSegmentOut] = []
+    recent_wins: list[WheelRecentWinOut] = []
+
+
+class WheelSpinOut(BaseModel):
+    """Натиҷаи як гардиш — ҷоиза танҳо аз backend меояд."""
+
+    prize: int
+    jackpot: bool = False
+    cost: int
+    coins_after: int
+
+
+# =====================================================================
 # 🛠️ АДМИН — ТАНГА
 # =====================================================================
 

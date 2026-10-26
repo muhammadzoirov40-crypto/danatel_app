@@ -12,7 +12,6 @@ import {
   ChevronRight,
   CircleCheck,
   CircleX,
-  Coins,
   Copy,
   Gamepad2,
   Gift,
@@ -33,7 +32,8 @@ import { useApp } from "../context/AppContext";
 import { api, ApiError } from "../api/client";
 import type { CoinsInfo, Order } from "../types";
 import { STATUS_META } from "../types";
-import { GoldCoin, Ic } from "../components/Icons";
+import { Ic } from "../components/Icons";
+import CoinsCard from "../components/CoinsCard";
 import Customers from "../components/Customers";
 import TopUpModal from "../components/TopUpModal";
 
@@ -46,7 +46,7 @@ import TopUpModal from "../components/TopUpModal";
  *      Бонусҳо ва даъватҳо
  *   2) Карткаи асосӣ: аватар + ном + телефон + «ID-и шумо» бо нусха,
  *      зер-карти баланс бо тугмаи «Пур кардан» (TopUpModal — мавҷуда),
- *      зер-карти тиллоии Pers Coins бо «Иваз ба баланс» (backend /coins)
+ *      корти `CoinsCard` (Pers Coins + «То гардиш» + тугмаи «Гардондан» → /wheel)
  *
  * ҲЕҶ маълумоти сохта нест:
  *   • баланс / тангаҳо / коди даъват / таърих ҳама аз backend;
@@ -58,8 +58,7 @@ import TopUpModal from "../components/TopUpModal";
 type PanelKey = "orders" | "ids" | "info" | "security" | "bonuses";
 
 export default function Profile() {
-  const { t, lang, user, balance, isAdmin, authReady, refreshUser, logout } =
-    useApp();
+  const { t, lang, user, balance, isAdmin, authReady, logout } = useApp();
   const nav = useNavigate();
 
   const [orders, setOrders] = useState<Order[]>([]);
@@ -70,10 +69,8 @@ export default function Profile() {
   const [copiedPid, setCopiedPid] = useState<string | null>(null);
   const [topUpOpen, setTopUpOpen] = useState(false);
 
-  // 🪙 Pers Coins
+  // 🪙 Pers Coins — худи корт дар компоненти `CoinsCard` (ҳамон дар Home)
   const [coins, setCoins] = useState<CoinsInfo | null>(null);
-  const [exBusy, setExBusy] = useState(false);
-  const [exMsg, setExMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [inviteCopied, setInviteCopied] = useState(false);
 
   // 🗂️ Як панели кушода (accordion)
@@ -183,33 +180,6 @@ export default function Profile() {
     void loadCoins();
   }, [loadCoins]);
 
-  // 💱 Ивази танга ба баланс (tanҳо адади куллӣ аз backend)
-  const doExchange = async () => {
-    if (!coins || exBusy) return;
-    if (coins.coins < coins.min_exchange) return;
-    setExBusy(true);
-    setExMsg(null);
-    try {
-      const res = await api.exchangeCoins();
-      setExMsg({
-        ok: true,
-        text: t("exchangeDone").replace(
-          "{amount}",
-          Number(res.credited_tjs).toLocaleString("tj-TJ"),
-        ),
-      });
-      await refreshUser(); // баланс дар контекст нав шавад
-      await loadCoins(); // тангаҳо + таърих нав шавад
-    } catch (e) {
-      setExMsg({
-        ok: false,
-        text: e instanceof ApiError ? e.message : t("error"),
-      });
-    } finally {
-      setExBusy(false);
-    }
-  };
-
   // 🔗 Линки даъват (аз поёни саҳифаи ҷорӣ + коди шахсӣ)
   const inviteLink = coins?.referral_code
     ? `${window.location.origin}/?ref=${coins.referral_code}`
@@ -253,8 +223,6 @@ export default function Profile() {
 
   const displayName = user.full_name || user.username || `#${user.id}`;
   const initial = displayName.trim().charAt(0).toUpperCase();
-  const coinAmt = coins?.coins ?? 0;
-  const canExchange = !!coins && coinAmt >= coins.min_exchange;
 
   const KIND_KEY: Record<string, string> = {
     cashback: "kindCashback",
@@ -358,55 +326,9 @@ export default function Profile() {
             </button>
           </div>
 
-          {/* 🪙 Зер-карти тиллоии PERS COINS */}
-          <div className="mt-3 rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50 p-4 dark:border-amber-500/30 dark:from-amber-500/10 dark:to-yellow-500/5">
-            <div className="flex items-center justify-between gap-3 flex-wrap">
-              <div className="min-w-0">
-                <div className="inline-flex items-center gap-2 font-black text-amber-900 dark:text-amber-100">
-                  <GoldCoin className="h-5 w-5" />
-                  Pers Coins:
-                  <span className="tabular-nums">{coinAmt}</span>
-                </div>
-                <div className="text-xs text-amber-800 dark:text-amber-300/90 mt-0.5">
-                  {coins &&
-                    t("coinsRate").replace("{n}", String(coins.exchange_rate))}
-                  {" · "}
-                  {t("coinsHint")}
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={doExchange}
-                disabled={!canExchange || exBusy}
-                aria-disabled={!canExchange || exBusy}
-                className="btn-primary text-sm shrink-0 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {exBusy ? (
-                  <>
-                    <Ic icon={Loader2} className="animate-spin" />
-                    {t("loading")}
-                  </>
-                ) : (
-                  <>
-                    <Ic icon={Coins} />
-                    {t("exchangeCoins")}
-                  </>
-                )}
-              </button>
-            </div>
-
-            {exMsg && (
-              <div
-                role="status"
-                className={`mt-3 rounded-xl px-3 py-2 text-xs font-semibold ${
-                  exMsg.ok
-                    ? "bg-emerald-50 border border-emerald-200 text-emerald-700 dark:bg-emerald-500/10 dark:border-emerald-500/30 dark:text-emerald-300"
-                    : "bg-rose-50 border border-rose-200 text-rose-700 dark:bg-rose-500/10 dark:border-rose-500/30 dark:text-rose-300"
-                }`}
-              >
-                {exMsg.text}
-              </div>
-            )}
+          {/* 🪙 КОРТИ PERS COINS — «Pers Coins: N» + «То гардиш» + «Гардондан» */}
+          <div className="mt-3">
+            <CoinsCard data={coins} />
           </div>
 
           {/* ⚡ Амали умумӣ */}

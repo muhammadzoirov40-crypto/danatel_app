@@ -282,6 +282,7 @@ const tj: Dict = {
   // ===== 🪙 PERS COINS =====
   coinsHint: "Танга барои ҳар фармоиши иҷрочуда",
   coinsRate: "{n} танга = 1 сомонӣ",
+  minExchange: "Ҳадди ақал {n} танга",
   exchangeCoins: "Иваз ба баланс",
   exchangeDone: "Иваз шуд: +{amount} сомонӣ",
   coinHistory: "Таърихи тангаҳо",
@@ -297,6 +298,47 @@ const tj: Dict = {
     "Дӯст тавассути ин линк қайд мекунад ва ҳар ду шумо танга мегиред",
   referralCount: "Даъватшудагон: {n}",
   noReferrals: "Ҳанӯз касеро даъват накардаед",
+  // ===== 🎡 ЧАРХ (Гардондан) =====
+  wheel: "Чарх",
+  wheelHint: "Гардиш бо тангаҳои шумо — ҳар гардиш ҷоиза медиҳад",
+  gardonan: "Гардондан",
+  spin: "Гардишкун",
+  coinsUnit: "танга",
+  toSpin: "То гардиш — {n} танга",
+  spinReady: "Гардишкун тайёр аст",
+  yourCoins: "Тангаҳои шумо",
+  notEnoughCoins: "Танга нокифоя — лозим {n} танга",
+  loginToSpin: "Барои гардиш ворид шавед",
+  youWon: "Шумо {n} танга бурд кардед!",
+  jackpot: "Ҷекпот",
+  mySpins: "Гардишҳои ман",
+  noSpins: "Ҳанӯз гардиш накардаед",
+  historyShort: "Таърих",
+  recentWins: "Бурдиҳони охирин",
+  noRecentWins: "Ҳанӯз бурди воқеӣ ҷой надорад",
+  totalSpins: "Ҳамагӣ гардишҳо: {n}",
+  probabilities: "Эҳтимолиётҳо",
+  chance: "Эҳтимол",
+  prizeCoins: "Ҷоиза",
+  wheelRules: "Қоидаҳои чарх",
+  wheelRule1:
+    "Ҳар гардиш {n} танга сарф мекунад; тангаҳо аз фармоиши иҷрочуда, даъват ва админ мебаромаданд.",
+  wheelRule2:
+    "Ҷоиза дарҳамон лаҳза ба тангаҳои шумо меафтомад ва онро дар ҳамин саҳифа ба баланс иваз кардан мумкин аст: {rate} танга = 1 сомонӣ.",
+  wheelRule3:
+    "Эҳтимолиётҳо воқеӣ ҳастанд — аз ҳамон вазнҳое, ки сервер истифода мебарад; ҳамаи гардишҳо дар сервер ҳисоб мешаванд.",
+  faqTitle: "Кадомҳо?",
+  faqQ1: "Чарх чӣ тавр кор мекунад?",
+  faqA1:
+    "Ҳар гардиш як ҷоиза аз рӯйхати чарх медиҳад; интихоб дар сервер бо рақами тасодуфӣ сурат мегирад.",
+  faqQ2: "Ҷоизаро чӣ тавр истифода баран?",
+  faqA2:
+    "Ҷоиза дар тангаҳои шумо ҷамъ мешавад ва онро ба баланс иваз кардан мумкин аст.",
+  faqQ3: "Тангаҳо аз куҷо меоянд?",
+  faqA3:
+    "Аз фармоиши иҷрочуда (cashback), аз даъвати дӯстон ва аз иловакунии админ.",
+  kindSpin: "Гардиши чарх",
+  kindSpinReward: "Ҷоизаи чарх",
 };
 
 const ru: Dict = {
@@ -568,6 +610,7 @@ const ru: Dict = {
   // ===== 🪙 PERS COINS =====
   coinsHint: "Монеты за каждый выполненный заказ",
   coinsRate: "{n} монет = 1 сомони",
+  minExchange: "Минимум {n} монет",
   exchangeCoins: "Обменять в баланс",
   exchangeDone: "Обменяно: +{amount} сомони",
   coinHistory: "История монет",
@@ -583,6 +626,47 @@ const ru: Dict = {
     "Друг регистрируется по этой ссылке — вы оба получаете монеты",
   referralCount: "Приглашено: {n}",
   noReferrals: "Вы ещё никого не пригласили",
+  // ===== 🎡 КОЛЕСО =====
+  wheel: "Колесо",
+  wheelHint: "Вращение за ваши монеты — каждое вращение даёт приз",
+  gardonan: "Крутить",
+  spin: "Крутить",
+  coinsUnit: "монет",
+  toSpin: "До вращения — {n} монет",
+  spinReady: "Вращение доступно",
+  yourCoins: "Ваши монеты",
+  notEnoughCoins: "Мало монет — нужно {n}",
+  loginToSpin: "Войдите, чтобы крутить",
+  youWon: "Вы выиграли {n} монет!",
+  jackpot: "Джекпот",
+  mySpins: "Мои вращения",
+  noSpins: "Вы ещё не крутили",
+  historyShort: "История",
+  recentWins: "Последние выигрыши",
+  noRecentWins: "Пока нет реальных выигрышей",
+  totalSpins: "Всего вращений: {n}",
+  probabilities: "Вероятности",
+  chance: "Шанс",
+  prizeCoins: "Приз",
+  wheelRules: "Правила колеса",
+  wheelRule1:
+    "Каждое вращение стоит {n} монет; монеты даются за выполненные заказы, приглашения и от администратора.",
+  wheelRule2:
+    "Приз сразу добавляется в ваши монеты, и его можно обменять на баланс прямо здесь: {rate} монет = 1 сомони.",
+  wheelRule3:
+    "Вероятности настоящие — из тех же весов, которые использует сервер; все вращения считаются на сервере.",
+  faqTitle: "Вопросы?",
+  faqQ1: "Как работает колесо?",
+  faqA1:
+    "Каждое вращение выдаёт один приз из списка; выбор делается на сервере случайным числом.",
+  faqQ2: "Как использовать приз?",
+  faqA2:
+    "Приз накапливается в ваших монетах и его можно обменять на баланс.",
+  faqQ3: "Откуда берутся монеты?",
+  faqA3:
+    "За выполненные заказы (cashback), за приглашение друзей и от администратора.",
+  kindSpin: "Вращение колеса",
+  kindSpinReward: "Приз колеса",
 };
 
 const en: Dict = {
@@ -854,6 +938,7 @@ const en: Dict = {
   // ===== 🪙 PERS COINS =====
   coinsHint: "Coins for every completed order",
   coinsRate: "{n} coins = 1 TJS",
+  minExchange: "Minimum {n} coins",
   exchangeCoins: "Convert to balance",
   exchangeDone: "Converted: +{amount} TJS",
   coinHistory: "Coin history",
@@ -869,6 +954,47 @@ const en: Dict = {
     "A friend signs up with this link and you both get coins",
   referralCount: "Invited: {n}",
   noReferrals: "You haven't invited anyone yet",
+  // ===== 🎡 WHEEL =====
+  wheel: "Wheel",
+  wheelHint: "Spin with your coins — every spin gives a prize",
+  gardonan: "Spin",
+  spin: "Spin",
+  coinsUnit: "coins",
+  toSpin: "To spin — {n} coins",
+  spinReady: "Ready to spin",
+  yourCoins: "Your coins",
+  notEnoughCoins: "Not enough coins — {n} needed",
+  loginToSpin: "Sign in to spin",
+  youWon: "You won {n} coins!",
+  jackpot: "Jackpot",
+  mySpins: "My spins",
+  noSpins: "You haven't spun yet",
+  historyShort: "History",
+  recentWins: "Recent wins",
+  noRecentWins: "No real wins yet",
+  totalSpins: "Total spins: {n}",
+  probabilities: "Probabilities",
+  chance: "Chance",
+  prizeCoins: "Prize",
+  wheelRules: "Wheel rules",
+  wheelRule1:
+    "Each spin costs {n} coins; coins come from delivered orders, invites and the admin.",
+  wheelRule2:
+    "The prize is added to your coins right away and can be converted to balance here: {rate} coins = 1 TJS.",
+  wheelRule3:
+    "Probabilities are real — taken from the same weights the server uses; all spins are calculated on the server.",
+  faqTitle: "Questions?",
+  faqQ1: "How does the wheel work?",
+  faqA1:
+    "Every spin gives one prize from the list; the choice is made on the server with a random number.",
+  faqQ2: "How do I use a prize?",
+  faqA2:
+    "The prize accumulates in your coins and can be converted to balance.",
+  faqQ3: "Where do coins come from?",
+  faqA3:
+    "From delivered orders (cashback), from inviting friends and from the admin.",
+  kindSpin: "Wheel spin",
+  kindSpinReward: "Wheel prize",
 };
 
 const uz: Dict = {
@@ -1140,6 +1266,7 @@ const uz: Dict = {
   // ===== 🪙 PERS COINS =====
   coinsHint: "Har bir bajarilgan buyurtma uchun tanga",
   coinsRate: "{n} tanga = 1 somoni",
+  minExchange: "Kamida {n} tanga",
   exchangeCoins: "Balansga almashtirish",
   exchangeDone: "Almashtirildi: +{amount} somoni",
   coinHistory: "Tangalar tarixi",
@@ -1155,6 +1282,46 @@ const uz: Dict = {
     "Do'st bu havola orqali ro'yxatdan o'tadi — ikkalangizga tanga",
   referralCount: "Taklif qilinganlar: {n}",
   noReferrals: "Hali birortani taklif qilmadingiz",
+  // ===== 🎡 G'ILDIRAK =====
+  wheel: "G'ildirak",
+  wheelHint: "Tangalaringiz bilan aylantiring — har bir aylantirish sovg'a beradi",
+  gardonan: "Aylantirish",
+  spin: "Aylantirish",
+  coinsUnit: "tanga",
+  toSpin: "Aylantirishgacha — {n} tanga",
+  spinReady: "Aylantirish tayyor",
+  yourCoins: "Sizning tangangiz",
+  notEnoughCoins: "Tanga yetmaydi — {n} kerak",
+  loginToSpin: "Aylantirish uchun kiring",
+  youWon: "Siz {n} tanga yutdingiz!",
+  jackpot: "Jekpot",
+  mySpins: "Mening aylantirishlarim",
+  noSpins: "Hali aylantirmadingiz",
+  historyShort: "Tarix",
+  recentWins: "So'nggi yutuqlar",
+  noRecentWins: "Hali haqiqiy yutuq yo'q",
+  totalSpins: "Jami aylantirishlar: {n}",
+  probabilities: "Ehtimolliklar",
+  chance: "Ehtimollik",
+  prizeCoins: "Sovg'a",
+  wheelRules: "G'ildirak qoidalari",
+  wheelRule1:
+    "Har bir aylantirish {n} tanga turadi; tangalar bajarilgan buyurtmalar, takliflar va admindan keladi.",
+  wheelRule2:
+    "Sovg'a darhol tangalaringizga tushadi va shu yerda balansga almashtirish mumkin: {rate} tanga = 1 somoni.",
+  wheelRule3:
+    "Ehtimolliklar haqiqiy — server ishlatadigan vaznlardan; barcha aylantirishlar serverda hisoblanadi.",
+  faqTitle: "Savollar?",
+  faqQ1: "G'ildirak qanday ishlaydi?",
+  faqA1:
+    "Har bir aylantirish ro'yxatdagi bitta sovg'ani beradi; tanlov serverda tasodifiy raqam bilan amalga oshiriladi.",
+  faqQ2: "Sovg'ani qanday ishlataman?",
+  faqA2: "Sovg'a tangalaringizda to'planadi va balansga almashtiriladi.",
+  faqQ3: "Tangalar qayerdan keladi?",
+  faqA3:
+    "Bajarilgan buyurtmalardan (cashback), do'stlarni taklif qilishdan va admindan.",
+  kindSpin: "G'ildirak aylantirishi",
+  kindSpinReward: "G'ildirak sovg'asi",
 };
 
 export const dictionaries: Record<Lang, Dict> = { tj, ru, en, uz };

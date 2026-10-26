@@ -18,6 +18,8 @@ import type {
   Review,
   ReviewSummary,
   User,
+  WheelData,
+  WheelSpin,
 } from "../types";
 
 const BASE = "/api";
@@ -265,9 +267,15 @@ export const api = {
   // ========================== 🪙 PERS COINS ==========================
   /** Тангаҳо + қоидаҳои ҳисоб + коди даъват + таърих */
   myCoins: () => request<CoinsInfo>("/coins/me"),
-  /** 💱 Ивази танга ба баланс (танҳо адади куллӣ, 100 танга = 1 сомонӣ) */
+  /** 💱 Ивази танга ба баланс (танҳо адади куллӣ, N танга = 1 сомонӣ — аз .env) */
   exchangeCoins: () =>
     request<CoinsExchange>("/coins/exchange", { method: "POST" }),
+
+  // ========================== 🎡 ЧАРХ ==========================
+  /** Сегментҳо + эҳтимолиётҳои воқеӣ + бурди охирин (оммавӣ) */
+  wheel: () => request<WheelData>("/coins/wheel"),
+  /** Як гардиш (SPIN_COST_COINS танга) — ҷоиза дар backend ҳисоб мешавад */
+  spinWheel: () => request<WheelSpin>("/coins/spin", { method: "POST" }),
 
   // ========================== АДМИН ==========================
   stats: () => request<AdminStats>("/admin/stats"),

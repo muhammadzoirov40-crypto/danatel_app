@@ -170,33 +170,40 @@ def test_exchange_not_enough_coins(client: TestClient):
 
 
 def test_exchange_credits_balance(client: TestClient):
+    """Иваз бо ҳамон нархи `.env` (5 танга = 1 сомонӣ ҳоло) — ҳеҷ рақами катогӣ."""
     adm = admin_token(client)
     token, _ = register(client)
     uid = user_id_of(client, token)
 
+    rate = max(1, settings.COINS_TO_TJS)
+    start = max(settings.COINS_MIN_EXCHANGE, 2 * rate)
+    whole = start // rate  # танҳо адади куллӣ
+    assert whole >= 2
+
     r = client.post(
         f"/api/admin/users/{uid}/coins",
         headers=auth(adm),
-        json={"user_id": uid, "amount": 250, "reason": "тест"},
+        json={"user_id": uid, "amount": start, "reason": "тест"},
     )
     assert r.status_code == 200, r.text
-    assert r.json()["coins"] == 250
+    assert r.json()["coins"] == start
 
     r = client.post("/api/coins/exchange", headers=auth(token))
     assert r.status_code == 200, r.text
     body = r.json()
-    assert body["spent_coins"] == 2 * settings.COINS_TO_TJS  # танҳо адади куллӣ
-    assert float(body["credited_tjs"]) == 2.0
-    assert body["coins"] == 50
+    assert body["spent_coins"] == whole * rate
+    assert float(body["credited_tjs"]) == float(whole)
+    assert body["coins"] == start - whole * rate
 
-    assert balance_of(client, token) == 2.0
-    # Ҷамъи таърих: -200 (exchange)
+    assert balance_of(client, token) == float(whole)
+    # Ҷамъи таърих: -(whole × rate) (exchange)
     history = coins_of(client, token)["history"]
     assert history[0]["kind"] == "exchange"
-    assert history[0]["amount"] == -200
+    assert history[0]["amount"] == -(whole * rate)
 
-    # 50 танга кофӣ нест → боз 422
-    assert client.post("/api/coins/exchange", headers=auth(token)).status_code == 422
+    # боқимонда аз ҳадди ақал камтар → боз 422
+    if body["coins"] < settings.COINS_MIN_EXCHANGE:
+        assert client.post("/api/coins/exchange", headers=auth(token)).status_code == 422
 
 
 # =====================================================================
