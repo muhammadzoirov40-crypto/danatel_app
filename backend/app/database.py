@@ -143,6 +143,10 @@ def _ensure_missing_columns() -> None:
             "coins",
             "referral_code",
             "referred_by_id",
+            # 📧 Email (коммити 961d092) — дар PostgreSQL-и сервер набуд
+            #    → /api/auth/me = 500 ва site барои корбарони вурудшуда
+            #    кор мекард. Ҳамин ҷо илова шуд + поён роҳи худкор ҳаст.
+            "email",
         ],
         "orders": [
             "client_token",
@@ -156,25 +160,65 @@ def _ensure_missing_columns() -> None:
         "games": ["image_pad"],
     }
 
-    with engine.begin() as conn:
-        for table, cols in wanted.items():
-            if table not in existing_tables:
+    #    ⚠️ ҲАР ALTER дар транзаксияи КУТОҲИ ХУД мешинад:
+    #    калиди ACCESS EXCLUSIVE дар транзаксияи кушод нигоҳ доштан
+    #    → inspector-и ҳамон хидмат (пайвасти дигар) беохири мунтазир
+    #    мемонад → хидмат портро накушодад (хатогии 26.10.2026).
+    for table, cols in wanted.items():
+        if table not in existing_tables:
+            continue
+        have = {c["name"] for c in inspector.get_columns(table)}
+        for col in cols:
+            if col in have:
                 continue
-            have = {c["name"] for c in inspector.get_columns(table)}
-            for col in cols:
-                if col in have:
-                    
-                    continue
-                ddl = _column_ddl(table, col)
-                if not ddl:
-                    continue
-                try:
-                    conn.execute(text(ddl))
-                    logger.info("🔄 Миграция: илова шуд %s.%s", table, col)
-                except Exception as exc:  # noqa: BLE001
-                    logger.warning(
-                        "⚠️ Миграция ноком %s.%s: %s", table, col, exc.__class__.__name__
-                    )
+            ddl = _column_ddl(table, col)
+            if ddl:
+                _run_alter(table, col, ddl)
+
+    # 🩺 ХУДКОР: ҳар сутуни моделе, ки дар ҷадвали мавҷуда нест.
+    #    Рӯйхати боло (wanted) ягона роҳи илова кардани сутун НЕСТ:
+    #    коммити 961d092 users.email-ро ба модель илова кард, вале ба
+    #    ин рӯйхат — на. Натиҷа: /api/auth/me = 500 барои ҳамаи
+    #    корбарони вурудшуда. Ин баст ҳамаи сутунҳои нороҳатро меёбад.
+    #    Аввал ҳамаи муқоисаҳо → баъд ALTER-ҳо (калид дароз намемонад).
+    missing: list[tuple[str, str, str]] = []
+    fresh = inspect(engine)
+    for table in Base.metadata.tables.values():
+        if table.name not in existing_tables:
+            continue
+        have = {c["name"] for c in fresh.get_columns(table.name)}
+        for col in table.columns:
+            if col.name in have:
+                continue
+            ddl = _auto_column_ddl(table.name, col)
+            if ddl:
+                missing.append((table.name, col.name, ddl))
+
+    for tname, cname, ddl in missing:
+        _run_alter(tname, cname, ddl)
+
+
+def _run_alter(table: str, col: str, ddl: str) -> None:
+    """Як ALTER-и алоҳида дар транзаксияи кӯтоҳ (калидҳо фавран озод мешаванд)."""
+    from sqlalchemy import text
+
+    try:
+        with engine.begin() as conn:
+            conn.execute(text(ddl))
+        logger.info("🔄 Миграция: илова шуд %s.%s", table, col)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("⚠️ Миграция ноком %s.%s: %s", table, col, exc.__class__.__name__)
+
+
+def _auto_column_ddl(table_name: str, col) -> str | None:  # noqa: ANN001
+    """DDL-и иловакунии сутун аз худи модель (мутобиқ ба SQLite ва PostgreSQL)."""
+    from sqlalchemy.schema import CreateColumn
+
+    try:
+        definition = str(CreateColumn(col).compile(dialect=engine.dialect))
+    except Exception:  # noqa: BLE001
+        return None
+    return f"ALTER TABLE {table_name} ADD COLUMN {definition}"
 
 
 def _column_ddl(table: str, col: str) -> str | None:
@@ -192,6 +236,8 @@ def _column_ddl(table: str, col: str) -> str | None:
         ("users", "coins"): "ALTER TABLE users ADD COLUMN coins INTEGER NOT NULL DEFAULT 0",
         ("users", "referral_code"): "ALTER TABLE users ADD COLUMN referral_code VARCHAR(12)",
         ("users", "referred_by_id"): "ALTER TABLE users ADD COLUMN referred_by_id INTEGER",
+        # 📧 Email — сабаби 500 дар /api/auth/me (26.10.2026)
+        ("users", "email"): "ALTER TABLE users ADD COLUMN email VARCHAR(255)",
         ("orders", "client_token"): "ALTER TABLE orders ADD COLUMN client_token VARCHAR(64)",
         ("orders", "payment_method"): "ALTER TABLE orders ADD COLUMN payment_method VARCHAR(32) DEFAULT 'dc_wallet'",
         ("orders", "user_id"): "ALTER TABLE orders ADD COLUMN user_id INTEGER",
