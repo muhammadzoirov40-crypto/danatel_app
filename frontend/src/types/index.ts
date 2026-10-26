@@ -8,6 +8,8 @@ export interface Product {
   amount: number;
   is_popular?: boolean;
   is_active?: boolean;
+  /** 🌍 Минтақа (FireLoot): "CIS", "BANGLADESH" …; "" = барои ҳама */
+  region?: string;
 }
 
 export interface Game {

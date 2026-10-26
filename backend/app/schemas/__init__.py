@@ -69,6 +69,8 @@ class ProductOut(BaseModel):
     amount: int
     is_popular: bool = False
     is_active: bool = True
+    # 🌍 Минтақа (FireLoot): "CIS", "BANGLADESH" …; "" = барои ҳама
+    region: str = ""
 
 
 class PublicStats(BaseModel):
@@ -473,6 +475,8 @@ class ProductUpsert(BaseModel):
     is_active: bool = True
     is_popular: bool = False
     sort_order: int = 0
+    # 🌍 Минтақаи ин баста ("" = барои ҳама / бозии якминтақаӣ)
+    region: str = ""
 
 
 class ProductUpdate(BaseModel):
@@ -485,3 +489,4 @@ class ProductUpdate(BaseModel):
     is_active: bool | None = None
     is_popular: bool | None = None
     sort_order: int | None = None
+    region: str | None = None

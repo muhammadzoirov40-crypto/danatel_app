@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
 from app.models import Game, Order, OrderStatus, Product, User
-from app.routers.lookup import GAMES_NEED_ZONE, regions_for_slug
+from app.routers.lookup import DEFAULT_REGION, GAMES_NEED_ZONE, regions_for_slug
 from app.schemas import GameDetailOut, GameOut, ProductOut, PublicStats
 
 router = APIRouter(prefix="/api", tags=["games"])
@@ -13,6 +13,15 @@ router = APIRouter(prefix="/api", tags=["games"])
 
 def _lang(lang: str) -> str:
     return lang if lang in ("tj", "ru", "en", "uz") else "tj"
+
+
+def _default_products(g: Game) -> list[Product]:
+    """Маҳсулотҳои минтақаи пешфарз — барои омори промо-кортоҳои асосӣ.
+
+    "" = маҳсулоти дастӣ / бозии якминтақаӣ (PUBG …) — ҳамеша дохил мешавад.
+    """
+    dflt = DEFAULT_REGION.get(g.slug)
+    return [p for p in g.products if p.is_active and (not p.region or p.region == dflt)]
 
 
 @router.get("/games", response_model=list[GameOut])
@@ -41,8 +50,8 @@ def list_games(
             image_pad=g.image_pad,
             # 📊 Маълумоти промо-картоҳои саҳифаи асосӣ
             min_price_tjs=_min_price(g),
-            products_count=sum(1 for p in g.products if p.is_active),
-            is_popular=any(p.is_popular for p in g.products if p.is_active),
+            products_count=len(_default_products(g)),
+            is_popular=any(p.is_popular for p in _default_products(g)),
         )
         for g in games
     ]
@@ -118,8 +127,8 @@ def list_customers(
 
 
 def _min_price(g: Game):
-    """Арзиши аз-рӯи арзонтарин маҳсулоти фаъоли бозӣ."""
-    prices = [p.price_tjs for p in g.products if p.is_active and p.price_tjs is not None]
+    """Арзиши аз-рӯи арзонтарин маҳсулоти фаъоли минтақаи пешфарз."""
+    prices = [p.price_tjs for p in _default_products(g) if p.price_tjs is not None]
     return min(prices) if prices else None
 
 
@@ -143,6 +152,8 @@ async def game_detail(slug: str, lang: str = Query("tj"), db: Session = Depends(
             amount=p.amount,
             is_popular=p.is_popular,
             is_active=p.is_active,
+            # 🌍 ҳамаи минтақаҳо мефуршад — филтр дар сӯи корбар
+            region=p.region,
         )
         for p in game.products
         if p.is_active
@@ -167,8 +178,8 @@ async def game_detail(slug: str, lang: str = Query("tj"), db: Session = Depends(
         products=products,
         regions=regions,
         needs_zone=game.slug in GAMES_NEED_ZONE,
-        # 📊 Ҳамон маълумоти промо мисли рӯйхат (бо ҳамон манбаъ)
+        # 📊 Ҳамон маълумоти промо мисли рӯйхат (минтақаи пешфарз)
         min_price_tjs=_min_price(game),
-        products_count=len(products),
-        is_popular=any(p.is_popular for p in game.products if p.is_active),
+        products_count=len(_default_products(game)),
+        is_popular=any(p.is_popular for p in _default_products(game)),
     )

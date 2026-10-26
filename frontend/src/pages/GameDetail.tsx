@@ -73,9 +73,12 @@ export default function GameDetail() {
   const theme = useMemo(() => THEMES[slug] ?? {}, [slug]);
   const bg = theme.bg ?? FALLBACK_BG;
   const products = game?.products ?? [];
-  const minPrice = products.length
-    ? Math.min(...products.map((p) => Number(p.price_tjs)))
-    : null;
+  // 📊 Омори сарлавҳа = минтақаи пешфарз аз backend (ҳамаи минтақаҳо → рақами беҳуда)
+  const itemsCount = game?.products_count ?? products.length;
+  const minRaw =
+    game?.min_price_tjs ??
+    (products.length ? Math.min(...products.map((p) => Number(p.price_tjs))) : null);
+  const minPrice = minRaw != null ? Number(minRaw) : null;
 
   if (loading) {
     return (
@@ -184,9 +187,9 @@ export default function GameDetail() {
                   {t("from")} {minPrice.toLocaleString("tj-TJ")} {t("currency")}
                 </span>
               )}
-              {products.length > 0 && (
+              {itemsCount > 0 && (
                 <span className="text-xs sm:text-sm bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full">
-                  {products.length} {t("statProducts")}
+                  {itemsCount} {t("statProducts")}
                 </span>
               )}
               {/* ⚠️ Чипи «Дар сонияҳо» (даъвои суръат) бароварда шуд —

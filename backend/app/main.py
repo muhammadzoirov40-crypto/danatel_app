@@ -122,6 +122,17 @@ async def on_startup() -> None:
     seed_if_empty()
     logger.info("✅ danatel API оғоз ёфт")
 
+    # 🔄 Ҳамоҳангсозии каталоги FireLoot: минтақаҳои нав (маҳсулотҳо + нарх)
+    if os.getenv("DISABLE_CATALOG_SYNC", "0") != "1":
+        try:
+            from app.database import SessionLocal
+            from app.services.catalog_sync import sync_catalog
+
+            with SessionLocal() as db:
+                await sync_catalog(db)
+        except Exception:  # noqa: BLE001
+            logger.warning("🔄 Ҳамоҳангсозии каталог ноком шуд", exc_info=True)
+
     # Оғози Telegram Bot дар ҳолати алоҳида
     if os.getenv("DISABLE_TELEGRAM", "0") != "1":
         from app.bot.bot import run_bot

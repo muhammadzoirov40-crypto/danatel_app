@@ -11,6 +11,7 @@ from sqlalchemy import (
     String,
     Text,
     func,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -260,6 +261,12 @@ class Product(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     is_popular: Mapped[bool] = mapped_column(Boolean, default=False)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
+    # Минтақаи ин баста (FireLoot): "CIS", "BANGLADESH", "MLBB RUSSIA" …
+    # "" = маҳсулоти дастии админ / бозии якминтақаӣ — дар ҳама минтақа нишон дода мешавад.
+    # ⚠️ text("''") — SQLAlchemy рақами рӯйхатиро иқтибос илова мекард ("" 2-алифбо мешуд!)
+    region: Mapped[str] = mapped_column(String(32), default="", server_default=text("''"))
+    # Калиди каталоги FireLoot (барои ҳамоҳангсозии худкор; "" = дастӣ)
+    sku: Mapped[str] = mapped_column(String(64), default="", server_default=text("''"))
 
     game: Mapped["Game"] = relationship(back_populates="products")
 
@@ -305,8 +312,9 @@ class Order(Base):
     #    nullable + server_default → сутун дар ҷадвали пур аз фармоишҳо
     #    бе хато илова мешавад (мигратсияи худкори database.py).
     #    Ҳамаи хонишҳо `or ""` доранд → NULL бехатар аст.
+    #    ⚠️ text("''") — String-literal бе иқтибоси дубара (сабаби баги `''`-и 2-алифбо).
     region: Mapped[str | None] = mapped_column(
-        String(64), default="", server_default="''", nullable=True
+        String(64), default="", server_default=text("''"), nullable=True
     )
     quantity: Mapped[int] = mapped_column(Integer, default=1)
 

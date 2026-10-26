@@ -231,6 +231,7 @@ def admin_game_detail(slug: str, db: Session = Depends(get_db)):
             amount=p.amount,
             is_popular=p.is_popular,
             is_active=p.is_active,
+            region=p.region,
         )
         for p in sorted(game.products, key=lambda x: x.sort_order)
     ]

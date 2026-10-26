@@ -28,13 +28,14 @@ interface Props {
   game: Game;
   /** Интихоби маҳсулот аз сарчашма (барои sticky-сумма) */
   selected?: Product | null;
-  onSelected?: (p: Product) => void;
+  onSelected?: (p: Product | null) => void;
   onCreated: (orderId: number, paymentUrl?: string | null) => void;
 }
 
 /**
  * 📦 Номи кӯтоҳи корти баста (талаби корбар: танҳо иконка + рақам/ном + нарх):
  *   «FF 110 Diamonds»     → 💎 110 алмос   (асъори FF — алмос, на UC!)
+ *   «MLBB RU 32 + 3 Diamonds» → 💎 32 + 3 алмос  (тӯҳфаи воқеӣ аз каталог)
  *   «PUBG 60 UC»          → 🪙 60 UC       (асъори воқеӣ аз номи маҳсулот)
  *   «Blood Strike 51 Gold» → 🪙 51 Gold
  *   «FF Level Up Pass 6»  → 🎟 «Level 6»   (бастаи номдор — рақам надорад)
@@ -51,13 +52,19 @@ function packView(
   const amount = Number(p.amount || 0);
   // 1️⃣ Бастаи рақамдор: рақам + асъор аз НОМИ воқеӣ (Diamonds/UC/Gold/Bonds/Tokens/Lattice)
   if (amount > 0) {
-    const unit = p.name.match(/^\D*?\d[\d\s]*\s+(.+)$/)?.[1]?.trim() ?? "";
+    // 🎁 Тӯҳфа аз номи воқеӣ (каталоги FireLoot): «32 + 3 Diamonds» → «32 + 3 алмос»
+    const bonus = p.name.match(/(\d[\d,]*)\s*\+\s*(\d[\d,]*)/);
+    const unit = p.name.replace(/^\D*?\d[\d,\s]*(?:\+\s*\d[\d,\s]*)?\s+/, "").trim();
     const isDiamond = /^diamonds?$/i.test(unit);
+    const bonusN =
+      bonus && Number(bonus[1].replace(/\D/g, "")) === amount
+        ? Number(bonus[2].replace(/\D/g, ""))
+        : 0;
     return {
       icon: isDiamond ? Gem : Coins,
       text: `${amount.toLocaleString("tj-TJ")}${
-        unit ? ` ${isDiamond ? t("unitDiamonds") : unit}` : ""
-      }`,
+        bonusN ? ` + ${bonusN.toLocaleString("tj-TJ")}` : ""
+      }${unit ? ` ${isDiamond ? t("unitDiamonds") : unit}` : ""}`,
       sub: undefined,
     };
   }
@@ -120,7 +127,7 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
   const [nickname, setNickname] = useState("");
   const [innerSelected, setInnerSelected] = useState<Product | null>(null);
   const selected = extSelected !== undefined ? extSelected : innerSelected;
-  const setSelected = (p: Product) => {
+  const setSelected = (p: Product | null) => {
     setInnerSelected(p);
     onSelected?.(p);
   };
@@ -146,7 +153,8 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
   // 🏦 Кушодани интихоби банк (марҳилаи 2-юм пардохти DC)
   const [showBank, setShowBank] = useState(false);
 
-  const products = game.products ?? [];
+  // 🌍 Филтри минтақа: бастаҳои минтақаи интихобшуда (+ бе минтақа = барои ҳама)
+  const products = (game.products ?? []).filter((p) => !p.region || p.region === region);
   const price = selected ? Number(selected.price_tjs) : 0;
   const canUseBalance = !!user && balance >= price && price > 0;
 
@@ -209,6 +217,15 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [uidValue, game.slug, game.needs_zone, region]);
+
+  // 🌍 Минтақа иваз шуд → бастаи кӯҳна аз рӯйхат нопадид мешавад,
+  //    пас интихоб ва натиҷаи санҷиш низ бояд пок шавад (нархи кӯҳна нодуруст мешуд!)
+  useEffect(() => {
+    setInnerSelected(null);
+    onSelected?.(null);
+    setNickLookup(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [region]);
 
   /** Сохтани фармоиш дар сервер (муштарак барои баланс ва DC). */
   const createOrder = async (): Promise<boolean> => {
