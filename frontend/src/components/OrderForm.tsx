@@ -2,13 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import {
   Check,
   CircleCheck,
+  ClipboardList,
   Coins,
-  Diamond,
   CreditCard,
   Flame,
   Gem,
+  Layers,
   Loader2,
   Lock,
+  Package,
   Search,
   Ticket,
   TriangleAlert,
@@ -30,19 +32,31 @@ interface Props {
 }
 
 /**
- * 📦 Номи кӯтоҳи корти баста (талаби корбар: танҳо иконка + рақам + нарх):
- *   «FF 110 Diamonds»    → 💎 110   (алмос — иконкаи алмос)
- *   «PUBG 60 UC»         → 🪙 60    (асъори бозӣ — иконкаи сикка)
- *   «FF Level Up Pass 6» → 🎟 «Level Up Pass 6»  (бастаи номдор — рақам надорад)
+ * 📦 Номи кӯтоҳи корти баста (талаби корбар: танҳо иконка + рақам/ном + нарх):
+ *   «FF 110 Diamonds»     → 💎 110 алмос   (асъори FF — алмос, на UC!)
+ *   «PUBG 60 UC»          → 🪙 60 UC       (асъори воқеӣ аз номи маҳсулот)
+ *   «Blood Strike 51 Gold» → 🪙 51 Gold
+ *   «FF Level Up Pass 6»  → 🎟 «Level 6»   (бастаи номдор — рақам надорад)
+ * ⚠️ Асъор ҲАМЕША аз номи воқеии маҳсулот гирифта мешавад.
+ *    Хатогии 26.10: «UC» ба ҳамаи бастаҳо замима шуд → Free Fire
+ *    «110 UC» нишон дод, дар ҳоле ки асъори FF алмос аст.
  * Номи ПУРРА дар `title`/`aria-label` мемонад (скринридер + муштарӣ).
  */
-function packView(p: Product, game: Game): { icon: LucideIcon; text: string; sub?: string } {
+function packView(
+  p: Product,
+  game: Game,
+  t: (key: string) => string,
+): { icon: LucideIcon; text: string; sub?: string } {
   const amount = Number(p.amount || 0);
-  // 1️⃣ Бастаи рақамдор: UC иконка + рақам
+  // 1️⃣ Бастаи рақамдор: рақам + асъор аз НОМИ воқеӣ (Diamonds/UC/Gold/Bonds/Tokens/Lattice)
   if (amount > 0) {
+    const unit = p.name.match(/^\D*?\d[\d\s]*\s+(.+)$/)?.[1]?.trim() ?? "";
+    const isDiamond = /^diamonds?$/i.test(unit);
     return {
-      icon: Diamond,
-      text: `${amount.toLocaleString("tj-TJ")} UC`,
+      icon: isDiamond ? Gem : Coins,
+      text: `${amount.toLocaleString("tj-TJ")}${
+        unit ? ` ${isDiamond ? t("unitDiamonds") : unit}` : ""
+      }`,
       sub: undefined,
     };
   }
@@ -72,6 +86,26 @@ function packView(p: Product, game: Game): { icon: LucideIcon; text: string; sub
   }
   return { icon: Ticket, text: text || p.name, sub };
 }
+
+/** 🗂 Калимаҳои бахшҳо — аз номи воқеии маҳсулотҳо. */
+type GroupKey = "diamonds" | "currency" | "vouchers" | "passes" | "packs";
+
+function groupOf(p: Product): GroupKey {
+  const n = p.name.toLowerCase();
+  if (Number(p.amount || 0) > 0) return n.includes("diamond") ? "diamonds" : "currency";
+  if (n.includes("voucher")) return "vouchers";
+  if (n.includes("pass") || n.includes("level")) return "passes";
+  return "packs";
+}
+
+/** Тартиб + иконкаи бахшҳо — танҳо онҳое нишон мешаванд, ки маҳсулот доранд */
+const SECTION_META: { key: GroupKey; titleKey: string; icon: LucideIcon }[] = [
+  { key: "diamonds", titleKey: "secDiamonds", icon: Gem },
+  { key: "currency", titleKey: "secCurrency", icon: Coins },
+  { key: "vouchers", titleKey: "secVouchers", icon: Ticket },
+  { key: "passes", titleKey: "secPasses", icon: Layers },
+  { key: "packs", titleKey: "secPacks", icon: Package },
+];
 
 /**
  * Формаи фармоиш — тарҳи мисли persshop:
@@ -110,6 +144,18 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
   const products = game.products ?? [];
   const price = selected ? Number(selected.price_tjs) : 0;
   const canUseBalance = !!user && balance >= price && price > 0;
+
+  /** 🗂 Гурӯҳбандии воқеӣ аз номи маҳсулот (на логикаи сахткӯҳ) */
+  const groups: Record<GroupKey, Product[]> = {
+    diamonds: [],
+    currency: [],
+    vouchers: [],
+    passes: [],
+    packs: [],
+  };
+  for (const p of products) groups[groupOf(p)].push(p);
+  /** Номи кӯтоҳи маҳсулоти интихобшуда — барои «Фармоиши шумо» */
+  const selView = selected ? packView(selected, game, t) : null;
 
   /** 📞 Пурсидани ник (барои тугмаи «Санҷидан» + дебаунс). */
   const runLookup = async (uid: string) => {
@@ -220,256 +266,347 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
 
   return (
     <>
-      <div className="glass rounded-3xl p-4 sm:p-6">
-        {/* ============ 1. ДАННЫЕ АККАУНТА ============ */}
-        <SectionHead n={1} title={t("accountData")} hint={t("accountDataHint")} />
+      {/* ============ 2 СУТУН: ЧАП — МАЗМУН · РОСТ — ФАРМОИШИ ШУМО ============ */}
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] gap-5 items-start">
+        {/* ---------- ЧАП: ҲИСОБ + БАХШҲОИ МАҲСУЛОТ ---------- */}
+        <div className="min-w-0 space-y-5">
+          <div className="glass rounded-3xl p-4 sm:p-6">
+            {/* ============ 1. ДАННЫЕ АККАУНТА ============ */}
+            <SectionHead n={1} title={t("accountData")} hint={t("accountDataHint")} />
 
-        <div className="mb-4">
-          <label className="label">
-            {game.player_id_label || t("playerId")} <span className="text-rose-500">*</span>
-          </label>
-          <div className="flex gap-2">
-            <input
-              className="input font-mono flex-1 min-w-0"
-              inputMode="numeric"
-              placeholder={t("enterPlayerId")}
-              value={playerId}
-              onChange={(e) => setPlayerId(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && playerId.trim().length >= 3) runLookup(playerId.trim());
-              }}
-            />
-            <button
-              type="button"
-              onClick={() => runLookup(playerId.trim())}
-              disabled={nickLoading || playerId.trim().length < 3}
-              className="shrink-0 px-4 rounded-xl bg-brand-600 text-white text-sm font-semibold
-                         hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed
-                         transition flex items-center gap-1.5"
-            >
-              {nickLoading ? (
-                <Ic icon={Loader2} className="animate-spin" />
-              ) : (
-                <>
-                  <Ic icon={Search} />
-                  {t("check")}
-                </>
-              )}
-            </button>
-          </div>
-
-          {/* Натиҷаи логини ник */}
-          {nickLookup?.found && nickLookup.nickname && (
-            <div className="mt-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 px-3.5 py-2.5 rounded-2xl flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center">
-                <Ic icon={CircleCheck} size="xs" className="text-emerald-600" />
-              </span>
-              <span className="font-mono font-semibold">{nickLookup.nickname}</span>
-              {nickLookup.region && (
-                <span className="text-emerald-500 text-xs">({nickLookup.region})</span>
-              )}
-            </div>
-          )}
-          {nickLookup?.found === false && !nickLoading && playerId.trim().length >= 3 && (() => {
-            // "ID дуруст ✓" → сабз (мусбат) | "Zone лозим" ё "ID ёфт нашуд" → амбер
-            const ok = /дуруст|✓/.test(nickLookup.message || "");
-            const cls = ok
-              ? "text-emerald-700 bg-emerald-50 border-emerald-200"
-              : "text-amber-700 bg-amber-50 border-amber-200";
-            return (
-              <div className={`mt-2 text-sm border px-3.5 py-2.5 rounded-2xl flex items-center gap-2 ${cls}`}>
-                <Ic icon={ok ? CircleCheck : TriangleAlert} />
-                <span>{nickLookup.message || t("nicknameNotFound")}</span>
+            <div className="mb-4">
+              <label className="label">
+                {game.player_id_label || t("playerId")} <span className="text-rose-500">*</span>
+              </label>
+              <div className="flex gap-2">
+                <input
+                  className="input font-mono flex-1 min-w-0"
+                  inputMode="numeric"
+                  placeholder={t("enterPlayerId")}
+                  value={playerId}
+                  onChange={(e) => setPlayerId(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && playerId.trim().length >= 3) runLookup(playerId.trim());
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => runLookup(playerId.trim())}
+                  disabled={nickLoading || playerId.trim().length < 3}
+                  className="shrink-0 px-4 rounded-xl bg-brand-600 text-white text-sm font-semibold
+                             hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed
+                             transition flex items-center gap-1.5"
+                >
+                  {nickLoading ? (
+                    <Ic icon={Loader2} className="animate-spin" />
+                  ) : (
+                    <>
+                      <Ic icon={Search} />
+                      {t("check")}
+                    </>
+                  )}
+                </button>
               </div>
-            );
-          })()}
-        </div>
 
-        <div className="h-px bg-slate-100 mb-6" />
-
-        {/* ============ 2. ВЫБЕРИТЕ НОМИНАЛ ============ */}
-        <SectionHead n={2} title={t("chooseAmount")} hint={t("chooseAmountHint")} />
-
-        {/* Сеткаи бастаҳо: 2 (мобилӣ) → 2 (планшет) → 3 (компютер) —
-            кортҳо «майдатар» (талаби корбар) */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 mb-6">
-          {products.map((p) => {
-            const active = selected?.id === p.id;
-            const view = packView(p, game);
-            return (
-              <button
-                key={p.id}
-                onClick={() => setSelected(p)}
-                aria-pressed={active}
-                aria-label={p.name}
-                title={p.name}
-                className={`relative rounded-2xl border-2 p-3 sm:p-4 text-left overflow-hidden transition-all
-                  ${
-                    active
-                      ? "border-brand-600 bg-brand-50 shadow-[0_8px_20px_-10px_rgba(37,99,235,0.7)] scale-[1.02]"
-                      : "border-slate-200 bg-white hover:border-brand-300 hover:shadow-md hover:-translate-y-0.5"
-                  }`}
-              >
-                {p.is_popular && (
-                  <span className="absolute -top-2.5 right-2 badge bg-rose-500 text-white shadow">
-                    <Ic icon={Flame} size="xs" className="fill-current" />
-                    {t("popular")}
+              {/* Натиҷаи логини ник */}
+              {nickLookup?.found && nickLookup.nickname && (
+                <div className="mt-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 px-3.5 py-2.5 rounded-2xl flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center">
+                    <Ic icon={CircleCheck} size="xs" className="text-emerald-600" />
                   </span>
-                )}
-                {/* 🖇 ҲАМА ДAR 1 САТР: иконка + рақам/ном … … … нарх (талаби корбар) */}
-                <div className="flex flex-col items-center gap-1">
-                  <Ic
-                    icon={view.icon}
-                    size="md"
-                    className={`shrink-0 ${active ? "text-brand-600" : "text-brand-500"}`}
-                  />
-                  <span
-                    className={`line-clamp-2 font-bold text-sm sm:text-base leading-tight ${
-                      active ? "text-brand-700" : "text-slate-700"
-                    }`}
-                  >
-                    {view.text}
-                  </span>
-                  <span
-                    className={`shrink-0 font-extrabold tabular-nums text-xs sm:text-sm ${
-                      active ? "text-brand-700" : "text-brand-600"
-                    }`}
-                  >
-                    {Number(p.price_tjs).toLocaleString("tj-TJ")}
-                    <span className="ml-1 text-[10px] font-semibold text-slate-400">
-                      {t("currency")}
-                    </span>
-                  </span>
-                  {view.sub && (
-                    <span className="text-xs sm:text-sm font-bold text-slate-500 -mt-0.5">
-                      {view.sub}
-                    </span>
+                  <span className="font-mono font-semibold">{nickLookup.nickname}</span>
+                  {nickLookup.region && (
+                    <span className="text-emerald-500 text-xs">({nickLookup.region})</span>
                   )}
                 </div>
-                {active && (
-                  <span className="absolute -top-2 -left-2 w-6 h-6 rounded-full bg-brand-600 text-white flex items-center justify-center shadow">
-                    <Ic icon={Check} size="xs" strokeWidth={3} />
+              )}
+              {nickLookup?.found === false && !nickLoading && playerId.trim().length >= 3 && (() => {
+                // "ID дуруст ✓" → сабз (мусбат) | "Zone лозим" ё "ID ёфт нашуд" → амбер
+                const ok = /дуруст|✓/.test(nickLookup.message || "");
+                const cls = ok
+                  ? "text-emerald-700 bg-emerald-50 border-emerald-200"
+                  : "text-amber-700 bg-amber-50 border-amber-200";
+                return (
+                  <div className={`mt-2 text-sm border px-3.5 py-2.5 rounded-2xl flex items-center gap-2 ${cls}`}>
+                    <Ic icon={ok ? CircleCheck : TriangleAlert} />
+                    <span>{nickLookup.message || t("nicknameNotFound")}</span>
+                  </div>
+                );
+              })()}
+            </div>
+
+          </div>
+
+          {SECTION_META.map(({ key, titleKey, icon }) => {
+            const items = groups[key];
+            if (!items.length) return null;
+            return (
+              <section key={key} className="glass rounded-3xl p-4 sm:p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <span
+                    className="w-9 h-9 shrink-0 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700
+                               text-white flex items-center justify-center
+                               shadow-[0_8px_18px_-8px_rgba(37,99,235,0.95)]"
+                  >
+                    <Ic icon={icon} size="sm" />
                   </span>
-                )}
-              </button>
+                  <div className="min-w-0">
+                    <h3 className="font-extrabold text-slate-800 text-base sm:text-lg leading-tight">
+                      {t(titleKey)}
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      {items.length} {t("statProducts")}
+                    </p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 xl:grid-cols-3 gap-2.5">
+                  {items.map((p) => {
+                    const active = selected?.id === p.id;
+                    const view = packView(p, game, t);
+                    return (
+                      <button
+                        key={p.id}
+                        onClick={() => setSelected(p)}
+                        aria-pressed={active}
+                        aria-label={p.name}
+                        title={p.name}
+                        className={`relative rounded-2xl border-2 px-3.5 py-3 text-left overflow-hidden transition-all
+                          ${
+                            active
+                              ? "border-brand-600 bg-brand-50 shadow-[0_8px_20px_-10px_rgba(37,99,235,0.7)] scale-[1.02]"
+                              : "border-slate-200 bg-white hover:border-brand-300 hover:shadow-md hover:-translate-y-0.5"
+                          }`}
+                      >
+                        {p.is_popular && (
+                          <span className="absolute -top-2.5 right-2 badge bg-rose-500 text-white shadow">
+                            <Ic icon={Flame} size="xs" className="fill-current" />
+                            {t("popular")}
+                          </span>
+                        )}
+                        {/* 🖇 ҲАМА ДАР 1 САТР: иконка + рақам/ном … … … нарх (талаби корбар) */}
+                        <div className="flex items-center justify-between gap-2 min-w-0">
+                          <span className="flex min-w-0 items-center gap-1.5">
+                            <Ic
+                              icon={view.icon}
+                              size="sm"
+                              className={`shrink-0 ${active ? "text-brand-600" : "text-brand-500"}`}
+                            />
+                            <span
+                              className={`min-w-0 truncate font-bold text-sm leading-tight ${
+                                active ? "text-brand-700" : "text-slate-700"
+                              }`}
+                            >
+                              {view.text}
+                              {view.sub && (
+                                <span className="ml-1 font-medium text-slate-400">{view.sub}</span>
+                              )}
+                            </span>
+                          </span>
+                          <span
+                            className={`shrink-0 font-extrabold tabular-nums text-sm ${
+                              active ? "text-brand-700" : "text-brand-600"
+                            }`}
+                          >
+                            {Number(p.price_tjs).toLocaleString("tj-TJ")}
+                            <span className="ml-1 text-[10px] font-semibold text-slate-400 hidden sm:inline">
+                              {t("currency")}
+                            </span>
+                          </span>
+                        </div>
+                        {active && (
+                          <span className="absolute -top-2 -left-2 w-6 h-6 rounded-full bg-brand-600 text-white flex items-center justify-center shadow">
+                            <Ic icon={Check} size="xs" strokeWidth={3} />
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
             );
           })}
         </div>
 
-        <div className="h-px bg-slate-100 mb-6" />
-
-        {/* ============ 3. УСУЛИ ПАРДОХТ ============ */}
-        <SectionHead n={3} title={t("choosePayment")} hint={t("choosePaymentHint")} />
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-5">
-          {/* DC Wallet */}
-          <button
-            onClick={() => setMethod("dc")}
-            aria-pressed={method === "dc"}
-            className={`rounded-2xl border-2 p-3.5 text-left transition
-              ${
-                method === "dc"
-                  ? "border-brand-600 bg-brand-50 shadow-sm"
-                  : "border-slate-200 bg-white hover:border-slate-300"
-              }`}
-          >
-            <div className="flex items-center gap-2">
-              <Ic icon={CreditCard} className="text-brand-600" />
-              <span className="font-semibold text-sm">{t("dcPayment")}</span>
-              {/* Радиои ороишӣ — ҳолати воқеӣ дар `aria-pressed`-и кнопка */}
+        {/* ---------- РОСТ: ФАРМОИШИ ШУМО (БЕ ТАҒЙИРИ МАНТИҚ — ЧИПҲОИ ВОҚЕӢ) ---------- */}
+        <aside className="lg:sticky lg:top-[72px] min-w-0">
+          <div className="glass rounded-3xl p-4 sm:p-5">
+            {/* Сарлавҳаи фармоиш */}
+            <div className="flex items-center gap-2.5 mb-3.5">
               <span
-                aria-hidden
-                className={`ml-auto w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                  method === "dc" ? "border-brand-600" : "border-slate-300"
-                }`}
+                className="w-8 h-8 shrink-0 rounded-full bg-gradient-to-br from-brand-500 to-brand-700
+                           text-white flex items-center justify-center
+                           shadow-[0_8px_18px_-8px_rgba(37,99,235,0.95)]"
               >
-                {method === "dc" && <span className="w-2 h-2 rounded-full bg-brand-600" />}
+                <Ic icon={ClipboardList} size="sm" />
+              </span>
+              <h3 className="font-extrabold text-slate-800 text-base sm:text-lg leading-tight">
+                {t("yourOrder")}
+              </h3>
+            </div>
+
+            {/* Маҳсулоти интихобшуда */}
+            {selected && selView ? (
+              <div className="rounded-2xl border border-brand-200 bg-brand-50 p-3.5 flex items-center gap-3">
+                <span className="w-10 h-10 shrink-0 rounded-xl bg-white border border-brand-100 flex items-center justify-center">
+                  <Ic icon={selView.icon} className="text-brand-600" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold text-slate-800 text-sm truncate">
+                    {selView.text}
+                    {selView.sub && (
+                      <span className="ml-1 font-medium text-slate-400">{selView.sub}</span>
+                    )}
+                  </p>
+                  <p className="text-xs text-slate-500 truncate" title={selected.name}>
+                    {selected.name}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-center text-sm text-slate-400">
+                {t("chooseAmountHint")}
+              </div>
+            )}
+
+            {/* Ҳамагӣ */}
+            <div className="mt-3.5 flex items-center justify-between gap-3">
+              <span className="text-sm text-slate-500">{t("total")}</span>
+              <span className="text-lg font-extrabold text-slate-800 tabular-nums">
+                {price.toLocaleString("tj-TJ")}
+                <span className="ml-1 text-xs font-semibold text-slate-400">{t("currency")}</span>
               </span>
             </div>
-            <div className="text-xs text-slate-500 mt-0.5">{t("payWithDC")}</div>
-          </button>
 
-          {/* Баланс */}
-          <button
-            onClick={() => setMethod("balance")}
-            aria-pressed={method === "balance"}
-            className={`rounded-2xl border-2 p-3.5 text-left transition
-              ${
-                method === "balance"
-                  ? "border-emerald-600 bg-emerald-50 shadow-sm"
-                  : "border-slate-200 bg-white hover:border-slate-300"
-              }`}
-          >
-            <div className="flex items-center gap-2">
-              <Ic icon={Wallet} className="text-emerald-600" />
-              <span className="font-semibold text-sm">{t("balancePayment")}</span>
-              <span
-                aria-hidden
-                className={`ml-auto w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                  method === "balance" ? "border-emerald-600" : "border-slate-300"
-                }`}
+            {/* Баланс — танҳо барои корбари вурудшуда (маълумоти воқеӣ) */}
+            {user && (
+              <div className="mt-1.5 flex items-center justify-between gap-3">
+                <span className="text-sm text-slate-500">{t("balance")}</span>
+                <span
+                  className={`text-sm font-bold tabular-nums ${
+                    balance >= price ? "text-emerald-600" : "text-rose-600"
+                  }`}
+                >
+                  {balance.toLocaleString("tj-TJ")} {t("currency")}
+                </span>
+              </div>
+            )}
+
+            <div className="h-px bg-slate-100 my-3.5" />
+
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2.5">
+              {t("choosePayment")}
+            </p>
+            <div className="space-y-2.5 mb-4">
+              {/* DC Wallet */}
+              <button
+                onClick={() => setMethod("dc")}
+                aria-pressed={method === "dc"}
+                className={`rounded-2xl border-2 p-3.5 text-left transition
+                  ${
+                    method === "dc"
+                      ? "border-brand-600 bg-brand-50 shadow-sm"
+                      : "border-slate-200 bg-white hover:border-slate-300"
+                  }`}
               >
-                {method === "balance" && <span className="w-2 h-2 rounded-full bg-emerald-600" />}
-              </span>
-            </div>
-            <div className="text-xs text-slate-500 mt-0.5">
-              {user ? (
-                <>
-                  {t("currentBalance")}:{" "}
-                  <span className={balance >= price ? "text-emerald-600" : "text-rose-600"}>
-                    {balance.toLocaleString("tj-TJ")} {t("currency")}
+                <div className="flex items-center gap-2">
+                  <Ic icon={CreditCard} className="text-brand-600" />
+                  <span className="font-semibold text-sm">{t("dcPayment")}</span>
+                  {/* Радиои ороишӣ — ҳолати воқеӣ дар `aria-pressed`-и кнопка */}
+                  <span
+                    aria-hidden
+                    className={`ml-auto w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                      method === "dc" ? "border-brand-600" : "border-slate-300"
+                    }`}
+                  >
+                    {method === "dc" && <span className="w-2 h-2 rounded-full bg-brand-600" />}
                   </span>
+                </div>
+                <div className="text-xs text-slate-500 mt-0.5">{t("payWithDC")}</div>
+              </button>
+
+              {/* Баланс */}
+              <button
+                onClick={() => setMethod("balance")}
+                aria-pressed={method === "balance"}
+                className={`rounded-2xl border-2 p-3.5 text-left transition
+                  ${
+                    method === "balance"
+                      ? "border-emerald-600 bg-emerald-50 shadow-sm"
+                      : "border-slate-200 bg-white hover:border-slate-300"
+                  }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Ic icon={Wallet} className="text-emerald-600" />
+                  <span className="font-semibold text-sm">{t("balancePayment")}</span>
+                  <span
+                    aria-hidden
+                    className={`ml-auto w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                      method === "balance" ? "border-emerald-600" : "border-slate-300"
+                    }`}
+                  >
+                    {method === "balance" && <span className="w-2 h-2 rounded-full bg-emerald-600" />}
+                  </span>
+                </div>
+                <div className="text-xs text-slate-500 mt-0.5">
+                  {user ? (
+                    <>
+                      {t("currentBalance")}:{" "}
+                      <span className={balance >= price ? "text-emerald-600" : "text-rose-600"}>
+                        {balance.toLocaleString("tj-TJ")} {t("currency")}
+                      </span>
+                    </>
+                  ) : (
+                    t("loginForBalance")
+                  )}
+                </div>
+              </button>
+            </div>
+
+            {/* Огоҳиномаи баланс */}
+            {method === "balance" && user && price > 0 && !canUseBalance && (
+              <div className="mb-4 rounded-2xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800 flex items-start gap-2">
+                <Ic icon={TriangleAlert} className="text-amber-500 mt-0.5" />
+                <span>
+                  {t("insufficientBalance")} — {t("currentBalance")}: {balance.toLocaleString("tj-TJ")} /{" "}
+                  {t("total")}: {price.toLocaleString("tj-TJ")} {t("currency")}
+                </span>
+              </div>
+            )}
+
+            {error && (
+              <div
+                role="alert"
+                className="mb-4 rounded-2xl bg-rose-50 border border-rose-200 px-4 py-3 text-sm text-rose-700 flex items-start gap-2"
+              >
+                <Ic icon={TriangleAlert} className="text-rose-500 mt-0.5" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <button
+              onClick={submit}
+              disabled={loading || !selected || (method === "balance" && !canUseBalance)}
+              className="btn-primary w-full py-4 text-base rounded-2xl shadow-[0_12px_28px_-12px_rgba(37,99,235,0.9)]"
+            >
+              {loading ? (
+                <>
+                  <Ic icon={Loader2} className="animate-spin" /> {t("loading")}
                 </>
               ) : (
-                t("loginForBalance")
+                <>
+                  <Ic icon={Lock} />
+                  {method === "balance" ? t("payFromBalance") : t("pay")}
+                  {price > 0 ? ` — ${price.toLocaleString("tj-TJ")} ${t("currency")}` : ""}
+                </>
               )}
-            </div>
-          </button>
-        </div>
+            </button>
 
-        {/* Огоҳиномаи баланс */}
-        {method === "balance" && user && price > 0 && !canUseBalance && (
-          <div className="mb-4 rounded-2xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800 flex items-start gap-2">
-            <Ic icon={TriangleAlert} className="text-amber-500 mt-0.5" />
-            <span>
-              {t("insufficientBalance")} — {t("currentBalance")}: {balance.toLocaleString("tj-TJ")} /{" "}
-              {t("total")}: {price.toLocaleString("tj-TJ")} {t("currency")}
-            </span>
+            <p className="mt-3 text-xs text-slate-500 text-center leading-relaxed inline-flex items-center justify-center gap-1.5 flex-wrap">
+              <Ic icon={Lock} size="xs" className="text-slate-400" />
+              {t("secureNote")}
+            </p>
           </div>
-        )}
-
-        {error && (
-          <div
-            role="alert"
-            className="mb-4 rounded-2xl bg-rose-50 border border-rose-200 px-4 py-3 text-sm text-rose-700 flex items-start gap-2"
-          >
-            <Ic icon={TriangleAlert} className="text-rose-500 mt-0.5" />
-            <span>{error}</span>
-          </div>
-        )}
-
-        <button
-          onClick={submit}
-          disabled={loading || !selected || (method === "balance" && !canUseBalance)}
-          className="btn-primary w-full py-4 text-base rounded-2xl shadow-[0_12px_28px_-12px_rgba(37,99,235,0.9)]"
-        >
-          {loading ? (
-            <>
-              <Ic icon={Loader2} className="animate-spin" /> {t("loading")}
-            </>
-          ) : (
-            <>
-              <Ic icon={Lock} />
-              {method === "balance" ? t("payFromBalance") : t("pay")}
-              {price > 0 ? ` — ${price.toLocaleString("tj-TJ")} ${t("currency")}` : ""}
-            </>
-          )}
-        </button>
-
-        <p className="mt-3 text-xs text-slate-500 text-center leading-relaxed inline-flex items-center justify-center gap-1.5 flex-wrap">
-          <Ic icon={Lock} size="xs" className="text-slate-400" />
-          {t("secureNote")}
-        </p>
+        </aside>
       </div>
 
       {/* 🏦 Интихоби банк — танҳо барои пардохти DC */}
