@@ -370,7 +370,7 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                         aria-pressed={active}
                         aria-label={p.name}
                         title={p.name}
-                        className={`relative rounded-2xl border-2 px-3.5 py-3 text-left overflow-hidden transition-all
+                        className={`relative rounded-2xl border-2 px-3.5 py-3 text-left transition-all
                           ${
                             active
                               ? "border-brand-600 bg-brand-50 shadow-[0_8px_20px_-10px_rgba(37,99,235,0.7)] scale-[1.02]"
@@ -414,7 +414,10 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                           </span>
                         </div>
                         {active && (
-                          <span className="absolute -top-2 -left-2 w-6 h-6 rounded-full bg-brand-600 text-white flex items-center justify-center shadow">
+                          <span
+                            className="absolute -top-2.5 -left-2.5 w-6 h-6 rounded-full bg-brand-600 text-white
+                                       flex items-center justify-center border-2 border-white shadow-md"
+                          >
                             <Ic icon={Check} size="xs" strokeWidth={3} />
                           </span>
                         )}
