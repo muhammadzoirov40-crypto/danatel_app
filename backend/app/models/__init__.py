@@ -301,6 +301,13 @@ class Order(Base):
     # Маълумоти фармоиш
     player_id: Mapped[str] = mapped_column(String(64))
     player_nickname: Mapped[str | None] = mapped_column(String(128))
+    # 🌍 Минтақаи интихобшуда (FireLoot: CIS / BRAZIL / MLBB RUSSIA …).
+    #    nullable + server_default → сутун дар ҷадвали пур аз фармоишҳо
+    #    бе хато илова мешавад (мигратсияи худкори database.py).
+    #    Ҳамаи хонишҳо `or ""` доранд → NULL бехатар аст.
+    region: Mapped[str | None] = mapped_column(
+        String(64), default="", server_default="''", nullable=True
+    )
     quantity: Mapped[int] = mapped_column(Integer, default=1)
 
     # Пул

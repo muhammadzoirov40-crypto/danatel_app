@@ -7,6 +7,7 @@ import {
   CreditCard,
   Flame,
   Gem,
+  Globe,
   Layers,
   Loader2,
   Lock,
@@ -129,6 +130,10 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
   // 🔍 Логини ник
   const [nickLookup, setNickLookup] = useState<PlayerLookupResponse | null>(null);
   const [nickLoading, setNickLoading] = useState(false);
+  // 🌍 Минтақа — пешфарз = аввали рӯйхати backend (CIS / MLBB RUSSIA)
+  const [region, setRegion] = useState<string>(() => game.regions?.[0] ?? "");
+  // 🎮 Зона/Server ID — талаби воқеии MLBB (FireLoot ҳам мепурсад)
+  const [zone, setZone] = useState("");
   // 🛡️ Идемпотентность — token-и ягона барои ҳар як форма
   // crypto.randomUUID танҳо дар HTTPS/localhost дастрас аст (dar HTTP+IP undefined!)
   const [clientToken] = useState(() => {
@@ -157,6 +162,14 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
   /** Номи кӯтоҳи маҳсулоти интихобшуда — барои «Фармоиши шумо» */
   const selView = selected ? packView(selected, game, t) : null;
 
+  /** ID-и пурра: «12345678» ё «12345678 (1234)» барои бозиҳои бо Zone (MLBB) */
+  const uidValue = (() => {
+    const id = playerId.trim();
+    if (!id) return "";
+    const z = zone.trim();
+    return z ? `${id} (${z})` : id;
+  })();
+
   /** 📞 Пурсидани ник (барои тугмаи «Санҷидан» + дебаунс). */
   const runLookup = async (uid: string) => {
     if (uid.length < 3) {
@@ -165,7 +178,7 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
     }
     setNickLoading(true);
     try {
-      const res = await api.lookupPlayer(game.slug, uid);
+      const res = await api.lookupPlayer(game.slug, uid, region);
       setNickLookup(res);
       if (res.found && res.nickname && !nickname) {
         setNickname(res.nickname);
@@ -180,10 +193,13 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
   // 🔍 Дебаунсинг логини ник (700мс пас аз гузашт навишт)
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
   useEffect(() => {
-    const uid = playerId.trim();
+    const uid = uidValue;
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
-    if (uid.length >= 8 && /^\d+$/.test(uid)) {
+    // Zone-бозиҳо (MLBB): мин 7 рақам; боқия: мин 8 (ҳамон backend)
+    const minDigits = game.needs_zone ? 7 : 8;
+    const digits = uid.replace(/\D/g, "");
+    if (uid.length >= 3 && digits.length >= minDigits) {
       debounceRef.current = setTimeout(() => runLookup(uid), 700);
     } else {
       setNickLookup(null);
@@ -192,7 +208,7 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playerId, game.slug]);
+  }, [uidValue, game.slug, game.needs_zone, region]);
 
   /** Сохтани фармоиш дар сервер (муштарак барои баланс ва DC). */
   const createOrder = async (): Promise<boolean> => {
@@ -201,8 +217,10 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
       const res = await api.createOrder({
         game_slug: game.slug,
         product_id: selected!.id,
-        player_id: playerId.trim(),
+        // Зона дар дохили player_id: «12345678 (1234)» — ҳамон формати кӯҳна
+        player_id: uidValue,
         player_nickname: nickname.trim() || undefined,
+        region: region.trim(),
         language: lang,
         payment_method: method === "balance" ? "balance" : "dc_wallet",
         client_token: clientToken,
@@ -223,6 +241,11 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
     setError("");
     if (!playerId.trim() || playerId.trim().length < 2) {
       setError(t("invalidId"));
+      return;
+    }
+    // 🎮 Зона барои MLBB ҳатми воқеӣ — бе он иҷро имкон нест (FireLoot ҳам мепурсад)
+    if (game.needs_zone && !zone.trim()) {
+      setError(t("zoneRequired"));
       return;
     }
     if (!selected) {
@@ -274,6 +297,31 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
             {/* ============ 1. ДАННЫЕ АККАУНТА ============ */}
             <SectionHead n={1} title={t("accountData")} hint={t("accountDataHint")} />
 
+            {/* 🌍 Минтақа — танҳо вақте ки каталог зиёда аз 1 минтақа дорад (FF, MLBB) */}
+            {game.regions && game.regions.length > 1 && (
+              <div className="mb-4">
+                <label className="label" htmlFor="region-select">
+                  <span className="inline-flex items-center gap-1.5">
+                    <Ic icon={Globe} size="xs" />
+                    {t("region")}
+                  </span>
+                  <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  id="region-select"
+                  className="input"
+                  value={region}
+                  onChange={(e) => setRegion(e.target.value)}
+                >
+                  {game.regions.map((r) => (
+                    <option key={r} value={r}>
+                      {r}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             <div className="mb-4">
               <label className="label">
                 {game.player_id_label || t("playerId")} <span className="text-rose-500">*</span>
@@ -286,13 +334,13 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                   value={playerId}
                   onChange={(e) => setPlayerId(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" && playerId.trim().length >= 3) runLookup(playerId.trim());
+                    if (e.key === "Enter" && uidValue.length >= 3) runLookup(uidValue);
                   }}
                 />
                 <button
                   type="button"
-                  onClick={() => runLookup(playerId.trim())}
-                  disabled={nickLoading || playerId.trim().length < 3}
+                  onClick={() => runLookup(uidValue)}
+                  disabled={nickLoading || uidValue.length < 3}
                   className="shrink-0 px-4 rounded-xl bg-brand-600 text-white text-sm font-semibold
                              hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed
                              transition flex items-center gap-1.5"
@@ -307,6 +355,23 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                   )}
                 </button>
               </div>
+
+              {/* 🎮 Зона/Server ID — талаби воқеии MLBB (FireLoot ҳам мепурсад) */}
+              {game.needs_zone && (
+                <div className="mt-3">
+                  <label className="label" htmlFor="zone-input">
+                    {t("zoneId")} <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    id="zone-input"
+                    className="input font-mono"
+                    inputMode="numeric"
+                    placeholder={t("zonePh")}
+                    value={zone}
+                    onChange={(e) => setZone(e.target.value)}
+                  />
+                </div>
+              )}
 
               {/* Натиҷаи логини ник */}
               {nickLookup?.found && nickLookup.nickname && (

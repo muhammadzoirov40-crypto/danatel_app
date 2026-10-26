@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
 from app.models import Game, Order, OrderStatus, Product, User
+from app.routers.lookup import GAMES_NEED_ZONE, regions_for_slug
 from app.schemas import GameDetailOut, GameOut, ProductOut, PublicStats
 
 router = APIRouter(prefix="/api", tags=["games"])
@@ -123,7 +124,7 @@ def _min_price(g: Game):
 
 
 @router.get("/games/{slug}", response_model=GameDetailOut)
-def game_detail(slug: str, lang: str = Query("tj"), db: Session = Depends(get_db)):
+async def game_detail(slug: str, lang: str = Query("tj"), db: Session = Depends(get_db)):
     """Тафсилоти бозӣ + маҳсулотҳо (нархҳо)."""
     lang = _lang(lang)
     game = db.scalar(
@@ -147,6 +148,12 @@ def game_detail(slug: str, lang: str = Query("tj"), db: Session = Depends(get_db
         if p.is_active
     ]
 
+    # 🌍 Минтақаҳои каталоги FireLoot (хатогӣ/холӣ → [] → интихоб пинҳон мемонад)
+    try:
+        regions = await regions_for_slug(game.slug)
+    except Exception:  # noqa: BLE001
+        regions = []
+
     return GameDetailOut(
         id=game.id,
         slug=game.slug,
@@ -158,6 +165,8 @@ def game_detail(slug: str, lang: str = Query("tj"), db: Session = Depends(get_db
         image_url=game.image_url,
         image_pad=game.image_pad,
         products=products,
+        regions=regions,
+        needs_zone=game.slug in GAMES_NEED_ZONE,
         # 📊 Ҳамон маълумоти промо мисли рӯйхат (бо ҳамон манбаъ)
         min_price_tjs=_min_price(game),
         products_count=len(products),

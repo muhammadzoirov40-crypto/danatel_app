@@ -45,6 +45,30 @@ _GAME_SKU_PREFIXES: dict[str, tuple[str, ...]] = {
     "marvel": ("mr_",),
 }
 
+# 🔀 Ҳама префикси SKU-и бозӣ аз рӯи slug (MLBB = ду минтақа: mlbb_ + mlbbcis_)
+#    FF = 11 минтақаи каталоги FireLoot: CIS бе префикс, боқия бо коди кишвар
+SLUG_SKU_PREFIXES: dict[str, tuple[str, ...]] = {
+    "free-fire": (
+        "diamonds_",  # CIS (пешфарз)
+        "bd_", "br_", "eu_", "id_", "latam_",
+        "mena_", "pk_", "sg_", "tw_", "vn_",
+    ),
+    "pubg-mobile": ("pubg_",),
+    "mobile-legends": ("mlbb_", "mlbbcis_"),
+    "blood-strike": ("bs_",),
+    "arena-breakout": ("ab_",),
+    "arena-breakout-infinite": ("abi_",),
+    "honor-of-kings": ("hok_",),
+    "marvel-rivals": ("mr_",),
+}
+
+# 🌍 Минтақаи пешфарз — ҳамон чизе, ки бот ҳамеша истифода мебурт
+#    (FF → CIS, MLBB → Russia; боқияш дар UI интихоб мешавад)
+DEFAULT_REGION: dict[str, str] = {
+    "free-fire": "CIS",
+    "mobile-legends": "MLBB RUSSIA",
+}
+
 # ✅ Категорияи бартарӣ (барои он ки SKU-и дуруст интихоб шавад)
 #    Масалан: PUBG → `pubg_uc_60` (cat=uc), на `pubg_first_purchase` (cat=other)
 _GAME_CATEGORY: dict[str, tuple[str, ...]] = {
@@ -144,9 +168,33 @@ class _FireLoot:
         except (TypeError, ValueError):
             return 1e18
 
-    def pick_sku(self, products: list[dict], game: str) -> str | None:
-        """Интихоби SKU — аввал категорияи бартарӣ, баъд префикс, баъд фолбэк."""
+    def pick_sku(
+        self,
+        products: list[dict],
+        game: str,
+        region: str = "",
+        prefixes: tuple[str, ...] | None = None,
+    ) -> str | None:
+        """Интихоби SKU — аввал минтақаи корбар, баъд категория/префикс, баъд фолбэк."""
         usable = [p for p in products if p.get("sku")]
+        pre = tuple(prefixes) if prefixes else _GAME_SKU_PREFIXES.get(game, ())
+
+        # 0️⃣ Минтақаи интихобшудаи корбар (агар дар каталоги FireLoot ҳаст)
+        want = str(region or "").strip().upper()
+        if want:
+            by_region = [
+                p for p in usable
+                if str(p.get("sku", "")).startswith(pre)
+                and str(p.get("region") or "").strip().upper() == want
+            ]
+            if by_region:
+                for cat in _GAME_CATEGORY.get(game, ()):
+                    cats = [p for p in by_region if p.get("category") == cat]
+                    if cats:
+                        cats.sort(key=self._price_key)
+                        return str(cats[0]["sku"])
+                by_region.sort(key=self._price_key)
+                return str(by_region[0]["sku"])
 
         if game == "ff":
             diamonds = [
@@ -159,30 +207,49 @@ class _FireLoot:
                 return str(diamonds[0]["sku"])
             return FALLBACK_SKUS["ff"]
 
-        prefixes = _GAME_SKU_PREFIXES.get(game, ())
         # 1️⃣ Префикс + категорияи бартарӣ
         for cat in _GAME_CATEGORY.get(game, ()):
             for product in usable:
                 sku = str(product.get("sku", ""))
-                if sku.startswith(prefixes) and product.get("category") == cat:
+                if sku.startswith(pre) and product.get("category") == cat:
                     return sku
         # 2️⃣ Танҳо префикс
         for product in usable:
             sku = str(product.get("sku", ""))
-            if sku.startswith(prefixes):
+            if sku.startswith(pre):
                 return sku
         # 3️⃣ Фолбэк
         return FALLBACK_SKUS.get(game)
 
-    def candidate_skus(self, products: list[dict], game: str) -> list[str]:
-        """SKU барои /validate: аввал интихобшуда, баъд фолбэк."""
+    def candidate_skus(
+        self,
+        products: list[dict],
+        game: str,
+        region: str = "",
+        prefixes: tuple[str, ...] | None = None,
+    ) -> list[str]:
+        """SKU барои /validate: аввал минтақаи интихобшуда, баъд фолбэк.
+
+        ⚠️ Агар минтақа интихоб шуда бошад, фолбэк-и минтақаи ДИГАР
+        илова намешавад (масалан: MLBB CIS → фолбэк-и Russia нодуруст).
+        """
         out: list[str] = []
-        picked = self.pick_sku(products, game)
+        picked = self.pick_sku(products, game, region=region, prefixes=prefixes)
         if picked:
             out.append(picked)
         fb = FALLBACK_SKUS.get(game)
         if fb and fb not in out:
-            out.append(fb)
+            want = str(region or "").strip().upper()
+            fb_region = next(
+                (
+                    str(p.get("region") or "").strip().upper()
+                    for p in products
+                    if str(p.get("sku") or "") == fb
+                ),
+                "",
+            )
+            if not want or not fb_region or fb_region == want:
+                out.append(fb)
         return out
 
     async def validate(self, uid: str, sku: str, zone: str | None = None) -> dict:
@@ -203,6 +270,39 @@ class _FireLoot:
 
 
 _fireloot = _FireLoot()
+
+
+# =====================================================================
+# 🌍 МИНТАҚАҲО (CIS / BRAZIL / MLBB RUSSIA …) — аз каталоги воқеии FireLoot
+# =====================================================================
+def regions_for(slug: str, products: list[dict]) -> list[str]:
+    """Минтақаҳои воқеии бозӣ — тибқи префикси SKU; пешфарз ҳамеша аввал."""
+    prefixes = SLUG_SKU_PREFIXES.get(slug, ())
+    if not prefixes:
+        return []
+    regs: list[str] = []
+    for p in products:
+        if not str(p.get("sku") or "").startswith(prefixes):
+            continue
+        r = str(p.get("region") or "").strip()
+        if r and r not in regs:
+            regs.append(r)
+    default = DEFAULT_REGION.get(slug)
+    if default in regs:
+        return [default, *sorted(r for r in regs if r != default)]
+    return sorted(regs)
+
+
+async def regions_for_slug(slug: str) -> list[str]:
+    """Минтақаҳо барои саҳифаи бозӣ — ҳамаи хатогиҳо → [] (саҳифа мешинад)."""
+    if not _fireloot.configured:
+        return []
+    try:
+        products = await _fireloot.products()
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("FireLoot /products (минтақа) ноком: %s", exc)
+        return []
+    return regions_for(slug, products)
 
 
 def _split_uid_zone(slug: str, uid: str) -> tuple[str, str | None]:
@@ -227,7 +327,7 @@ def _split_uid_zone(slug: str, uid: str) -> tuple[str, str | None]:
     return only_digits or cleaned, None
 
 
-async def _lookup_fireloot(slug: str, uid: str) -> PlayerLookupResponse | None:
+async def _lookup_fireloot(slug: str, uid: str, region: str = "") -> PlayerLookupResponse | None:
     """
     🔥 Логини ник тавассути FireLoot.
     Бармегардонад: ёфт → ё ҷавоби равшан → ё None (ба фолбэк гузар).
@@ -245,7 +345,9 @@ async def _lookup_fireloot(slug: str, uid: str) -> PlayerLookupResponse | None:
         logger.warning("FireLoot /products ноком: %s", exc)
         products = []
 
-    skus = _fireloot.candidate_skus(products, game_key)
+    skus = _fireloot.candidate_skus(
+        products, game_key, region=region, prefixes=SLUG_SKU_PREFIXES.get(slug)
+    )
     if not skus:
         return None
 
@@ -263,14 +365,15 @@ async def _lookup_fireloot(slug: str, uid: str) -> PlayerLookupResponse | None:
                     found=False, uid=uid, game=label, message="ID ёфт нашуд ❌"
                 )
             if code == "region_unsupported":
+                shown = (region or "CIS").strip()
                 return PlayerLookupResponse(
                     found=False, uid=uid, game=label,
-                    message="ID вуҷуд дорад, вале регион мувофиқ нест (CIS)",
+                    message=f"ID вуҷуд дорад, вале регион мувофиқ нест ({shown})",
                 )
             if code in ("zone_required", "invalid_zone", "zone_missing"):
                 return PlayerLookupResponse(
                     found=False, uid=uid, game=label,
-                    message="Zone (сервер) лозим аст — мисли «12345678 (1234)»",
+                    message="Zone (сервер) лозим аст — онро дар майдони «Зона» нависед",
                 )
             # product_not_found / product_unavailable → SKU-и дигар
             continue
@@ -414,6 +517,7 @@ async def _lookup_wzapi(uid: str, slug: str) -> PlayerLookupResponse:
 async def lookup_player(
     slug: str,
     uid: str = Query(..., min_length=3, max_length=64, description="Player ID / UID"),
+    region: str = Query("", max_length=64, description="Минтақаи интихобшуда"),
 ):
     """
     Логини никном ба Player ID.
@@ -429,12 +533,12 @@ async def lookup_player(
     if not digits or len(digits) < min_len:
         return PlayerLookupResponse(
             found=False, uid=uid, game=GAME_LABEL.get(slug, slug),
-            message="ID нодуруст (фақат рақам, мин 8 рақам)",
+            message=f"ID нодуруст (фақат рақам, мин {min_len} рақам)",
         )
 
     # 1️⃣ FireLoot — манбаи асосӣ
     try:
-        result = await _lookup_fireloot(slug, uid)
+        result = await _lookup_fireloot(slug, uid, region=region)
     except Exception as exc:  # noqa: BLE001
         logger.warning("FireLoot lookup хато uid=%s: %s", uid, exc)
         result = None

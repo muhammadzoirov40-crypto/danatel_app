@@ -133,9 +133,11 @@ export const api = {
     request<Game>(`/games/${encodeURIComponent(slug)}?lang=${lang}`),
 
   // ========================== 🔍 ЛОГИНИ НИК ==========================
-  lookupPlayer: (slug: string, uid: string) =>
+  lookupPlayer: (slug: string, uid: string, region = "") =>
     request<PlayerLookupResponse>(
-      `/games/${encodeURIComponent(slug)}/lookup?uid=${encodeURIComponent(uid)}`,
+      `/games/${encodeURIComponent(slug)}/lookup?uid=${encodeURIComponent(uid)}${
+        region ? `&region=${encodeURIComponent(region)}` : ""
+      }`,
     ),
 
   // ========================== ФАРМОИШ ==========================
@@ -144,6 +146,8 @@ export const api = {
     product_id: number;
     player_id: string;
     player_nickname?: string;
+    /** 🌍 Минтақаи интихобшуда (CIS / BRAZIL / MLBB RUSSIA …) */
+    region?: string;
     language: string;
     /** 💳 Усули пардохт: dc_wallet | balance */
     payment_method?: "dc_wallet" | "balance";

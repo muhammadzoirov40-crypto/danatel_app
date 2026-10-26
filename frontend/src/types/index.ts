@@ -26,6 +26,10 @@ export interface Game {
   min_price_tjs?: number | null;
   products_count?: number;
   is_popular?: boolean;
+  /** 🌍 Минтақаҳои каталоги FireLoot (зиёда аз 1 → интихоб дар саҳифа) */
+  regions?: string[];
+  /** 🎮 Бозӣ Zone/Server ID талаб мекунад (MLBB) */
+  needs_zone?: boolean;
 }
 
 export type OrderStatus =
@@ -42,6 +46,8 @@ export interface Order {
   status: OrderStatus;
   amount_tjs: number;
   player_id: string;
+  /** 🌍 Минтақаи интихобшуда (CIS / BRAZIL / MLBB RUSSIA …) */
+  region?: string;
   payment_method: string;
   dc_payment_url?: string | null;
   created_at: string;

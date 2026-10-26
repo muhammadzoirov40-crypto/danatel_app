@@ -134,7 +134,14 @@ export default function Orders() {
                     <td className="px-4 py-3 font-mono">#{o.id}</td>
                     <td className="px-4 py-3">{o.game_name}</td>
                     <td className="px-4 py-3">{o.product_name}</td>
-                    <td className="px-4 py-3 font-mono text-xs">{o.player_id}</td>
+                    <td className="px-4 py-3 font-mono text-xs">
+                      {o.player_id}
+                      {o.region && (
+                        <span className="ml-1.5 inline-block rounded-md border border-sky-200 bg-sky-50 px-1.5 py-0.5 font-sans text-[10px] text-sky-600">
+                          {o.region}
+                        </span>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-right font-semibold">
                       {Number(o.amount_tjs).toLocaleString("tj-TJ")}
                     </td>
@@ -171,7 +178,14 @@ export default function Orders() {
                   <div>
                     {o.game_name} — {o.product_name}
                   </div>
-                  <div className="font-mono text-xs">ID: {o.player_id}</div>
+                  <div className="font-mono text-xs">
+                    ID: {o.player_id}
+                    {o.region && (
+                      <span className="ml-1.5 inline-block rounded-md border border-sky-200 bg-sky-50 px-1.5 py-0.5 font-sans text-[10px] text-sky-600">
+                        {o.region}
+                      </span>
+                    )}
+                  </div>
                   <div className="font-semibold text-brand-700">
                     {Number(o.amount_tjs).toLocaleString("tj-TJ")} {t("currency")}
                   </div>

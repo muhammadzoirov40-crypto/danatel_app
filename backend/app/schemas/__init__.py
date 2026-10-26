@@ -153,6 +153,10 @@ class GameOut(BaseModel):
 
 class GameDetailOut(GameOut):
     products: list[ProductOut] = []
+    # 🌍 Минтақаҳои каталоги FireLoot (танаҳо зиёда аз 1 → интихоб дар UI)
+    regions: list[str] = []
+    # 🎮 Бозӣ Zone/Server ID талаб мекунад (MLBB)
+    needs_zone: bool = False
 
 
 # =====================================================================
@@ -166,6 +170,9 @@ class OrderCreate(BaseModel):
     player_id: str = Field(min_length=2, max_length=64)
     player_nickname: str | None = Field(default=None, max_length=128)
     language: str = Field(default="tj", max_length=5)
+
+    # 🌍 Минтақаи интихобшуда (CIS / BRAZIL / MLBB RUSSIA …) — барои иҷро
+    region: str = Field(default="", max_length=64)
 
     # 💳 Усули пардохт: "dc_wallet" | "balance" (аз ҳамён)
     payment_method: str = Field(default="dc_wallet", max_length=32)
@@ -349,6 +356,8 @@ class OrderOut(BaseModel):
     status: str
     amount_tjs: Decimal
     player_id: str
+    # 🌍 Минтақаи интихобшуда (барои иҷро дар FireLoot)
+    region: str = ""
     payment_method: str
     dc_payment_url: str | None = None
     created_at: datetime
