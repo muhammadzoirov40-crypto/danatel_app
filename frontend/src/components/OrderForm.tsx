@@ -296,7 +296,7 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                   </span>
                 )}
                 {/* 🖇 ҲАМА ДAR 1 САТР: иконка + рақам/ном … … … нарх (талаби корбар) */}
-                <div className="flex items-center justify-between gap-2">
+                <div className="flex flex-col items-center gap-1">
                   <span className="flex min-w-0 items-center gap-1.5">
                     <Ic
                       icon={view.icon}
@@ -304,7 +304,7 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                       className={`shrink-0 ${active ? "text-brand-600" : "text-brand-500"}`}
                     />
                     <span
-                      className={`truncate font-semibold text-[13px] sm:text-sm leading-tight ${
+                      className={`truncate font-bold text-base sm:text-lg leading-tight ${
                         active ? "text-brand-700" : "text-slate-700"
                       }`}
                     >
@@ -312,12 +312,12 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                     </span>
                   </span>
                   <span
-                    className={`shrink-0 font-extrabold tabular-nums text-sm sm:text-base ${
+                    className={`shrink-0 font-extrabold tabular-nums text-xs sm:text-sm ${
                       active ? "text-brand-700" : "text-brand-600"
                     }`}
                   >
                     {Number(p.price_tjs).toLocaleString("tj-TJ")}
-                    <span className="ml-1 text-[11px] font-semibold text-slate-400">
+                    <span className="ml-1 text-[10px] font-semibold text-slate-400">
                       {t("currency")}
                     </span>
                   </span>
