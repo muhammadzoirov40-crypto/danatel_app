@@ -34,7 +34,6 @@ import type { CoinsInfo, Order } from "../types";
 import { STATUS_META } from "../types";
 import { Ic } from "../components/Icons";
 import CoinsCard from "../components/CoinsCard";
-import Customers from "../components/Customers";
 import TopUpModal from "../components/TopUpModal";
 
 /**
@@ -53,7 +52,8 @@ import TopUpModal from "../components/TopUpModal";
  * ҲЕҶ маълумоти сохта нест:
  *   • баланс / тангаҳо / коди даъват / таърих ҳама аз backend;
  *   • IDҳои бозӣ аз фармоишҳои воқеии корбар;
- *   • муштариён аз фармоишҳои иҷрочуда;
+ *   • «Муштариёни мо» аз профил БАРҲАМ ДОДА ШУД (талаби корбар) —
+ *     ҳамон компонент дар саҳифаҳои дигар (ReviewsPage · OrderPage · GameDetail) монд;
  *   • «Пур кардан» → TopUpModal (ҳамон модале, ки дар BottomNav аст).
  */
 /** 🗂️ Кадом панели гурӯҳӣ кушода аст (як вақт якто) */
@@ -743,9 +743,6 @@ export default function Profile() {
             </div>
           )}
         </section>
-
-        {/* 👥 Муштариёни воқеӣ — аз фармоишҳои иҷрочуда */}
-        <Customers />
       </div>
 
       {/* 💳 Модали пур кардани баланс (ҳамон мавҷуда дар BottomNav) */}
