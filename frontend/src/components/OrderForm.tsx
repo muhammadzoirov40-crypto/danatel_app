@@ -317,19 +317,17 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                 )}
                 {/* 🖇 ҲАМА ДAR 1 САТР: иконка + рақам/ном … … … нарх (талаби корбар) */}
                 <div className="flex flex-col items-center gap-1">
-                  <span className="flex min-w-0 items-center gap-1.5">
-                    <Ic
-                      icon={view.icon}
-                      size="xs"
-                      className={`shrink-0 ${active ? "text-brand-600" : "text-brand-500"}`}
-                    />
-                    <span
-                      className={`truncate font-bold text-base sm:text-lg leading-tight ${
-                        active ? "text-brand-700" : "text-slate-700"
-                      }`}
-                    >
-                      {view.text}
-                    </span>
+                  <Ic
+                    icon={view.icon}
+                    size="xs"
+                    className={`shrink-0 ${active ? "text-brand-600" : "text-brand-500"}`}
+                  />
+                  <span
+                    className={`truncate font-bold text-base sm:text-lg leading-tight ${
+                      active ? "text-brand-700" : "text-slate-700"
+                    }`}
+                  >
+                    {view.text}
                   </span>
                   <span
                     className={`shrink-0 font-extrabold tabular-nums text-xs sm:text-sm ${
