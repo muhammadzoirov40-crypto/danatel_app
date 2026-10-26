@@ -341,7 +341,7 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                     </span>
                   </span>
                   {view.sub && (
-                    <span className="text-[10px] font-medium text-slate-400 -mt-0.5">
+                    <span className="text-xs sm:text-sm font-bold text-slate-500 -mt-0.5">
                       {view.sub}
                     </span>
                   )}
