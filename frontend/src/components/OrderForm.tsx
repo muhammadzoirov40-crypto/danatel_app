@@ -46,11 +46,12 @@ function packView(p: Product, game: Game): { icon: LucideIcon; text: string } {
   }
   // 2️⃣ Бастаи номдор: номи бозӣ ва брендҳои ҳарфӣ (FF · PUBG · MLBB RU) канор
   const brand = game.slug.split("-").join(" ");
-  const text = p.name
-    .replace(new RegExp(`^${brand}\\s+`, "i"), "")
+  let text = p.name
+    .replace(new RegExp(`^${brand}\s+`, "i"), "")
     .replace(/^[A-Z]{2,8}(?:\s+[A-Z]{2,8})?\s+/, "");
+  // 🎫 «Level Up Pass 6» → «Level 6» (танқо сатр ва рақам)
+  text = text.replace(/^Level Up Pass\s+(\d+)/i, "Level $1");
   return { icon: Ticket, text: text || p.name };
-}
 
 /**
  * Формаи фармоиш — тарҳи мисли persshop:
