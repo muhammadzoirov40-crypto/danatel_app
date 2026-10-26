@@ -2,14 +2,18 @@ import { useEffect, useRef, useState } from "react";
 import {
   Check,
   CircleCheck,
+  Coins,
   CreditCard,
   Flame,
+  Gem,
   Loader2,
   Lock,
   Search,
+  Ticket,
   TriangleAlert,
   Wallet,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type { Game, Product, PlayerLookupResponse } from "../types";
 import { api, ApiError } from "../api/client";
 import { useApp } from "../context/AppContext";
@@ -22,6 +26,30 @@ interface Props {
   selected?: Product | null;
   onSelected?: (p: Product) => void;
   onCreated: (orderId: number, paymentUrl?: string | null) => void;
+}
+
+/**
+ * 📦 Номи кӯтоҳи корти баста (талаби корбар: танҳо иконка + рақам + нарх):
+ *   «FF 110 Diamonds»    → 💎 110   (алмос — иконкаи алмос)
+ *   «PUBG 60 UC»         → 🪙 60    (асъори бозӣ — иконкаи сикка)
+ *   «FF Level Up Pass 6» → 🎟 «Level Up Pass 6»  (бастаи номдор — рақам надорад)
+ * Номи ПУРРА дар `title`/`aria-label` мемонад (скринридер + муштарӣ).
+ */
+function packView(p: Product, game: Game): { icon: LucideIcon; text: string } {
+  const amount = Number(p.amount || 0);
+  // 1️⃣ Бастаи рақамдор: танҳо иконка + рақам
+  if (amount > 0) {
+    return {
+      icon: /diamond/i.test(p.name) ? Gem : Coins,
+      text: amount.toLocaleString("tj-TJ"),
+    };
+  }
+  // 2️⃣ Бастаи номдор: номи бозӣ ва брендҳои ҳарфӣ (FF · PUBG · MLBB RU) канор
+  const brand = game.slug.split("-").join(" ");
+  const text = p.name
+    .replace(new RegExp(`^${brand}\\s+`, "i"), "")
+    .replace(/^[A-Z]{2,8}(?:\s+[A-Z]{2,8})?\s+/, "");
+  return { icon: Ticket, text: text || p.name };
 }
 
 /**
@@ -241,16 +269,20 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
         {/* ============ 2. ВЫБЕРИТЕ НОМИНАЛ ============ */}
         <SectionHead n={2} title={t("chooseAmount")} hint={t("chooseAmountHint")} />
 
-        {/* Сеткаи бастаҳо: 2 (мобилӣ) → 3 (планшет) → 4 (компютер) */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 mb-6">
+        {/* Сеткаи бастаҳо: 2 (мобилӣ) → 2 (планшет) → 3 (компютер) —
+            кортҳо «майдатар» (талаби корбар) */}
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5 mb-6">
           {products.map((p) => {
             const active = selected?.id === p.id;
+            const view = packView(p, game);
             return (
               <button
                 key={p.id}
                 onClick={() => setSelected(p)}
                 aria-pressed={active}
-                className={`relative rounded-2xl border-2 p-3 sm:p-3.5 text-left transition-all
+                aria-label={p.name}
+                title={p.name}
+                className={`relative rounded-2xl border-2 p-3.5 sm:p-4 text-left transition-all
                   ${
                     active
                       ? "border-brand-600 bg-brand-50 shadow-[0_8px_20px_-10px_rgba(37,99,235,0.7)] scale-[1.02]"
@@ -263,12 +295,19 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                     {t("popular")}
                   </span>
                 )}
-                <div
-                  className={`font-semibold text-[13px] sm:text-sm leading-tight ${
-                    active ? "text-brand-700" : "text-slate-700"
-                  }`}
-                >
-                  {p.name}
+                <div className="flex items-center gap-1.5">
+                  <Ic
+                    icon={view.icon}
+                    size="xs"
+                    className={active ? "text-brand-600" : "text-brand-500"}
+                  />
+                  <span
+                    className={`truncate font-semibold text-[13px] sm:text-sm leading-tight ${
+                      active ? "text-brand-700" : "text-slate-700"
+                    }`}
+                  >
+                    {view.text}
+                  </span>
                 </div>
                 <div
                   className={`font-extrabold mt-1.5 text-sm sm:text-base ${
