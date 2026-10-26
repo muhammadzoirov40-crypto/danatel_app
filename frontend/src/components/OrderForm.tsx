@@ -271,7 +271,7 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
 
         {/* Сеткаи бастаҳо: 2 (мобилӣ) → 2 (планшет) → 3 (компютер) —
             кортҳо «майдатар» (талаби корбар) */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 mb-6">
           {products.map((p) => {
             const active = selected?.id === p.id;
             const view = packView(p, game);
