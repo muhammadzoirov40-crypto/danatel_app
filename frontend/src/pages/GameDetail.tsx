@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+
 import { ArrowLeft, Frown, Gem } from "lucide-react";
 import { api } from "../api/client";
 import type { Game, Product } from "../types";
 import OrderForm from "../components/OrderForm";
-import Customers from "../components/Customers";
 import GameLogo from "../components/GameLogo";
 import { useApp } from "../context/AppContext";
 import { Ic } from "../components/Icons";
@@ -208,10 +208,6 @@ export default function GameDetail() {
           />
         </div>
       </div>
-
-      {/* 👥 Муштариёни воқеӣ — аз фармоишҳои иҷрочуда */}
-      <Customers />
-
     </div>
   );
 }
