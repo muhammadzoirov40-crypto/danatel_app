@@ -303,7 +303,7 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                 aria-pressed={active}
                 aria-label={p.name}
                 title={p.name}
-                className={`relative rounded-2xl border-2 p-3.5 sm:p-4 text-left transition-all
+                className={`relative rounded-2xl border-2 p-3 sm:p-4 text-left overflow-hidden transition-all
                   ${
                     active
                       ? "border-brand-600 bg-brand-50 shadow-[0_8px_20px_-10px_rgba(37,99,235,0.7)] scale-[1.02]"
@@ -324,7 +324,7 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                     className={`shrink-0 ${active ? "text-brand-600" : "text-brand-500"}`}
                   />
                   <span
-                    className={`truncate font-bold text-base sm:text-lg leading-tight ${
+                    className={`line-clamp-2 font-bold text-sm sm:text-base leading-tight ${
                       active ? "text-brand-700" : "text-slate-700"
                     }`}
                   >
