@@ -319,7 +319,7 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                 <div className="flex flex-col items-center gap-1">
                   <Ic
                     icon={view.icon}
-                    size="xs"
+                    size="md"
                     className={`shrink-0 ${active ? "text-brand-600" : "text-brand-500"}`}
                   />
                   <span
