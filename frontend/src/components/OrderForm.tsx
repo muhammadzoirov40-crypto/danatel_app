@@ -3,6 +3,7 @@ import {
   Check,
   CircleCheck,
   Coins,
+  Diamond,
   CreditCard,
   Flame,
   Gem,
@@ -37,10 +38,10 @@ interface Props {
  */
 function packView(p: Product, game: Game): { icon: LucideIcon; text: string; sub?: string } {
   const amount = Number(p.amount || 0);
-  // 1️⃣ Бастаи рақамдор: танҳо иконка + рақам
+  // 1️⃣ Бастаи рақамдор: UC иконка + рақам
   if (amount > 0) {
     return {
-      icon: /diamond/i.test(p.name) ? Gem : Coins,
+      icon: Diamond,
       text: amount.toLocaleString("tj-TJ"),
       sub: undefined,
     };
