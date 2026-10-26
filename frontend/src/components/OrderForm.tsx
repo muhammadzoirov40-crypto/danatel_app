@@ -42,7 +42,7 @@ function packView(p: Product, game: Game): { icon: LucideIcon; text: string; sub
   if (amount > 0) {
     return {
       icon: Diamond,
-      text: amount.toLocaleString("tj-TJ"),
+      text: `${amount.toLocaleString("tj-TJ")} UC`,
       sub: undefined,
     };
   }
