@@ -35,13 +35,14 @@ interface Props {
  *   «FF Level Up Pass 6» → 🎟 «Level Up Pass 6»  (бастаи номдор — рақам надорад)
  * Номи ПУРРА дар `title`/`aria-label` мемонад (скринридер + муштарӣ).
  */
-function packView(p: Product, game: Game): { icon: LucideIcon; text: string } {
+function packView(p: Product, game: Game): { icon: LucideIcon; text: string; sub?: string } {
   const amount = Number(p.amount || 0);
   // 1️⃣ Бастаи рақамдор: танҳо иконка + рақам
   if (amount > 0) {
     return {
       icon: /diamond/i.test(p.name) ? Gem : Coins,
       text: amount.toLocaleString("tj-TJ"),
+      sub: undefined,
     };
   }
   // 2️⃣ Бастаи номдор: номи бозӣ ва брендҳои ҳарфӣ (FF · PUBG · MLBB RU) канор
@@ -51,7 +52,16 @@ function packView(p: Product, game: Game): { icon: LucideIcon; text: string } {
     .replace(/^[A-Z]{2,8}(?:\s+[A-Z]{2,8})?\s+/, "");
   // 🎫 «Level Up Pass 6» → «Level 6» (танқо сатр ва рақам)
   text = text.replace(/^Level Up Pass\s+(\d+)/i, "Level $1");
-  return { icon: Ticket, text: text || p.name };
+  // 📅 «1 Lite» / «2 Week» / «3 Month» — барои нишон додани давра
+  let sub: string | undefined;
+  const m = text.match(/^(\d+)\s+(Lite|Week|Month)/i);
+  if (m) {
+    const n = m[1];
+    const unit = m[2].toLowerCase();
+    sub = unit === "lite" ? `${n} Lite` : unit === "week" ? `${n} Week` : `${n} Month`;
+    text = text.replace(/^\d+\s+(Lite|Week|Month)/i, "").trim() || text;
+  }
+  return { icon: Ticket, text: text || p.name, sub };
 }
 
 /**
@@ -323,6 +333,11 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                       {t("currency")}
                     </span>
                   </span>
+                  {view.sub && (
+                    <span className="text-[10px] font-medium text-slate-400 -mt-0.5">
+                      {view.sub}
+                    </span>
+                  )}
                 </div>
                 {active && (
                   <span className="absolute -top-2 -left-2 w-6 h-6 rounded-full bg-brand-600 text-white flex items-center justify-center shadow">
