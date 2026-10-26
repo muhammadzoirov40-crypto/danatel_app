@@ -66,7 +66,8 @@ function packView(p: Product, game: Game): { icon: LucideIcon; text: string; sub
     const n = m[1];
     const unit = m[2].toLowerCase();
     sub = unit === "lite" ? "lite" : unit === "week" ? "week" : "month";
-    text = text.replace(/^\d+\s+(Lite|Week|Month)/i, "").trim() || text;
+    // Вайрон кардани «2 Lite» → «2» (танқо рақам, давра дар sub)
+    text = n;
   }
   return { icon: Ticket, text: text || p.name, sub };
 }
