@@ -150,7 +150,7 @@ export default function GameDetail() {
         <button
           type="button"
           onClick={() => nav(-1)}
-          className="absolute top-1 left-3 sm:top-2 sm:left-4 z-10 inline-flex items-center gap-1.5
+          className="absolute top-0 left-3 sm:top-1 sm:left-4 z-10 inline-flex items-center gap-1.5
                      rounded-full bg-white/20 hover:bg-white/35 border border-white/35
                      text-white text-xs sm:text-sm font-semibold px-3.5 py-2 backdrop-blur-md
                      transition active:scale-95 focus-visible:outline-none focus-visible:ring-2
