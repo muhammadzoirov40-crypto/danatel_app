@@ -271,7 +271,7 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
 
         {/* Сеткаи бастаҳо: 2 (мобилӣ) → 2 (планшет) → 3 (компютер) —
             кортҳо «майдатар» (талаби корбар) */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5 mb-6">
           {products.map((p) => {
             const active = selected?.id === p.id;
             const view = packView(p, game);
@@ -295,28 +295,31 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                     {t("popular")}
                   </span>
                 )}
-                <div className="flex items-center gap-1.5">
-                  <Ic
-                    icon={view.icon}
-                    size="xs"
-                    className={active ? "text-brand-600" : "text-brand-500"}
-                  />
+                {/* 🖇 ҲАМА ДAR 1 САТР: иконка + рақам/ном … … … нарх (талаби корбар) */}
+                <div className="flex items-center justify-between gap-2">
+                  <span className="flex min-w-0 items-center gap-1.5">
+                    <Ic
+                      icon={view.icon}
+                      size="xs"
+                      className={`shrink-0 ${active ? "text-brand-600" : "text-brand-500"}`}
+                    />
+                    <span
+                      className={`truncate font-semibold text-[13px] sm:text-sm leading-tight ${
+                        active ? "text-brand-700" : "text-slate-700"
+                      }`}
+                    >
+                      {view.text}
+                    </span>
+                  </span>
                   <span
-                    className={`truncate font-semibold text-[13px] sm:text-sm leading-tight ${
-                      active ? "text-brand-700" : "text-slate-700"
+                    className={`shrink-0 font-extrabold tabular-nums text-sm sm:text-base ${
+                      active ? "text-brand-700" : "text-brand-600"
                     }`}
                   >
-                    {view.text}
-                  </span>
-                </div>
-                <div
-                  className={`font-extrabold mt-1.5 text-sm sm:text-base ${
-                    active ? "text-brand-700" : "text-brand-600"
-                  }`}
-                >
-                  {Number(p.price_tjs).toLocaleString("tj-TJ")}
-                  <span className="text-[11px] font-semibold text-slate-400 ml-1">
-                    {t("currency")}
+                    {Number(p.price_tjs).toLocaleString("tj-TJ")}
+                    <span className="ml-1 text-[11px] font-semibold text-slate-400">
+                      {t("currency")}
+                    </span>
                   </span>
                 </div>
                 {active && (
