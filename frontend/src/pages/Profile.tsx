@@ -232,6 +232,7 @@ export default function Profile() {
     referral_welcome: "kindReferralWelcome",
     admin_grant: "kindAdminGrant",
     exchange: "kindExchange",
+    exchange_in: "kindExchangeIn",
   };
 
   return (

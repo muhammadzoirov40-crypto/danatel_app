@@ -245,6 +245,8 @@ class CoinsMeOut(BaseModel):
     coins_per_tjs: int = 5       # ҳар 1 сомонӣ = N танга (cashback)
     exchange_rate: int = 100     # N танга = 1 сомонӣ
     min_exchange: int = 100      # ҳадди ақал барои иваз
+    # 💱 Ивази БАЛАНС → танга (самти нав): ҳадди ақал N сомонӣ
+    min_exchange_tjs: int = 1
     spin_cost: int = 50          # хароҷоти як гардиши чарх
     referral_code: str = ""
     referred_count: int = 0
@@ -274,6 +276,23 @@ class CoinsExchangeOut(BaseModel):
     balance: Decimal
     credited_tjs: Decimal
     spent_coins: int
+
+
+class CoinsExchangeTjsIn(BaseModel):
+    """Ивази баланс (сомонӣ) ба танга — танҳо адади куллӣ."""
+
+    amount_tjs: Decimal = Field(
+        gt=0, description="Маблағ дар сомонӣ (бояд адади куллӣ бошад)"
+    )
+
+
+class CoinsExchangeTjsOut(BaseModel):
+    """Натиҷаи ивази баланс ба танга (самти нав)."""
+
+    coins: int
+    balance: Decimal
+    gained_coins: int
+    spent_tjs: Decimal
 
 
 # =====================================================================

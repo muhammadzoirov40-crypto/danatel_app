@@ -66,6 +66,9 @@ class Settings(BaseSettings):
     #    ҳадди ақал барои иваз ба баланс = хароҷоти як гардиш
     #       50 танга = 10 сомонӣ
     COINS_MIN_EXCHANGE: int = 50
+    #    ивази баланс → танга (самти нав, 27.10.2026): 1 сомонӣ = COINS_TO_TJS танга
+    #       ҳадди ақал: TJS_TO_COINS_MIN сомонӣ (танҳо адади куллӣ)
+    TJS_TO_COINS_MIN: int = 1
 
     # БАРНАМА
     FRONTEND_URL: str = "http://localhost:5173"

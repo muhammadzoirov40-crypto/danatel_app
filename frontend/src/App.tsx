@@ -1,4 +1,5 @@
 import { ShieldAlert } from "lucide-react";
+import { useEffect } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { AppProvider } from "./context/AppContext";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -27,11 +28,38 @@ function FooterOnlyHome() {
   return <Footer />;
 }
 
-export default function App() {
-  return (
-    <AppProvider>
-      <BrowserRouter>
-        <Navbar />
+/**
+ * 🔗 Линки даъват (?ref=CODE) — ҚАЙД дар ҳамон саҳифаи аввал нигоҳ дошта мешавад.
+ *
+ * Дӯст линкро дар саҳифаи асосӣ (Home) мекушояд → код ба localStorage
+ * меравад → ҳангоми қайд аз ҷои дилхоҳ ба backend мефиристад.
+ * URL тоза карда мешавад (токен дар адрес намемонад).
+ */
+function RefCapture() {
+  const { search } = useLocation();
+  useEffect(() => {
+    if (!search) return;
+    const q = new URLSearchParams(search);
+    const code = (q.get("ref") || "").trim().slice(0, 16);
+    if (!code) return;
+    localStorage.setItem("danatel_ref", code);
+    q.delete("ref");
+    const rest = q.toString();
+    window.history.replaceState(
+      null,
+      "",
+      window.location.pathname + (rest ? `?${rest}` : "") + window.location.hash,
+    );
+  }, [search]);
+  return null;
+}
+
+export default function App() {
+  return (
+    <AppProvider>
+      <BrowserRouter>
+        <RefCapture />
+        <Navbar />
         <main className="relative min-h-[calc(100vh-4rem)] pb-20 md:pb-0">
           {/* 🌅 Камарбанди кабуди ягона — дар ҳамаи саҳифаҳо якхела */}
           <div className="page-band" aria-hidden />

@@ -405,6 +405,88 @@ def exchange_to_balance(db: Session, *, user_id: int) -> tuple[User, Decimal, in
 
 
 # =====================================================================
+# 💱 ИВАЗИ БАЛАНС БА ТАНГА (самти нав: 1 сомонӣ = rate танга)
+# =====================================================================
+def exchange_to_coins(
+    db: Session, *, user_id: int, amount_tjs
+) -> tuple[User, Decimal, int]:
+    """
+    Баланс (сомонӣ) → танга: 1 сомонӣ = COINS_TO_TJS танга.
+
+    • Танҳо адади куллӣ: 2.5 сомонӣ → хато (танга адади куллӣ аст)
+    • Ҳадди ақал: TJS_TO_COINS_MIN сомонӣ
+    • Баланси нокифоя → хато (ин ивази худи КОРБАР — қарз намешинад)
+    • Ҳам баланс ҲАМ танга ДАР ЯК transaction навишта мешаванд
+    """
+    rate = max(1, _to_int(settings.COINS_TO_TJS))
+    min_tjs = max(1, _to_int(settings.TJS_TO_COINS_MIN))
+
+    try:
+        value = Decimal(str(amount_tjs)).quantize(Decimal("0.01"))
+    except (InvalidOperation, ValueError) as exc:
+        raise InvalidCoins("Маблағ нодуруст аст") from exc
+
+    if value <= 0:
+        raise InvalidCoins("Маблағ бояд аз сифат зиёд бошад")
+    if value % Decimal(1) != 0:
+        raise InvalidCoins(
+            "Ивази баланс ба танга танҳо бо адади куллӣ (сомонӣ) мумкин аст"
+        )
+    if value < min_tjs:
+        raise InvalidCoins(f"Ҳадди ақал {min_tjs} сомонӣ лозим аст")
+
+    gained = int(value) * rate
+
+    try:
+        user = _lock_user(db, user_id)
+        bal = _to_money(user.balance)
+        if bal < value:
+            raise InsufficientCoins(
+                f"Баланс нокифоя аст: {bal} сомонӣ (лозим {value} сомонӣ)"
+            )
+
+        # 💰 буриш аз баланс
+        user.balance = bal - value
+        db.add(
+            BalanceTransaction(
+                user_id=user.id,
+                admin_id=None,
+                kind=BalanceTransactionKind.DEBIT,
+                amount=-value,
+                balance_after=user.balance,
+                reason=f"Иваз ба танга: −{value} сомонӣ",
+                order_id=None,
+            )
+        )
+
+        # 🪙 илова ба танга
+        user.coins = _to_int(user.coins) + gained
+        _write_coin_entry(
+            db,
+            user=user,
+            kind=CoinTransactionKind.EXCHANGE_IN,
+            amount=gained,
+            reason=f"Иваз ба танга: {value} сомонӣ = {gained} танга",
+        )
+
+        db.commit()
+        db.refresh(user)
+        logger.info(
+            "💱 Ивази баланс: -%s сомонӣ → +%s танга (user=%s, баланс=%s)",
+            value, gained, user_id, user.balance,
+        )
+        return user, value, gained
+
+    except CoinsError:
+        db.rollback()
+        raise
+    except Exception:
+        db.rollback()
+        logger.exception("Хатогии ивази баланс ба танга (user=%s)", user_id)
+        raise
+
+
+# =====================================================================
 # 🎁 CASHBACK БАРОИ ФАРМОИШИ ИҶРОЧУДА
 # =====================================================================
 def grant_order_cashback(db: Session, *, order: Order) -> int:

@@ -150,6 +150,8 @@ export interface CoinsInfo {
   coins_per_tjs: number;
   exchange_rate: number;
   min_exchange: number;
+  /** 💱 Ҳадди ақал барои ивази баланс → танга (дар сомонӣ) */
+  min_exchange_tjs: number;
   spin_cost: number;
   referral_code: string;
   referred_count: number;
@@ -166,6 +168,14 @@ export interface CoinsExchange {
   balance: number;
   credited_tjs: number;
   spent_coins: number;
+}
+
+/** 🪙 Натиҷаи ивази БАЛАНС ба танга (самти нав: 1 сомонӣ = N танга) */
+export interface CoinsExchangeTjs {
+  coins: number;
+  balance: number;
+  gained_coins: number;
+  spent_tjs: number;
 }
 
 /** 🎡 Як сегменти чарх — эҳтимолиёт аз вазнҳои сервер */

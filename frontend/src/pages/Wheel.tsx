@@ -73,7 +73,7 @@ function sectorPath(a1: number, a2: number) {
 }
 
 export default function Wheel() {
-  const { t, lang, user, refreshUser } = useApp();
+  const { t, lang, user, refreshUser, balance } = useApp();
   const nav = useNavigate();
 
   const [data, setData] = useState<WheelData | null>(null);
@@ -87,6 +87,10 @@ export default function Wheel() {
   // 💱 Иваз ба баланс
   const [busyEx, setBusyEx] = useState(false);
   const [exMsg, setExMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  // 💱 Иваз — самт: ба баланс (танга→сомонӣ) ё ба танга (сомонӣ→танга)
+  const [exDir, setExDir] = useState<"toBalance" | "toCoins">("toBalance");
+  const [tjsAmount, setTjsAmount] = useState("");
+  const [busyEx2, setBusyEx2] = useState(false);
 
   const timerRef = useRef<number | null>(null);
 
@@ -143,6 +147,13 @@ export default function Wheel() {
   const cost = data?.cost ?? 0;
   const exchangeRate = mine?.exchange_rate ?? data?.exchange_rate ?? 0;
   const minExchange = mine?.min_exchange ?? data?.min_exchange ?? 0;
+  const minExchangeTjs = mine?.min_exchange_tjs ?? 1;
+  const tjsNum = Number(tjsAmount);
+  const tjsOk =
+    !!tjsAmount &&
+    !Number.isNaN(tjsNum) &&
+    Number.isInteger(tjsNum) &&
+    tjsNum >= minExchangeTjs;
   const myCoins = mine?.coins ?? null;
   const missing = myCoins !== null && myCoins < cost;
   const waitLogin = !user;
@@ -254,6 +265,33 @@ export default function Wheel() {
       });
     } finally {
       setBusyEx(false);
+    }
+  };
+
+  /** 💱 Ивази БАЛАНС ба танга: 1 сомонӣ = N танга (танҳо адади куллӣ) */
+  const doExchangeToCoins = async () => {
+    if (!mine || busyEx2 || !tjsOk) return;
+    setBusyEx2(true);
+    setExMsg(null);
+    try {
+      const res = await api.exchangeToCoins(tjsNum);
+      setExMsg({
+        ok: true,
+        text: t("exchangeToCoinsDone").replace(
+          "{amount}",
+          String(res.gained_coins),
+        ),
+      });
+      setTjsAmount("");
+      await refreshUser();
+      await loadMine();
+    } catch (e) {
+      setExMsg({
+        ok: false,
+        text: e instanceof ApiError ? e.message : t("error"),
+      });
+    } finally {
+      setBusyEx2(false);
     }
   };
 
@@ -608,40 +646,135 @@ export default function Wheel() {
           </div>
         </section>
 
-        {/* ===== 💱 ИВАЗ БА БАЛАНС ===== */}
+        {/* ===== 💱 ИВАЗ: ба баланс / ба танга ===== */}
         {user && mine && (
-          <section className="card p-4" aria-label={t("exchangeCoins")}>
-            <div className="flex items-center justify-between gap-3 flex-wrap">
-              <div className="min-w-0">
-                <div className="inline-flex items-center gap-2 text-sm font-extrabold">
-                  <Ic icon={Coins} className="text-amber-600" />
-                  {t("exchangeCoins")}
-                </div>
-                <div className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                  {t("coinsRate").replace("{n}", String(exchangeRate))} ·{" "}
-                  {t("minExchange").replace("{n}", String(minExchange))}
-                </div>
-              </div>
+          <section className="card p-4" aria-label={t("exchangeDir")}>
+            {/* Самти иваз — ду тараф */}
+            <div
+              role="tablist"
+              aria-label={t("exchangeDir")}
+              className="mb-3 flex gap-1.5"
+            >
               <button
                 type="button"
-                onClick={() => void doExchange()}
-                disabled={busyEx || mine.coins < mine.min_exchange}
-                aria-disabled={busyEx || mine.coins < mine.min_exchange}
-                className="btn-primary text-sm shrink-0 disabled:cursor-not-allowed disabled:opacity-50"
+                role="tab"
+                aria-selected={exDir === "toBalance"}
+                onClick={() => setExDir("toBalance")}
+                className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${
+                  exDir === "toBalance"
+                    ? "bg-blue-600 text-white shadow"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/10 dark:text-slate-300"
+                }`}
               >
-                {busyEx ? (
-                  <>
-                    <Ic icon={Loader2} className="animate-spin" />
-                    {t("loading")}
-                  </>
-                ) : (
-                  <>
-                    <Ic icon={Coins} />
-                    {t("exchangeCoins")}
-                  </>
-                )}
+                {t("exchangeCoins")}
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={exDir === "toCoins"}
+                onClick={() => setExDir("toCoins")}
+                className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${
+                  exDir === "toCoins"
+                    ? "bg-blue-600 text-white shadow"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/10 dark:text-slate-300"
+                }`}
+              >
+                {t("exchangeToCoins")}
               </button>
             </div>
+
+            {exDir === "toBalance" ? (
+              /* ---- Танга → Баланс (самти собана) ---- */
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="inline-flex items-center gap-2 text-sm font-extrabold">
+                    <Ic icon={Coins} className="text-amber-600" />
+                    {t("exchangeCoins")}
+                  </div>
+                  <div className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                    {t("coinsRate").replace("{n}", String(exchangeRate))} ·{" "}
+                    {t("minExchange").replace("{n}", String(minExchange))}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void doExchange()}
+                  disabled={busyEx || mine.coins < mine.min_exchange}
+                  aria-disabled={busyEx || mine.coins < mine.min_exchange}
+                  className="btn-primary shrink-0 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {busyEx ? (
+                    <>
+                      <Ic icon={Loader2} className="animate-spin" />
+                      {t("loading")}
+                    </>
+                  ) : (
+                    <>
+                      <Ic icon={Coins} />
+                      {t("exchangeCoins")}
+                    </>
+                  )}
+                </button>
+              </div>
+            ) : (
+              /* ---- Баланс → Танга (самти нав: 1 сомонӣ = N танга) ---- */
+              <div className="flex flex-wrap items-end justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="inline-flex items-center gap-2 text-sm font-extrabold">
+                    <Ic icon={Coins} className="text-amber-600" />
+                    {t("exchangeToCoins")}
+                  </div>
+                  <div className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                    {t("coinsRateTjs").replace("{n}", String(exchangeRate))} ·{" "}
+                    {t("minExchangeTjs").replace("{n}", String(minExchangeTjs))}
+                  </div>
+                  <label className="label mt-2" htmlFor="ex-tjs-amount">
+                    {t("amount")} ({t("somoni")})
+                  </label>
+                  <input
+                    id="ex-tjs-amount"
+                    className="input !py-2 text-sm"
+                    inputMode="numeric"
+                    placeholder="1"
+                    value={tjsAmount}
+                    onChange={(e) => setTjsAmount(e.target.value)}
+                  />
+                  <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    {t("currentBalance")}: <b>{Number(balance).toFixed(2)}</b>{" "}
+                    {t("somoni")}
+                    {tjsOk && (
+                      <>
+                        {" → "}
+                        <b className="text-blue-600 dark:text-blue-300">
+                          {(Number(balance) - tjsNum).toFixed(2)}
+                        </b>{" "}
+                        {t("somoni")} · +<b>{tjsNum * exchangeRate}</b>{" "}
+                        {t("coinUnit")}
+                      </>
+                    )}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void doExchangeToCoins()}
+                  disabled={busyEx2 || !tjsOk}
+                  aria-disabled={busyEx2 || !tjsOk}
+                  className="btn-primary shrink-0 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {busyEx2 ? (
+                    <>
+                      <Ic icon={Loader2} className="animate-spin" />
+                      {t("loading")}
+                    </>
+                  ) : (
+                    <>
+                      <Ic icon={Coins} />
+                      {t("exchangeToCoins")}
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
 
             {exMsg && (
               <div

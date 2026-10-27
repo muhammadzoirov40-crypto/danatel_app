@@ -19,8 +19,14 @@ export default function Login() {
 
   // 🔗 Линки даъвати дӯст (?ref=CODE) — агар мавҷуд бошад, қайдро
   //    пешакӣ мекушоем ва кодро ҳангоми қайд мефиристем.
+  //    Дӯст линкро дар саҳифаи асосӣ кушод → RefCapture онро дар
+  //    localStorage нигоҳ дошт → дар ин ҷо хонда мешавад.
   const [searchParams] = useSearchParams();
-  const refCode = (searchParams.get("ref") || "").trim().slice(0, 16);
+  const refCode = (
+    searchParams.get("ref") || localStorage.getItem("danatel_ref") || ""
+  )
+    .trim()
+    .slice(0, 16);
 
   const [mode, setMode] = useState<"login" | "register">(
     refCode ? "register" : "login",
@@ -63,6 +69,8 @@ export default function Login() {
           language: lang,
           referral_code: refCode || undefined,
         });
+        // Коди даъват танҳо як дафъа истифода мешавад → пок
+        localStorage.removeItem("danatel_ref");
       }
       await refreshUser();
       nav("/profile");

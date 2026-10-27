@@ -20,6 +20,8 @@ from app.database import get_db
 from app.models import CoinTransaction, Game, User
 from app.schemas import (
     CoinsExchangeOut,
+    CoinsExchangeTjsIn,
+    CoinsExchangeTjsOut,
     CoinsMeOut,
     CoinsMyGameIn,
     CoinsMyGameOut,
@@ -76,6 +78,7 @@ def my_coins(
         coins_per_tjs=max(0, _safe_int(settings.COINS_PER_TJS)),
         exchange_rate=max(1, _safe_int(settings.COINS_TO_TJS)),
         min_exchange=max(0, _safe_int(settings.COINS_MIN_EXCHANGE)),
+        min_exchange_tjs=max(1, _safe_int(settings.TJS_TO_COINS_MIN)),
         spin_cost=max(0, _safe_int(settings.SPIN_COST_COINS)),
         referral_code=code,
         referred_count=coins.count_referred(db, user.id),
@@ -138,6 +141,38 @@ def exchange(
         balance=updated.balance,
         credited_tjs=credited_tjs,
         spent_coins=spent,
+    )
+
+
+# =====================================================================
+# 💱 ИВАЗИ БАЛАНС БА ТАНГА (самти нав: 1 сомонӣ = N танга)
+# =====================================================================
+@router.post("/exchange-to-coins", response_model=CoinsExchangeTjsOut)
+def exchange_to_coins_endpoint(
+    payload: CoinsExchangeTjsIn,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Баланс (сомонӣ) → танга: 1 сомонӣ = COINS_TO_TJS танга.
+
+    Танҳо адади куллӣ: масалан 10 сомонӣ → 50 танга.
+    Ҳадди ақал TJS_TO_COINS_MIN сомонӣ; баланси нокифоя → 422.
+    """
+    try:
+        updated, spent_tjs, gained = coins.exchange_to_coins(
+            db, user_id=user.id, amount_tjs=payload.amount_tjs
+        )
+    except (coins.InsufficientCoins, coins.InvalidCoins) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except coins.CoinsError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return CoinsExchangeTjsOut(
+        coins=_safe_int(updated.coins),
+        balance=updated.balance,
+        gained_coins=gained,
+        spent_tjs=spent_tjs,
     )
 
 

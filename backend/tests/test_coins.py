@@ -10,6 +10,7 @@
   6  Иваз: танга → баланс (адади куллӣ), баланс дуруст навишта мешавад
   7  Cashback ҳангоми «delivered» + идемпотентия (ду дафъа → якдафъа)
   8  Иловакунии танга аз ҷониби админ (бо сабти таърих)
+  9  Ивази БАЛАНС → танга (самти нав): 1 сомонӣ = COINS_TO_TJS танга
 """
 from __future__ import annotations
 
@@ -335,3 +336,86 @@ def test_admin_grant_requires_admin(client: TestClient):
         json={"user_id": 1, "amount": 10},
     )
     assert r.status_code == 403
+
+
+# =====================================================================
+# 9. ИВАЗИ БАЛАНС → ТАНГА (самти нав: 1 сомонӣ = COINS_TO_TJS танга)
+# =====================================================================
+def test_exchange_to_coins_ok(client: TestClient):
+    """10 сомонӣ → 10×rate танга; баланс −10; таърих бо навъи exchange_in."""
+    adm = admin_token(client)
+    token, _ = register(client)
+    uid = user_id_of(client, token)
+    r = client.post(
+        f"/api/admin/users/{uid}/balance",
+        headers=auth(adm),
+        json={"user_id": uid, "amount": 20, "reason": "санҷиш"},
+    )
+    assert r.status_code in (200, 201), r.text
+
+    rate = settings.COINS_TO_TJS
+    r = client.post(
+        "/api/coins/exchange-to-coins",
+        headers=auth(token),
+        json={"amount_tjs": 10},
+    )
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["gained_coins"] == 10 * rate
+    assert float(body["spent_tjs"]) == 10.0
+    assert float(body["balance"]) == 10.0
+    assert body["coins"] == 10 * rate
+
+    me = coins_of(client, token)
+    assert me["coins"] == 10 * rate
+    assert me["min_exchange_tjs"] == settings.TJS_TO_COINS_MIN
+    assert any(h["kind"] == "exchange_in" for h in me["history"])
+    assert balance_of(client, token) == 10.0
+
+
+def test_exchange_to_coins_validation(client: TestClient):
+    """Касрӣ / баланси нокифоя / сифат → хато, ҳеҷ чиз иваз намешавад."""
+    adm = admin_token(client)
+    token, _ = register(client)
+    uid = user_id_of(client, token)
+    client.post(
+        f"/api/admin/users/{uid}/balance",
+        headers=auth(adm),
+        json={"user_id": uid, "amount": 5, "reason": "санҷиш"},
+    )
+
+    # танҳо адади куллӣ → 422
+    r = client.post(
+        "/api/coins/exchange-to-coins",
+        headers=auth(token),
+        json={"amount_tjs": 2.5},
+    )
+    assert r.status_code == 422, r.text
+
+    # баланси нокифоя (5 дорад, 50 мехоҳад) → 422
+    r = client.post(
+        "/api/coins/exchange-to-coins",
+        headers=auth(token),
+        json={"amount_tjs": 50},
+    )
+    assert r.status_code == 422, r.text
+
+    # сифат → 422 (pydantic gt=0)
+    r = client.post(
+        "/api/coins/exchange-to-coins",
+        headers=auth(token),
+        json={"amount_tjs": 0},
+    )
+    assert r.status_code == 422
+
+    # ҳеҷ чиз иваз нашуд
+    assert coins_of(client, token)["coins"] == 0
+    assert balance_of(client, token) == 5.0
+
+    # бе токен → 401
+    assert (
+        client.post(
+            "/api/coins/exchange-to-coins", json={"amount_tjs": 5}
+        ).status_code
+        == 401
+    )

@@ -153,12 +153,13 @@ class CoinTransactionKind:
     REFERRAL_WELCOME = "referral_welcome"  # ➕ бонуси дӯсти нав
     ADMIN_GRANT = "admin_grant"        # ➕ аз ҷониби админ
     EXCHANGE = "exchange"              # ➖ иваз ба баланс (100 → 1 сомонӣ)
+    EXCHANGE_IN = "exchange_in"        # ➕ ивази баланс ба танга (1 сомонӣ → 5 танга)
     SPIN = "spin"                      # ➖ хароҷоти гардиши чарх
     SPIN_REWARD = "spin_reward"        # ➕ ғолиби гардиши чарх
 
     ALL = [
         CASHBACK, REFERRAL, REFERRAL_WELCOME,
-        ADMIN_GRANT, EXCHANGE, SPIN, SPIN_REWARD,
+        ADMIN_GRANT, EXCHANGE, EXCHANGE_IN, SPIN, SPIN_REWARD,
     ]
 
 

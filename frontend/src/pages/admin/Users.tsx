@@ -5,6 +5,7 @@ import {
   CircleX,
   History,
   Loader2,
+  Minus,
   Package,
   Plus,
   Search,
@@ -217,8 +218,8 @@ function AddBalanceForm({
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
 
-  const submit = async (e: FormEvent) => {
-    e.preventDefault();
+  /** Як амал: «+ Илова» ё «− Буриш» — як форма, ду тугма */
+  const run = async (dir: "add" | "deduct") => {
     setErr("");
     const n = Number(amount);
     if (!amount || Number.isNaN(n) || n <= 0) {
@@ -227,14 +228,25 @@ function AddBalanceForm({
     }
     setBusy(true);
     try {
-      await api.addBalance(u.id, n, reason.trim() || undefined);
+      if (dir === "add") {
+        await api.addBalance(u.id, n, reason.trim() || undefined);
+      } else {
+        await api.deductBalance(u.id, n, reason.trim() || undefined);
+      }
       onDone(
-        `${t("balanceAdded")}: +${n.toFixed(2)} ${t("somoni")} → ${u.full_name || u.phone || "#" + u.id}`,
+        dir === "add"
+          ? `${t("balanceAdded")}: +${n.toFixed(2)} ${t("somoni")} → ${u.full_name || u.phone || "#" + u.id}`
+          : `${t("balanceDeducted")}: −${n.toFixed(2)} ${t("somoni")} → ${u.full_name || u.phone || "#" + u.id}`,
       );
     } catch (e2) {
       setErr((e2 as Error)?.message ?? t("error"));
       setBusy(false);
     }
+  };
+
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    void run("add");
   };
 
   return (
@@ -244,7 +256,7 @@ function AddBalanceForm({
     >
       <div className="text-xs font-semibold text-brand-800 mb-2 inline-flex items-center gap-1.5">
         <Ic icon={Wallet} size="xs" />
-        {t("addBalance")} — {u.full_name || u.phone || `#${u.id}`}
+        {t("manageBalance")} — {u.full_name || u.phone || `#${u.id}`}
       </div>
 
       {err && (
@@ -276,19 +288,23 @@ function AddBalanceForm({
         </div>
       </div>
 
-      {/* Пешнамоиш */}
+      {/* Пешнамоиш — ҳам илова ҳам буриш */}
       {amount && !Number.isNaN(Number(amount)) && Number(amount) > 0 && (
         <div className="mt-2 text-xs text-slate-600">
-          {t("currentBalance")}:{" "}
-          <b>{Number(u.balance).toFixed(2)}</b> → {t("afterPayment")}:{" "}
+          {t("currentBalance")}: <b>{Number(u.balance).toFixed(2)}</b> · +{" "}
+          {Number(amount).toFixed(2)} →{" "}
           <b className="text-emerald-600">
             {(Number(u.balance) + Number(amount)).toFixed(2)}
+          </b>{" "}
+          · − {Number(amount).toFixed(2)} →{" "}
+          <b className="text-rose-600">
+            {(Number(u.balance) - Number(amount)).toFixed(2)}
           </b>{" "}
           {t("somoni")}
         </div>
       )}
 
-      <div className="flex gap-2 mt-2">
+      <div className="mt-2 flex gap-2">
         <button type="submit" disabled={busy} className="btn-primary text-xs px-4 py-2">
           {busy ? (
             <>
@@ -300,6 +316,16 @@ function AddBalanceForm({
               {t("addBalance")}
             </>
           )}
+        </button>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => void run("deduct")}
+          className="btn bg-rose-600 text-xs px-4 py-2 text-white hover:bg-rose-700 disabled:opacity-50"
+          aria-label={t("deductBalance")}
+        >
+          <Ic icon={Minus} size="xs" />
+          {t("deductBalance")}
         </button>
         <button
           type="button"

@@ -329,6 +329,61 @@ def test_admin_balance_change_works_for_admin(client: TestClient):
     assert float(bal["balance"]) == 150.0
 
 
+def test_admin_balance_deduct_works(client: TestClient):
+    """➖ Буриши баланс аз админ: +150 −60 = 90; зиёд аз баланс → манфӣ."""
+    _, victim_token = must_register(client)
+    victim_id = client.get("/api/auth/me", headers=auth(victim_token)).json()["id"]
+    admin_token = client.post(
+        "/api/auth/login",
+        json={"phone": settings.ADMIN_PHONE, "password": ADMIN_PASSWORD},
+    ).json()["access_token"]
+
+    client.post(
+        f"/api/admin/users/{victim_id}/balance",
+        headers=auth(admin_token),
+        json={"user_id": victim_id, "amount": 150, "reason": "test"},
+    )
+
+    # −60 → 90
+    r = client.post(
+        f"/api/admin/users/{victim_id}/balance/deduct",
+        headers=auth(admin_token),
+        json={"user_id": victim_id, "amount": 60, "reason": "test deduct"},
+    )
+    assert r.status_code in (200, 201), r.text
+    bal = client.get("/api/auth/me/balance", headers=auth(victim_token)).json()
+    assert float(bal["balance"]) == 90.0
+
+    # зиёд аз баланс (200 аз 90) → админ ҳамеша метавонад: манфӣ мешавад
+    r = client.post(
+        f"/api/admin/users/{victim_id}/balance/deduct",
+        headers=auth(admin_token),
+        json={"user_id": victim_id, "amount": 200, "reason": "to minus"},
+    )
+    assert r.status_code in (200, 201), r.text
+    bal = client.get("/api/auth/me/balance", headers=auth(victim_token)).json()
+    assert float(bal["balance"]) == -110.0
+
+    # маблағи нодуруст (0) → 422, баланс бетағйир
+    r = client.post(
+        f"/api/admin/users/{victim_id}/balance/deduct",
+        headers=auth(admin_token),
+        json={"user_id": victim_id, "amount": 0},
+    )
+    assert r.status_code == 422
+
+    # ғайриадмин → 403, баланс бетағйир
+    _, user_token = must_register(client)
+    r = client.post(
+        f"/api/admin/users/{victim_id}/balance/deduct",
+        headers=auth(user_token),
+        json={"user_id": victim_id, "amount": 1},
+    )
+    assert r.status_code == 403
+    bal = client.get("/api/auth/me/balance", headers=auth(victim_token)).json()
+    assert float(bal["balance"]) == -110.0
+
+
 # =====================================================================
 # 11. IDOR — маълумоти корбари дигар
 # =====================================================================

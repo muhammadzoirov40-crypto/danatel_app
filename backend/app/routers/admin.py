@@ -607,6 +607,72 @@ def add_balance(
     )
 
 
+@router.post("/users/{user_id}/balance/deduct", response_model=AdminUserOut)
+def deduct_balance(
+    user_id: int,
+    payload: BalanceAdjustRequest,
+    admin: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """
+    ➖ Аз баланси корбар маблағ буриш.
+
+    Мисол: Admin 50 сомонӣ бурад → баланс −50 сомонӣ.
+
+    Қоидаи соҳиб (27.10.2026): буриш ҲЕША иҷро мешавад — агар баланс
+    нокифоя бошад, баланс манфӣ мешавад (монанди возвраткаи админ).
+    Ҳамаи тағйирот дар як transaction бо сабти таърих сабт мешавад.
+    """
+    # Агар дархост бо path user_id номувофиқ бошад — аз body истифода мебарем
+    target_id = payload.user_id or user_id
+
+    try:
+        user, _entry = wallet.debit_balance(
+            db,
+            user_id=target_id,
+            amount=payload.amount,
+            reason=payload.reason or "Буриши дастӣ аз ҷониби админ",
+            admin_id=admin.id,
+            allow_negative=True,
+        )
+    except wallet.UserNotFound as exc:
+        raise HTTPException(status_code=404, detail="Корбар ёфт нашуд") from exc
+    except wallet.InvalidAmount as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except wallet.WalletError as exc:
+        raise HTTPException(
+            status_code=getattr(exc, "status", 400), detail=str(exc)
+        ) from exc
+
+    # 📜 Сабти audit-log
+    db.add(
+        AuditLog(
+            admin_id=admin.id,
+            action="balance_debit",
+            entity="user",
+            entity_id=str(user.id),
+            details=f"-{payload.amount} TJS | {payload.reason or '-'}",
+        )
+    )
+    db.commit()
+
+    orders_count = db.scalar(
+        select(func.count(Order.id)).where(Order.user_id == user.id)
+    ) or 0
+
+    return AdminUserOut(
+        id=user.id,
+        phone=user.phone,
+        username=user.username,
+        full_name=user.full_name,
+        language=user.language,
+        is_admin=user.is_admin,
+        balance=user.balance,
+        orders_count=orders_count,
+        created_at=user.created_at,
+    )
+
+
 # =====================================================================
 # 🪙 ТАНГАҲО (PERS COINS) — иловакунии админ
 # =====================================================================

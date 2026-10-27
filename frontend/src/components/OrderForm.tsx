@@ -307,7 +307,7 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
   return (
     <>
       {/* ============ 2 СУТУН: ЧАП — МАЗМУН · РОСТ — ФАРМОИШИ ШУМО ============ */}
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] gap-5 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
         {/* ---------- ЧАП: ҲИСОБ + БАХШҲОИ МАҲСУЛОТ ---------- */}
         <div className="min-w-0 space-y-5">
           <div className="glass rounded-3xl p-4 sm:p-6">
@@ -441,7 +441,7 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                     </p>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 xl:grid-cols-3 gap-2.5">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-2.5 mb-6">
                   {items.map((p) => {
                     const active = selected?.id === p.id;
                     const view = packView(p, game, t);

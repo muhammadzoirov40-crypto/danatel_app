@@ -11,6 +11,7 @@ import type {
   BalanceInfo,
   BalanceTx,
   CoinsExchange,
+  CoinsExchangeTjs,
   CoinsInfo,
   FirelootBalance,
   FirelootCatalog,
@@ -349,6 +350,13 @@ export const api = {
   exchangeCoins: () =>
     request<CoinsExchange>("/coins/exchange", { method: "POST" }),
 
+  /** 💱 Ивази БАЛАНС ба танга (самти нав: 1 сомонӣ = N танга, адади куллӣ) */
+  exchangeToCoins: (amountTjs: number) =>
+    request<CoinsExchangeTjs>("/coins/exchange-to-coins", {
+      method: "POST",
+      body: JSON.stringify({ amount_tjs: amountTjs }),
+    }),
+
   // ========================== 🎡 ЧАРХ ==========================
   /** Сегментҳо + эҳтимолиётҳои воқеӣ + бурди охирин (оммавӣ) */
   wheel: () => request<WheelData>("/coins/wheel"),
@@ -369,6 +377,12 @@ export const api = {
   adminUsers: () => request<AdminUser[]>("/admin/users"),
   addBalance: (userId: number, amount: number, reason?: string) =>
     request<AdminUser>(`/admin/users/${userId}/balance`, {
+      method: "POST",
+      body: JSON.stringify({ user_id: userId, amount, reason }),
+    }),
+  /** ➖ Аз баланси корбар маблағ буриш (админ; баланс манфӣ ҳам мешавад) */
+  deductBalance: (userId: number, amount: number, reason?: string) =>
+    request<AdminUser>(`/admin/users/${userId}/balance/deduct`, {
       method: "POST",
       body: JSON.stringify({ user_id: userId, amount, reason }),
     }),
