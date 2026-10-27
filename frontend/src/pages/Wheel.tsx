@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
+  Check,
   CircleHelp,
   Coins,
+  Copy,
+  Gamepad2,
   History,
   Loader2,
   Percent,
@@ -10,10 +13,11 @@ import {
   ScrollText,
   Sparkles,
   Trophy,
+  UserPlus,
 } from "lucide-react";
 import { api, ApiError } from "../api/client";
 import { useApp } from "../context/AppContext";
-import type { CoinsInfo, CoinTx, WheelData, WheelSpin } from "../types";
+import type { CoinsInfo, CoinTx, Game, WheelData, WheelSpin } from "../types";
 import CoinsCard from "../components/CoinsCard";
 import { Ic } from "../components/Icons";
 
@@ -86,6 +90,12 @@ export default function Wheel() {
 
   const timerRef = useRef<number | null>(null);
 
+  // 🎮 Бозиҳо — рӯйхати интихоб пеш аз гардиш
+  const [games, setGames] = useState<Game[]>([]);
+  const [savingGame, setSavingGame] = useState(false);
+  // 🔗 Линки даъват
+  const [inviteCopied, setInviteCopied] = useState(false);
+
   const loadWheel = useCallback(async () => {
     try {
       setData(await api.wheel());
@@ -115,6 +125,14 @@ export default function Wheel() {
     void loadMine();
   }, [loadMine]);
 
+  // 🎮 Рӯйхати бозиҳо барои интихоб (забони ҷорӣ)
+  useEffect(() => {
+    api
+      .games(lang)
+      .then(setGames)
+      .catch(() => setGames([]));
+  }, [lang]);
+
   // Таймери аниматсия → ҳангоми баромад аз саҳифа пок мешавад
   useEffect(() => {
     return () => {
@@ -129,7 +147,47 @@ export default function Wheel() {
   const missing = myCoins !== null && myCoins < cost;
   const waitLogin = !user;
   const waitCoins = !!user && myCoins === null;
-  const disabled = spinning || !data || waitCoins || missing;
+  const pickedSlug = mine?.favorite_game ?? null;
+  const pickedGame = games.find((g) => g.slug === pickedSlug) ?? null;
+  // Қоидаи соҳиб: «ба ҳама накун» — корбар аввал бозии худашро интихоб мекунад
+  const needGame = !!user && !!mine && !pickedSlug;
+  const disabled =
+    spinning || !data || waitCoins || missing || needGame || savingGame;
+
+  /** 🎮 Интихоби бозӣ: корбар худаш мегузорад → сабт дар backend */
+  const pickGame = async (slug: string) => {
+    if (!user) {
+      nav("/login", { replace: false });
+      return;
+    }
+    if (savingGame || mine?.favorite_game === slug) return;
+    setSavingGame(true);
+    try {
+      const res = await api.setMyGame(slug);
+      setMine((m) => (m ? { ...m, favorite_game: res.game_slug } : m));
+      setErr("");
+    } catch (e) {
+      setErr(e instanceof ApiError ? e.message : t("error"));
+    } finally {
+      setSavingGame(false);
+    }
+  };
+
+  // 🔗 Линки даъват (аз коди шахсии корбар)
+  const inviteLink = mine?.referral_code
+    ? `${window.location.origin}/?ref=${mine.referral_code}`
+    : "";
+
+  const copyInvite = async () => {
+    if (!inviteLink) return;
+    try {
+      await navigator.clipboard.writeText(inviteLink);
+      setInviteCopied(true);
+      window.setTimeout(() => setInviteCopied(false), 1800);
+    } catch {
+      /* иҷозат нест */
+    }
+  };
 
   /** 🎡 Як гардиш: ҷоиза аз backend → чарх ба ҷои ғолиб мегардад */
   const doSpin = async () => {
@@ -139,6 +197,7 @@ export default function Wheel() {
       return;
     }
     if (!data) return;
+    if (needGame) return; // қоида: аввал бозии худашро интихоб кунад
 
     setResult(null);
     setErr("");
@@ -315,6 +374,51 @@ export default function Wheel() {
           </div>
         )}
 
+        {/* ===== 🎮 БОЗИИ МАН — интихоб пеш аз гардиш ===== */}
+        {user && games.length > 0 && (
+          <section className="card p-4" aria-label={t("myGame")}>
+            <div className="inline-flex items-center gap-2 text-sm font-extrabold">
+              <Ic icon={Gamepad2} size="md" className="text-brand-600" />
+              {t("myGame")}
+            </div>
+            <p className="mt-0.5 mb-3 text-xs text-slate-500 dark:text-slate-400">
+              {t("myGameHint")}
+            </p>
+            <div
+              className="flex flex-wrap gap-2"
+              role="radiogroup"
+              aria-label={t("myGame")}
+            >
+              {games.map((g) => {
+                const active = g.slug === pickedSlug;
+                return (
+                  <button
+                    key={g.slug}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    aria-label={g.name}
+                    onClick={() => void pickGame(g.slug)}
+                    disabled={savingGame}
+                    className={`inline-flex items-center gap-1.5 rounded-2xl border px-3 py-2 text-sm font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 disabled:opacity-60 ${
+                      active
+                        ? "border-brand-500 bg-brand-600 text-white shadow-md shadow-brand-500/25"
+                        : "border-slate-200 bg-slate-50 text-slate-700 hover:border-brand-400 dark:border-white/10 dark:bg-white/5 dark:text-slate-200"
+                    }`}
+                  >
+                    {g.emoji && (
+                      <span aria-hidden className="text-base leading-none">
+                        {g.emoji}
+                      </span>
+                    )}
+                    {g.name}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
         {/* ===== 🎡 ЧАРХ + ТУГМА ===== */}
         <section className="card p-4 sm:p-6" aria-label={t("wheel")}>
           <div className="relative mx-auto aspect-square w-full max-w-[330px]">
@@ -414,7 +518,7 @@ export default function Wheel() {
               className="absolute left-1/2 top-1/2 z-10 grid h-16 w-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-4 border-white bg-gradient-to-br from-blue-600 to-indigo-700 shadow-lg ring-1 ring-blue-200"
             >
               <span className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-amber-300 via-amber-400 to-amber-500 text-base font-black text-amber-950">
-                P
+                {pickedGame?.emoji || "P"}
               </span>
             </div>
           </div>
@@ -447,7 +551,11 @@ export default function Wheel() {
             </button>
 
             <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-              {missing ? (
+              {needGame ? (
+                <span className="text-rose-600 dark:text-rose-400">
+                  {t("pickGameFirst")}
+                </span>
+              ) : missing ? (
                 <span className="text-rose-600 dark:text-rose-400">
                   {t("notEnoughCoins").replace("{n}", String(cost))}
                 </span>
@@ -485,6 +593,17 @@ export default function Wheel() {
                   → {result.coins_after} {t("coinsUnit")}
                 </span>
               </div>
+            )}
+
+            {/* 🎮 Кушодани бозии интихобшуда — ҳамон лаҳзаи харид */}
+            {result && !spinning && pickedGame && (
+              <Link
+                to={`/game/${pickedGame.slug}`}
+                className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-slate-100 px-4 py-2.5 text-xs font-bold text-slate-700 transition hover:bg-slate-200 dark:bg-white/10 dark:text-slate-200 sm:w-auto"
+              >
+                <Ic icon={Gamepad2} />
+                {t("openMyGame")} — {pickedGame.name}
+              </Link>
             )}
           </div>
         </section>
@@ -536,6 +655,53 @@ export default function Wheel() {
                 {exMsg.text}
               </div>
             )}
+          </section>
+        )}
+
+        {/* ===== 🔗 ЛИНКИ ДАЪВАТ ===== */}
+        {user && mine && (
+          <section className="card p-4" aria-label={t("inviteLink")}>
+            <div className="inline-flex items-center gap-2 text-sm font-extrabold">
+              <Ic icon={UserPlus} size="md" className="text-brand-600" />
+              {t("inviteLink")}
+            </div>
+            <p className="mt-0.5 mb-3 text-xs text-slate-500 dark:text-slate-400">
+              {t("inviteHint")}
+            </p>
+
+            <div className="flex items-center gap-2 flex-wrap">
+              <input
+                readOnly
+                value={inviteLink}
+                onFocus={(e) => e.currentTarget.select()}
+                aria-label={t("inviteLink")}
+                className="input min-w-0 flex-1 !py-2 text-xs font-semibold"
+              />
+              <button
+                type="button"
+                onClick={() => void copyInvite()}
+                disabled={!inviteLink}
+                className="btn-primary text-sm shrink-0 disabled:opacity-50"
+              >
+                <Ic icon={inviteCopied ? Check : Copy} />
+                {inviteCopied ? t("copied") : t("copy")}
+              </button>
+            </div>
+
+            <div className="mt-2 text-xs font-semibold text-brand-700 dark:text-brand-300">
+              {t("referralCount").replace("{n}", String(mine.referred_count))}
+              {mine.referred_count === 0 && (
+                <span className="ml-1 font-normal text-slate-500">
+                  — {t("noReferrals")}
+                </span>
+              )}
+            </div>
+            <div className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
+              {t("invitePerPair").replace(
+                "{n}",
+                String(mine.referral_pair_coins),
+              )}
+            </div>
           </section>
         )}
 

@@ -331,6 +331,13 @@ export const api = {
   // ========================== 🪙 PERS COINS ==========================
   /** Тангаҳо + қоидаҳои ҳисоб + коди даъват + таърих */
   myCoins: () => request<CoinsInfo>("/coins/me"),
+
+  /** 🎮 Бозии интихобшуда (Чарх) — қабл аз гардиш */
+  setMyGame: (gameSlug: string) =>
+    request<{ game_slug: string }>("/coins/my-game", {
+      method: "POST",
+      body: JSON.stringify({ game_slug: gameSlug }),
+    }),
   /** 💱 Ивази танга ба баланс (танҳо адади куллӣ, N танга = 1 сомонӣ — аз .env) */
   exchangeCoins: () =>
     request<CoinsExchange>("/coins/exchange", { method: "POST" }),

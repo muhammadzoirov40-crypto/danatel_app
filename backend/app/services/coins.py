@@ -5,7 +5,7 @@
   • Cashback: ҳар 1 сомонии фармоиши ИҶРОЧУДА = COINS_PER_TJS танга
     (фармоиш танҳо вақте «delivered» мешавад, ки админ онро тасдиқ кардааст)
   • Даъват: ҳангоми қайди дӯст тавассути линки шахсӣ (як дафъа)
-      - даъваткунанда: +REFERRAL_COINS
+      - даъваткунанда: +REFERRAL_PAIR_COINS ҳар 2 даъватшуда (10 → 5 танга)
       - дӯсти нав:     +REFERRAL_FRIEND_COINS
   • Иваз ба баланс: COINS_TO_TJS танга = 1 сомонӣ (адади куллӣ, ҳадди ақал
     COINS_MIN_EXCHANGE)
@@ -259,43 +259,56 @@ def grant_referral(
     Бонуси даъват — ДАР ЯК transaction (ҳар ду тараф).
 
     Танҳо як дафъа иҷро мешавад: `users.referred_by_id` як дафъа гузошта мешавад.
+
+    📐 Қоидаи соҳиб (27.10.2026): даъваткунанда **ҳар 2 даъватшуда = 1 танга**
+       мегирад — 10 дӯст → 5 танга. Ҷуфт танҳо баъди 2-ум, 4-ум, 6-ум… пур
+       мешавад; ғайриҷуфт ҳеҷ чиз намеафтомад. Дӯсти нав ҳамон лаҳза
+       бонуси худашро (REFERRAL_FRIEND_COINS) мегирад — танҳо ҳангоми
+       қайди воқеӣ тавассути линк.
     """
     if inviter_id == invited_id:
         return 0, 0
 
-    inviter_coins = _to_int(settings.REFERRAL_COINS)
+    pair_coins = _to_int(settings.REFERRAL_PAIR_COINS)
     invited_coins = _to_int(settings.REFERRAL_FRIEND_COINS)
-    if inviter_coins <= 0 and invited_coins <= 0:
+    if pair_coins <= 0 and invited_coins <= 0:
         return 0, 0
 
     try:
         inviter = _lock_user(db, inviter_id)
         invited = _lock_user(db, invited_id)
 
-        inviter.coins = _to_int(inviter.coins) + inviter_coins
-        _write_coin_entry(
-            db,
-            user=inviter,
-            kind=CoinTransactionKind.REFERRAL,
-            amount=inviter_coins,
-            reason=f"Даъвати корбари №{invited_id}",
-        )
+        # Ҳисоби ҷуфт: ин даъват N-ум аст (referred_by_id аллакай гузошта шудааст
+        # дар auth.register → сатр аллакай дар DB)
+        total = count_referred(db, inviter_id)
+        inviter_coins = pair_coins if total > 0 and total % 2 == 0 else 0
 
-        invited.coins = _to_int(invited.coins) + invited_coins
-        _write_coin_entry(
-            db,
-            user=invited,
-            kind=CoinTransactionKind.REFERRAL_WELCOME,
-            amount=invited_coins,
-            reason=f"Шуморо корбари №{inviter_id} даъват кард",
-        )
+        if inviter_coins > 0:
+            inviter.coins = _to_int(inviter.coins) + inviter_coins
+            _write_coin_entry(
+                db,
+                user=inviter,
+                kind=CoinTransactionKind.REFERRAL,
+                amount=inviter_coins,
+                reason=f"Ҳар 2 даъват = {pair_coins} танга · ҷуфти №{total // 2}",
+            )
+
+        if invited_coins > 0:
+            invited.coins = _to_int(invited.coins) + invited_coins
+            _write_coin_entry(
+                db,
+                user=invited,
+                kind=CoinTransactionKind.REFERRAL_WELCOME,
+                amount=invited_coins,
+                reason=f"Шуморо корбари №{inviter_id} даъват кард",
+            )
 
         db.commit()
         db.refresh(inviter)
         db.refresh(invited)
         logger.info(
-            "🔗 Даъват: +%s (user=%s) ва +%s (user=%s)",
-            inviter_coins, inviter_id, invited_coins, invited_id,
+            "🔗 Даъват: +%s (user=%s, ҷуфт %s/2) ва +%s (user=%s)",
+            inviter_coins, inviter_id, total, invited_coins, invited_id,
         )
         return inviter_coins, invited_coins
 

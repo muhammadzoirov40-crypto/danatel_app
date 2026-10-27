@@ -65,6 +65,11 @@ class User(Base):
         Integer, index=True, nullable=True
     )
 
+    # 🎮 Бозии интихобшудаи корбар (саҳифаи Чарх — пеш аз гардиш)
+    favorite_game: Mapped[str | None] = mapped_column(
+        String(64), nullable=True, default=None
+    )
+
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     orders: Mapped[list["Order"]] = relationship(

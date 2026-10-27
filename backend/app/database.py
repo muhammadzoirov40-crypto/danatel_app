@@ -143,6 +143,8 @@ def _ensure_missing_columns() -> None:
             "coins",
             "referral_code",
             "referred_by_id",
+            # 🎮 Бозии интихобшуда (саҳифаи Чарх)
+            "favorite_game",
             # 📧 Email (коммити 961d092) — дар PostgreSQL-и сервер набуд
             #    → /api/auth/me = 500 ва site барои корбарони вурудшуда
             #    кор мекард. Ҳамин ҷо илова шуд + поён роҳи худкор ҳаст.
@@ -236,6 +238,8 @@ def _column_ddl(table: str, col: str) -> str | None:
         ("users", "coins"): "ALTER TABLE users ADD COLUMN coins INTEGER NOT NULL DEFAULT 0",
         ("users", "referral_code"): "ALTER TABLE users ADD COLUMN referral_code VARCHAR(12)",
         ("users", "referred_by_id"): "ALTER TABLE users ADD COLUMN referred_by_id INTEGER",
+        # 🎮 Бозии интихобшудаи корбар (саҳифаи Чарх)
+        ("users", "favorite_game"): "ALTER TABLE users ADD COLUMN favorite_game VARCHAR(64)",
         # 📧 Email — сабаби 500 дар /api/auth/me (26.10.2026)
         ("users", "email"): "ALTER TABLE users ADD COLUMN email VARCHAR(255)",
         ("orders", "client_token"): "ALTER TABLE orders ADD COLUMN client_token VARCHAR(64)",

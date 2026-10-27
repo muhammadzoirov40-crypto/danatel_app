@@ -248,7 +248,23 @@ class CoinsMeOut(BaseModel):
     spin_cost: int = 50          # хароҷоти як гардиши чарх
     referral_code: str = ""
     referred_count: int = 0
+    # 🔗 Қоидаи даъват: ҳар 2 даъватшуда = N танга (аз .env)
+    referral_pair_coins: int = 0
     history: list[CoinTxOut] = []
+    # 🎮 Бозии интихобшуда (Чарх) — slug ё null (ҳанӯз интихоб накардааст)
+    favorite_game: str | None = None
+
+
+class CoinsMyGameIn(BaseModel):
+    """Интихоби бозии корбар пеш аз гардиши чарх."""
+
+    game_slug: str = Field(min_length=1, max_length=64)
+
+
+class CoinsMyGameOut(BaseModel):
+    """Тасдиқи бозии интихобшуда."""
+
+    game_slug: str
 
 
 class CoinsExchangeOut(BaseModel):

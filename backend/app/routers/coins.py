@@ -17,10 +17,12 @@ from sqlalchemy.orm import Session
 from app import ratelimit
 from app.config import settings
 from app.database import get_db
-from app.models import CoinTransaction, User
+from app.models import CoinTransaction, Game, User
 from app.schemas import (
     CoinsExchangeOut,
     CoinsMeOut,
+    CoinsMyGameIn,
+    CoinsMyGameOut,
     CoinTxOut,
     WheelOut,
     WheelSegmentOut,
@@ -77,8 +79,37 @@ def my_coins(
         spin_cost=max(0, _safe_int(settings.SPIN_COST_COINS)),
         referral_code=code,
         referred_count=coins.count_referred(db, user.id),
+        referral_pair_coins=max(0, _safe_int(settings.REFERRAL_PAIR_COINS)),
         history=[CoinTxOut.model_validate(tx) for tx in history],
+        favorite_game=(user.favorite_game or "").strip() or None,
     )
+
+
+# =====================================================================
+# 🎮 БОЗИИ МАН — интихоб пеш аз гардиши чарх
+# =====================================================================
+@router.post("/my-game", response_model=CoinsMyGameOut)
+def set_my_game(
+    payload: CoinsMyGameIn,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Бозии интихобшудаи корбар (дар саҳифаи Чарх).
+
+    Қоидаи соҳиб: ба ҳама нишон намедиҳем — **корбар худаш бозӣ-ро интихоб
+    мекунад** ва дар ҳамон ҷо гардиш мезанад. Танҳо slug-и бозии фаъол.
+    """
+    slug = (payload.game_slug or "").strip().lower()
+    game = db.scalar(
+        select(Game).where(Game.slug == slug, Game.is_active.is_(True))
+    )
+    if game is None:
+        raise HTTPException(status_code=404, detail="Бозӣ ёфт нашуд")
+
+    user.favorite_game = game.slug
+    db.commit()
+    return CoinsMyGameOut(game_slug=game.slug)
 
 
 # =====================================================================

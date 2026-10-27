@@ -334,11 +334,16 @@ const tj: Dict = {
   kindExchange: "Иваз ба баланс",
   // ===== 🔗 ДАЪВАТ =====
   inviteLink: "Линки даъвати шумо",
+  invitePerPair: "Ҳар 2 даъватшуда = {n} танга",
   inviteHint:
     "Дӯст тавассути ин линк қайд мекунад ва ҳар ду шумо танга мегиред",
   referralCount: "Даъватшудагон: {n}",
   noReferrals: "Ҳанӯз касеро даъват накардаед",
   // ===== 🎡 ЧАРХ (Гардондан) =====
+  myGame: "Бозии ман",
+  myGameHint: "Пеш аз гардиш бозии худро интихоб кунед",
+  pickGameFirst: "Аввал бозӣ-ро интихоб кунед",
+  openMyGame: "Кушодани бозӣ",
   wheel: "Чарх",
   wheelHint: "Гардиш бо тангаҳои шумо — ҳар гардиш ҷоиза медиҳад",
   gardonan: "Гардондан",
@@ -701,11 +706,16 @@ const ru: Dict = {
   kindExchange: "Обмен в баланс",
   // ===== 🔗 ПРИГЛАШЕНИЕ =====
   inviteLink: "Ваша ссылка-приглашение",
+  invitePerPair: "За каждых 2 приглашённых = {n} монет",
   inviteHint:
     "Друг регистрируется по этой ссылке — вы оба получаете монеты",
   referralCount: "Приглашено: {n}",
   noReferrals: "Вы ещё никого не пригласили",
   // ===== 🎡 КОЛЕСО =====
+  myGame: "Моя игра",
+  myGameHint: "Перед вращением выберите свою игру",
+  pickGameFirst: "Сначала выберите игру",
+  openMyGame: "Открыть игру",
   wheel: "Колесо",
   wheelHint: "Вращение за ваши монеты — каждое вращение даёт приз",
   gardonan: "Крутить",
@@ -1068,11 +1078,16 @@ const en: Dict = {
   kindExchange: "Converted to balance",
   // ===== 🔗 INVITE =====
   inviteLink: "Your invite link",
+  invitePerPair: "Every 2 invited = {n} coins",
   inviteHint:
     "A friend signs up with this link and you both get coins",
   referralCount: "Invited: {n}",
   noReferrals: "You haven't invited anyone yet",
   // ===== 🎡 WHEEL =====
+  myGame: "My game",
+  myGameHint: "Pick your game before spinning",
+  pickGameFirst: "Choose a game first",
+  openMyGame: "Open the game",
   wheel: "Wheel",
   wheelHint: "Spin with your coins — every spin gives a prize",
   gardonan: "Spin",
@@ -1435,11 +1450,16 @@ const uz: Dict = {
   kindExchange: "Balansga almashtirish",
   // ===== 🔗 TAKLIF =====
   inviteLink: "Sizning taklif havolangiz",
+  invitePerPair: "Har 2 ta taklif = {n} tanga",
   inviteHint:
     "Do'st bu havola orqali ro'yxatdan o'tadi — ikkalangizga tanga",
   referralCount: "Taklif qilinganlar: {n}",
   noReferrals: "Hali birortani taklif qilmadingiz",
   // ===== 🎡 G'ILDIRAK =====
+  myGame: "Mening o'yinim",
+  myGameHint: "Aylantirishdan oldin o'yiningizni tanlang",
+  pickGameFirst: "Avval o'yinni tanlang",
+  openMyGame: "O'yinni ochish",
   wheel: "G'ildirak",
   wheelHint: "Tangalaringiz bilan aylantiring — har bir aylantirish sovg'a beradi",
   gardonan: "Aylantirish",

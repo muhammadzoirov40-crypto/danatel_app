@@ -3,8 +3,9 @@
 Сенарияҳо:
   1  /api/coins/me бе токен → 401
   2  Тангаҳои ибтидоӣ = 0 ва коди даъват сохта мешавад
-  3  Қайд бо линки даъват → ҳар ду тараф танга мегирад (як дафъа)
+  3  Қайд бо линки даъват → дӯст +10 танга, даъваткунанда ҳар 2 нафар = 1 танга
   4  Коди нодуруст → қайд ҳанӯз ҳам кор мекунад (танга нест)
+  4б 🎮 Интихоби бозӣ: /api/coins/my-game (401 / 404 / нишондиҳӣ дар /me)
   5  Иваз бо тангаи нокифоя → 422
   6  Иваз: танга → баланс (адади куллӣ), баланс дуруст навишта мешавад
   7  Cashback ҳангоми «delivered» + идемпотентия (ду дафъа → якдафъа)
@@ -128,6 +129,7 @@ def test_me_defaults_and_referral_code(client: TestClient):
 # 3–4. ДАЪВАТ
 # =====================================================================
 def test_referral_bonus_for_both(client: TestClient):
+    """1-ум дӯст = нимҷуфт: даъваткунанда ҳанӯз +0, дӯст +10 танга."""
     inviter_token, _ = register(client)
     code = coins_of(client, inviter_token)["referral_code"]
 
@@ -137,27 +139,90 @@ def test_referral_bonus_for_both(client: TestClient):
     inviter = coins_of(client, inviter_token)
     friend = coins_of(client, friend_token)
 
-    assert inviter["coins"] == settings.REFERRAL_COINS
+    assert inviter["coins"] == 0  # ҷуфт ҳанӯз пур нашудааст (1/2)
     assert friend["coins"] == settings.REFERRAL_FRIEND_COINS
     assert inviter["referred_count"] == 1
-    assert inviter["history"][0]["kind"] == "referral"
+    assert all(h["kind"] != "referral" for h in inviter["history"])
+    assert friend["history"][0]["amount"] == settings.REFERRAL_FRIEND_COINS
 
 
-def test_referral_bonus_only_once(client: TestClient):
+def test_referral_pair_every_two_friends(client: TestClient):
+    """Ҳар 2 даъватшуда = +1 танга: 2→1, 3→1, 4→2 (танҳо ҷуфтҳо)."""
     inviter_token, _ = register(client)
     code = coins_of(client, inviter_token)["referral_code"]
 
-    register(client, referral_code=code)
-    register(client, referral_code=code.lower())
+    register(client, referral_code=code)          # №1 → +0
+    assert coins_of(client, inviter_token)["coins"] == 0
 
-    assert coins_of(client, inviter_token)["coins"] == settings.REFERRAL_COINS * 2
-    assert coins_of(client, inviter_token)["referred_count"] == 2
+    register(client, referral_code=code.lower())  # №2 → ҷуфт пур → +1
+    assert coins_of(client, inviter_token)["coins"] == settings.REFERRAL_PAIR_COINS
+
+    register(client, referral_code=code)          # №3 → нимҷуфт → +0
+    assert (
+        coins_of(client, inviter_token)["coins"]
+        == settings.REFERRAL_PAIR_COINS
+    )
+
+    register(client, referral_code=code)          # №4 → +1
+    inviter = coins_of(client, inviter_token)
+    assert inviter["coins"] == settings.REFERRAL_PAIR_COINS * 2
+    assert inviter["referred_count"] == 4
+    # Ҳар даъват танҳо як бор ҳисоб мешавад (референсҳо беназир)
+    assert len({h["id"] for h in inviter["history"]}) == len(inviter["history"])
 
 
 def test_unknown_referral_code_still_registers(client: TestClient):
     token, body = register(client, referral_code="NOSUCHCODE")
     assert body["referral_applied"] is False
     assert coins_of(client, token)["coins"] == 0
+
+
+# =====================================================================
+# 4б. 🎮 БОЗИИ ИНТИХОБШУДА (Чарх)
+# =====================================================================
+def test_my_game_requires_token(client: TestClient):
+    assert (
+        client.post("/api/coins/my-game", json={"game_slug": "free-fire"}).status_code
+        == 401
+    )
+
+
+def test_my_game_set_switch_and_show(client: TestClient):
+    """Интихоб → /me нишон медиҳад; гузариш ба бозии дигар ҳам кор мекунад."""
+    token, _ = register(client)
+    games = client.get("/api/games").json()
+    assert len(games) >= 2
+    g1, g2 = games[0], games[1]
+
+    assert coins_of(client, token)["favorite_game"] is None
+
+    r = client.post(
+        "/api/coins/my-game", headers=auth(token), json={"game_slug": g1["slug"]}
+    )
+    assert r.status_code == 200, r.text
+    assert r.json()["game_slug"] == g1["slug"]
+    assert coins_of(client, token)["favorite_game"] == g1["slug"]
+
+    r2 = client.post(
+        "/api/coins/my-game", headers=auth(token), json={"game_slug": g2["slug"]}
+    )
+    assert r2.status_code == 200
+    assert coins_of(client, token)["favorite_game"] == g2["slug"]
+
+
+def test_my_game_unknown_slug(client: TestClient):
+    """Бозии номавҷуд/ғайрифаъол → 404, интихоб бетағйир мемонад."""
+    token, _ = register(client)
+    games = client.get("/api/games").json()
+    client.post(
+        "/api/coins/my-game", headers=auth(token), json={"game_slug": games[0]["slug"]}
+    )
+
+    r = client.post(
+        "/api/coins/my-game", headers=auth(token), json={"game_slug": "no-such-game"}
+    )
+    assert r.status_code == 404
+    assert coins_of(client, token)["favorite_game"] == games[0]["slug"]
 
 
 # =====================================================================

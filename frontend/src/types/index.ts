@@ -153,7 +153,11 @@ export interface CoinsInfo {
   spin_cost: number;
   referral_code: string;
   referred_count: number;
+  /** 🔗 Ҳар 2 даъватшуда = N танга (аз backend) */
+  referral_pair_coins: number;
   history: CoinTx[];
+  /** 🎮 Бозии интихобшуда дар саҳифаи Чарх (slug ё null) */
+  favorite_game: string | null;
 }
 
 /** 🪙 Натиҷаи ивази танга ба баланс */

@@ -57,8 +57,9 @@ class Settings(BaseSettings):
     #    иваз ба баланс: COINS_TO_TJS танга = 1 сомонӣ (адади куллӣ)
     COINS_TO_TJS: int = 5
     #    даъват: ҳангоми қайди дӯст тавассути линки шахсӣ (як дафъа)
-    #       50 танга = 10 сомонӣ · дӯст 10 танга = 2 сомонӣ
-    REFERRAL_COINS: int = 50
+    #       даъваткунанда: ҳар 2 даъватшуда = REFERRAL_PAIR_COINS танга
+    #       (10 дӯст → 5 танга = 1 сомонӣ) · дӯст 10 танга = 2 сомонӣ
+    REFERRAL_PAIR_COINS: int = 1
     REFERRAL_FRIEND_COINS: int = 10
     #    хароҷоти як гардиши чарх (Фаза 2) → 50 танга = 10 сомонӣ
     SPIN_COST_COINS: int = 50
