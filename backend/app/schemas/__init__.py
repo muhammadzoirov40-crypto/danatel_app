@@ -490,3 +490,34 @@ class ProductUpdate(BaseModel):
     is_popular: bool | None = None
     sort_order: int | None = None
     region: str | None = None
+
+
+# =====================================================================
+# 💳 ДАРХОСТҲОИ ПУР КАРДАНИ БАЛАНС (чек → тасдиқи админ)
+# =====================================================================
+
+
+class TopupOut(BaseModel):
+    """Дархости пур кардан (бинанда — худи корбар)."""
+
+    id: int
+    amount_tjs: Decimal
+    status: str
+    receipt_file: str | None = None
+    created_at: datetime
+    decided_at: datetime | None = None
+
+
+class AdminTopupOut(TopupOut):
+    """Дархост барои админ + маълумоти корбар."""
+
+    user_id: int | None = None
+    user_phone: str | None = None
+    user_name: str | None = None
+
+
+class TopupDecideOut(BaseModel):
+    """Ҷавоби қабул/радкунии дархост."""
+
+    id: int
+    status: str

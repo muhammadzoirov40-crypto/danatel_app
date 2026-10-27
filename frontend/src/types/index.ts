@@ -12,6 +12,33 @@ export interface Product {
   region?: string;
 }
 
+/** 🔥 Баланси ҳисоби FireLoot (воқеӣ аз API партнёрӣ) */
+export interface FirelootBalance {
+  balance: string | null;
+  currency: string;
+  telegram_active: boolean;
+  stars_balance: string | null;
+}
+
+/** Як элементи каталоги воқеӣ + нархи мо (пайваст аз рӯи sku) */
+export interface FirelootItem {
+  sku: string;
+  name: string;
+  category: string;
+  region: string;
+  game: string;
+  usd: number;
+  tjs: number | null;
+  rate: number | null;
+}
+
+export interface FirelootCatalog {
+  items: FirelootItem[];
+  total: number;
+  matched: number;
+  manual: number;
+}
+
 export interface Game {
   id: number;
   slug: string;
@@ -278,4 +305,22 @@ export interface PlayerLookupResponse {
   nickname: string;
   region: string;
   message: string;
+}
+
+// ========================== 💳 ДАРХОСТИ ПУР КАРДАНИ БАЛАНС ==========================
+/** Дархости корбар: миқдор + чек → тасдиқи админ */
+export interface Topup {
+  id: number;
+  amount_tjs: number;
+  status: "pending" | "approved" | "rejected";
+  receipt_file: string | null;
+  created_at: string;
+  decided_at: string | null;
+}
+
+/** Дархост барои админ + маълумоти корбар */
+export interface AdminTopup extends Topup {
+  user_id: number | null;
+  user_phone: string | null;
+  user_name: string | null;
 }

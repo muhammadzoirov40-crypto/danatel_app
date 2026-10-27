@@ -304,6 +304,73 @@ async def cb_product(call: CallbackQuery):
     SLOTS.pop(str(call.message.chat.id), None)
 
 
+# ====================== 💳 ДАРХОСТҲОИ ПУР КАРДАН (админ) ======================
+
+
+def _admin_chat(chat_id: int | str) -> bool:
+    """Танҳо чати админ (TELEGRAM_ADMIN_CHAT_ID)."""
+    return bool(settings.TELEGRAM_ADMIN_CHAT_ID) and str(chat_id) == str(
+        settings.TELEGRAM_ADMIN_CHAT_ID
+    )
+
+
+@router.callback_query(F.data.startswith("topup:"))
+async def cb_topup(call: CallbackQuery):
+    """✅ Қабул / ❌ Рад — дархости пур кардан, танҳо барои админ."""
+    if call.message is None or not _admin_chat(call.message.chat.id):
+        await call.answer("⛔ Ин амал танҳо барои админ аст", show_alert=True)
+        return
+
+    parts = (call.data or "").split(":")
+    if len(parts) != 3:
+        await call.answer()
+        return
+    _, action, raw_id = parts
+    try:
+        request_id = int(raw_id)
+    except ValueError:
+        await call.answer()
+        return
+
+    from app.services import topups as topup_service
+
+    db = SessionLocal()
+    try:
+        admin_id = topup_service.admin_id_for_chat(db, call.message.chat.id)
+        if action == "ok":
+            req, _user = topup_service.approve_topup(
+                db, request_id, admin_user_id=admin_id, via="telegram"
+            )
+            result = f"✅ Қабул шуд — баланс +{req.amount_tjs} сомонӣ"
+        else:
+            req = topup_service.reject_topup(
+                db, request_id, admin_user_id=admin_id, via="telegram"
+            )
+            result = "❌ Рад шуд"
+    except Exception as exc:  # noqa: BLE001 — ҷавоб ба админ
+        logger.warning("Дархости #%s ҳал нашуд: %s", raw_id, exc)
+        await call.answer(str(exc), show_alert=True)
+        return
+    finally:
+        db.close()
+
+    # Ҳамон паёмро навсозӣ: +натиҷа, тугмаҳо пок мешаванд
+    try:
+        if call.message.photo:
+            await call.message.edit_caption(
+                caption=f"{call.message.caption or ''}\n\n{result}",
+                reply_markup=None,
+            )
+        else:
+            await call.message.edit_text(
+                text=f"{call.message.text or ''}\n\n{result}",
+                reply_markup=None,
+            )
+    except Exception:  # noqa: BLE001 — паём навсозӣ нашуд, муҳим не
+        pass
+    await call.answer(result)
+
+
 async def on_startup() -> None:
     """Санҷиши кори бот ҳангоми оғоз."""
     if not settings.TELEGRAM_BOT_TOKEN or settings.TELEGRAM_BOT_TOKEN.startswith("123456"):

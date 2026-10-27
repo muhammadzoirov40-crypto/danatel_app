@@ -429,3 +429,41 @@ class RevokedToken(Base):
     reason: Mapped[str] = mapped_column(String(32), default="logout")
     expires_at: Mapped[datetime] = mapped_column(DateTime, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+# =====================================================================
+# 💳 ДАРХОСТҲОИ ПУР КАРДАНИ БАЛАНС (чек → тасдиқи админ / бот)
+# =====================================================================
+
+
+class BalanceRequestStatus:
+    """Ҳолатҳои дархости пур кардани баланс."""
+
+    PENDING = "pending"      # интизори тасдиқи админ
+    APPROVED = "approved"    # тасдиқ → баланс + маблағ
+    REJECTED = "rejected"    # рад
+
+
+class BalanceRequest(Base):
+    """Дархости корбар: «баланси манро пур кун» + чеки пардохт.
+
+    Қабул (аз веб ё Telegram) → баланс худкор зиёд мешавад
+    дар як transaction бо сабти таърих (wallet.credit_balance).
+    """
+
+    __tablename__ = "balance_requests"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), index=True
+    )
+    amount_tjs: Mapped[Decimal] = mapped_column(Numeric(12, 2))
+    receipt_file: Mapped[str | None] = mapped_column(String(512))
+    status: Mapped[str] = mapped_column(
+        String(16), default=BalanceRequestStatus.PENDING, index=True
+    )
+    decided_by_id: Mapped[int | None] = mapped_column(Integer)
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    user: Mapped["User | None"] = relationship(foreign_keys=[user_id])

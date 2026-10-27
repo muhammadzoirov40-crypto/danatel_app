@@ -52,6 +52,8 @@ SLUG_SKU_PREFIXES: dict[str, tuple[str, ...]] = {
         "diamonds_",  # CIS (пешфарз)
         "bd_", "br_", "eu_", "id_", "latam_",
         "mena_", "pk_", "sg_", "tw_", "vn_",
+        # CIS бе префикси кишвар: пропускҳо ва вучерҳо
+        "levelpass_", "voucher_",
     ),
     "pubg-mobile": ("pubg_",),
     "mobile-legends": ("mlbb_", "mlbbcis_"),
@@ -160,6 +162,14 @@ class _FireLoot:
             self._products = data
             self._products_at = time.time()
         return self._products
+
+    async def balance(self) -> dict:
+        """💰 Баланси ҳисоби FireLoot — воқеӣ аз API (бе кэш)."""
+        async with httpx.AsyncClient(timeout=_API_TIMEOUT) as client:
+            resp = await client.get(f"{self.base}/balance", headers=self._headers())
+            resp.raise_for_status()
+            data = resp.json()
+        return data if isinstance(data, dict) else {}
 
     @staticmethod
     def _price_key(p: object):

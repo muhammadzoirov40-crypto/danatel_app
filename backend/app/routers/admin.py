@@ -10,6 +10,8 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import (
     AuditLog,
+    BalanceRequest,
+    BalanceRequestStatus,
     BalanceTransaction,
     CoinTransactionKind,
     Game,
@@ -22,6 +24,7 @@ from app.schemas import (
     AdminCoinsGrant,
     AdminOrderUpdate,
     AdminStats,
+    AdminTopupOut,
     AdminUserOut,
     BalanceAdjustRequest,
     BalanceOut,
@@ -35,9 +38,12 @@ from app.schemas import (
     ProductOut,
     ProductUpdate,
     ProductUpsert,
+    TopupDecideOut,
 )
 from app.security import require_admin
-from app.services import coins, telegram_service, wallet
+from app.routers.lookup import SLUG_SKU_PREFIXES, _fireloot
+from app.services import coins, telegram_service, topups, wallet
+from app.services.catalog_sync import _amount_of
 
 router = APIRouter(
     prefix="/api/admin", tags=["admin"], dependencies=[Depends(require_admin)]
@@ -297,6 +303,168 @@ def delete_product(product_id: int, db: Session = Depends(get_db)):
     db.delete(product)
     db.commit()
     return {"ok": True}
+
+
+# =============================================================
+# 🔥 FIRELOOT — баланс, каталоги воқеӣ, ҳамоҳангсозӣ
+# =============================================================
+
+
+@router.get("/fireloot/balance")
+async def fireloot_balance():
+    """💰 Баланси ҳисоби FireLoot — воқеӣ аз API партнёрӣ ($)."""
+    if not _fireloot.configured:
+        raise HTTPException(status_code=400, detail="FireLoot API танзим нашудааст")
+    try:
+        data = await _fireloot.balance()
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(
+            status_code=502, detail=f"FireLoot дастрас нест ({exc.__class__.__name__})"
+        )
+    return {
+        "balance": data.get("balance"),
+        "currency": data.get("currency") or "USD",
+        "telegram_active": bool(data.get("telegram_active")),
+        "stars_balance": data.get("stars_balance"),
+    }
+
+
+@router.get("/fireloot/catalog")
+async def fireloot_catalog(db: Session = Depends(get_db)):
+    """📚 Каталоги воқеии FireLoot + нархи шумо (пайваст аз рӯи sku)."""
+    if not _fireloot.configured:
+        raise HTTPException(status_code=400, detail="FireLoot API танзим нашудааст")
+    try:
+        items = await _fireloot.products()
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(
+            status_code=502, detail=f"FireLoot дастрас нест ({exc.__class__.__name__})"
+        )
+    mine = {p.sku: p for p in db.scalars(select(Product).where(Product.sku != ""))}
+    rows = []
+    for it in items:
+        sku = str(it.get("sku") or "")
+        slug = next(
+            (s for s, prefixes in SLUG_SKU_PREFIXES.items() if sku.startswith(prefixes)),
+            "",
+        )
+        try:
+            usd = float(it.get("price") or 0)
+        except (TypeError, ValueError):
+            usd = 0.0
+        p = mine.get(sku)
+        tjs = float(p.price_tjs) if p is not None and p.price_tjs is not None else None
+        rows.append({
+            "sku": sku,
+            "name": str(it.get("name") or ""),
+            "category": str(it.get("category") or ""),
+            "region": str(it.get("region") or ""),
+            "game": slug,
+            "usd": usd,
+            "tjs": tjs,
+            "rate": round(tjs / usd, 2) if (tjs and usd) else None,
+        })
+    rows.sort(key=lambda r: (r["game"], r["region"], r["category"], r["usd"]))
+    return {
+        "items": rows,
+        "total": len(rows),
+        "matched": sum(1 for r in rows if r["tjs"] is not None),
+        "manual": db.scalar(
+            select(func.count()).select_from(Product).where(Product.sku == "")
+        )
+        or 0,
+    }
+
+
+@router.post("/fireloot/sync")
+async def fireloot_sync(db: Session = Depends(get_db)):
+    """🔄 Ҳамоҳангсозии фаврӣ: минтақаҳои нав аз каталог сохта мешавад."""
+    from app.services.catalog_sync import sync_catalog
+
+    return await sync_catalog(db)
+
+
+# =====================================================================
+# 💳 ДАРХОСТҲОИ ПУР КАРДАНИ БАЛАНС (чек → қабул / рад)
+# =====================================================================
+
+
+@router.get("/balance-requests", response_model=list[AdminTopupOut])
+def list_topup_requests(
+    status: str | None = None,
+    limit: int = 200,
+    db: Session = Depends(get_db),
+):
+    """💳 Дархостҳои пур кардан (бинандаи админ + навсозии худкор)."""
+    q = (
+        select(BalanceRequest)
+        .order_by(BalanceRequest.id.desc())
+        .limit(max(1, min(limit, 500)))
+    )
+    if status:
+        q = q.where(BalanceRequest.status == status)
+    rows = list(db.scalars(q).all())
+
+    uids = {r.user_id for r in rows if r.user_id is not None}
+    users: dict[int, User] = {}
+    if uids:
+        users = {
+            u.id: u for u in db.scalars(select(User).where(User.id.in_(uids))).all()
+        }
+
+    out: list[AdminTopupOut] = []
+    for r in rows:
+        u = users.get(r.user_id) if r.user_id else None
+        out.append(
+            AdminTopupOut(
+                id=r.id,
+                amount_tjs=r.amount_tjs,
+                status=r.status,
+                receipt_file=r.receipt_file,
+                created_at=r.created_at,
+                decided_at=r.decided_at,
+                user_id=r.user_id,
+                user_phone=u.phone if u else None,
+                user_name=(u.full_name or u.username) if u else None,
+            )
+        )
+    return out
+
+
+@router.post("/balance-requests/{request_id}/approve", response_model=TopupDecideOut)
+def approve_topup_request(
+    request_id: int,
+    admin: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """✅ Қабул → баланс + маблағ (як transaction + audit + email)."""
+    try:
+        req, _user = topups.approve_topup(
+            db, request_id, admin_user_id=admin.id, via="web"
+        )
+    except topups.TopupError as exc:
+        raise HTTPException(status_code=exc.status, detail=str(exc)) from exc
+    except wallet.WalletError as exc:
+        raise HTTPException(
+            status_code=getattr(exc, "status", 400), detail=str(exc)
+        ) from exc
+    return TopupDecideOut(id=req.id, status=req.status)
+
+
+@router.post("/balance-requests/{request_id}/reject", response_model=TopupDecideOut)
+def reject_topup_request(
+    request_id: int,
+    admin: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """❌ Рад → баланс тағйир намеёбад."""
+    try:
+        req = topups.reject_topup(
+            db, request_id, admin_user_id=admin.id, via="web"
+        )
+    except topups.TopupError as exc:
+        raise HTTPException(status_code=exc.status, detail=str(exc)) from exc
+    return TopupDecideOut(id=req.id, status=req.status)
 
 
 # =====================================================================

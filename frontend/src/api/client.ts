@@ -6,17 +6,21 @@ import type {
   AdminReview,
   AdminReviewList,
   AdminStats,
+  AdminTopup,
   AdminUser,
   BalanceInfo,
   BalanceTx,
   CoinsExchange,
   CoinsInfo,
+  FirelootBalance,
+  FirelootCatalog,
   Game,
   Order,
   PaymentInit,
   PlayerLookupResponse,
   Review,
   ReviewSummary,
+  Topup,
   User,
   WheelData,
   WheelSpin,
@@ -264,6 +268,55 @@ export const api = {
     return URL.createObjectURL(blob);
   },
 
+  // ========================== 💳 ДАРХОСТҲОИ ПУР КАРДАН ==========================
+  /** ➕ Дархости пур кардан: миқдор + расми чек (multipart/form-data) */
+  createTopup: async (amount: number, file: File): Promise<Topup> => {
+    const fd = new FormData();
+    fd.append("amount", String(amount));
+    fd.append("file", file);
+    const headers: Record<string, string> = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+    const res = await fetch(`${BASE}/balance-requests`, {
+      method: "POST",
+      headers,
+      body: fd,
+    });
+    if (!res.ok) {
+      let detail = res.statusText;
+      try {
+        const body = await res.json();
+        detail = body.detail ?? detail;
+      } catch {
+        /* ignore */
+      }
+      throw new ApiError(res.status, detail);
+    }
+    return (await res.json()) as Topup;
+  },
+
+  /** 📜 Дархостҳои худи корбар */
+  myTopups: () => request<Topup[]>("/balance-requests/mine"),
+
+  /** 📋 Рӯйхати админ (бо филтри ҳолат) */
+  adminTopups: (status?: string) =>
+    request<AdminTopup[]>(
+      `/admin/balance-requests${status ? `?status=${status}` : ""}`,
+    ),
+
+  /** ✅ Қабули дархост → баланс + маблағ */
+  adminTopupApprove: (id: number) =>
+    request<{ id: number; status: string }>(
+      `/admin/balance-requests/${id}/approve`,
+      { method: "POST" },
+    ),
+
+  /** ❌ Радкунии дархост */
+  adminTopupReject: (id: number) =>
+    request<{ id: number; status: string }>(
+      `/admin/balance-requests/${id}/reject`,
+      { method: "POST" },
+    ),
+
   // ========================== 💰 БАЛАНС ==========================
   myBalance: () => request<BalanceInfo>("/auth/me/balance"),
   myOrders: (lang = "tj") => request<Order[]>(`/orders/my?lang=${lang}`),
@@ -316,6 +369,14 @@ export const api = {
     }),
   deleteProduct: (id: number) =>
     request<{ ok: boolean }>(`/admin/products/${id}`, { method: "DELETE" }),
+  // 🔥 FireLoot — баланс, каталоги воқеӣ, ҳамоҳангсозӣ (танҳо админ)
+  flBalance: () => request<FirelootBalance>("/admin/fireloot/balance"),
+  flCatalog: () => request<FirelootCatalog>("/admin/fireloot/catalog"),
+  flSync: () =>
+    request<{ created: number; adopted: number; attached: number }>(
+      "/admin/fireloot/sync",
+      { method: "POST" },
+    ),
 };
 
 export { ApiError };

@@ -1,7 +1,9 @@
 """Фиристодани пасхатҳои Telegram (бот + admin)."""
 from __future__ import annotations
 
+import json
 import logging
+import os
 
 import httpx
 
@@ -66,3 +68,98 @@ async def notify_order_delivered(order_id: int, chat_id: str | None) -> None:
     if chat_id:
         await send_message(chat_id, text)
     await notify_admin(text)
+
+
+# =====================================================================
+# 💳 ДАРХОСТИ ПУР КАРДАНИ БАЛАНС — расм + тугмаҳои [Қабул] [Рад]
+# =====================================================================
+
+
+async def send_photo_with_buttons(
+    chat_id: str | int,
+    photo_path: str,
+    caption: str,
+    buttons: list[list[dict]],
+) -> bool:
+    """📷 Расми чек бо тугмаҳои inline (callback)."""
+    if not settings.TELEGRAM_BOT_TOKEN:
+        return False
+    url = API.format(token=settings.TELEGRAM_BOT_TOKEN, method="sendPhoto")
+    data = {
+        "chat_id": str(chat_id),
+        "caption": caption,
+        "parse_mode": "HTML",
+        "reply_markup": json.dumps({"inline_keyboard": buttons}),
+    }
+    try:
+        with open(photo_path, "rb") as fh:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                resp = await client.post(url, data=data, files={"photo": fh})
+        if resp.status_code != 200:
+            logger.error("Telegram sendPhoto хатогӣ: %s", resp.text[:300])
+            return False
+        return True
+    except (httpx.HTTPError, OSError) as exc:
+        logger.error("Telegram sendPhoto хатогӣ: %s", exc)
+        return False
+
+
+async def send_message_with_buttons(
+    chat_id: str | int, text: str, buttons: list[list[dict]]
+) -> bool:
+    """📩 Паём бо тугмаҳои inline (фолбэк, агар расм нашавад)."""
+    if not settings.TELEGRAM_BOT_TOKEN:
+        return False
+    return await _send(
+        "sendMessage",
+        {
+            "chat_id": chat_id,
+            "text": text,
+            "parse_mode": "HTML",
+            "reply_markup": json.dumps({"inline_keyboard": buttons}),
+        },
+    )
+
+
+async def notify_topup_request(
+    request_id: int,
+    user_label: str,
+    amount: float,
+    receipt_file: str | None,
+) -> bool:
+    """💳 Дархости пур кардан → админ: расми чек + [Қабул] [Рад]."""
+    if not settings.TELEGRAM_ADMIN_CHAT_ID:
+        logger.warning(
+            "TELEGRAM_ADMIN_CHAT_ID холӣ — дархост #%s ба Telegram намеравад",
+            request_id,
+        )
+        return False
+
+    caption = (
+        f"💳 <b>Дархости пур кардан #{request_id}</b>\n"
+        f"👤 {user_label}\n"
+        f"💰 {amount:.2f} сомонӣ\n\n"
+        f"Чекро санҷед ва аз ҳамин ҷо қабул ё рад кунед:"
+    )
+    buttons = [
+        [
+            {"text": "✅ Қабул", "callback_data": f"topup:ok:{request_id}"},
+            {"text": "❌ Рад", "callback_data": f"topup:no:{request_id}"},
+        ]
+    ]
+    chat_id = settings.TELEGRAM_ADMIN_CHAT_ID
+
+    if receipt_file:
+        # "/uploads/receipts/x.png" → backend/uploads/receipts/x.png
+        local = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+            "uploads",
+            "receipts",
+            os.path.basename(receipt_file),
+        )
+        if os.path.isfile(local) and await send_photo_with_buttons(
+            chat_id, local, caption, buttons
+        ):
+            return True
+
+    return await send_message_with_buttons(chat_id, caption, buttons)

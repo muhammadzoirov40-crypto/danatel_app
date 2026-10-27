@@ -1,5 +1,6 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import {
+  Flame,
   Gem,
   LayoutDashboard,
   Loader2,
@@ -9,8 +10,10 @@ import {
   Settings,
   Star,
   Users as UsersIcon,
+  Wallet,
   type LucideIcon,
 } from "lucide-react";
+import { api } from "../../api/client";
 import { useApp } from "../../context/AppContext";
 import { Ic } from "../../components/Icons";
 import Dashboard from "./Dashboard";
@@ -18,13 +21,36 @@ import Orders from "./Orders";
 import Products from "./Products";
 import Users from "./Users";
 import Reviews from "./Reviews";
+import Topups from "./Topups";
+import Fireloot from "./Fireloot";
 
-type Tab = "dashboard" | "orders" | "products" | "users" | "reviews";
+type Tab = "dashboard" | "orders" | "products" | "users" | "reviews" | "topups" | "fireloot";
 
 /** Панели идора — танҳо бо вуруди админ */
 export default function Admin() {
   const { t, isAdmin, logout } = useApp();
   const [tab, setTab] = useState<Tab>("dashboard");
+  const [pendingTopups, setPendingTopups] = useState(0);
+
+  // 💳 Баджи зиндаи дархостҳои pending — ҳар 20 сония нав мешавад
+  useEffect(() => {
+    if (!isAdmin) return;
+    let alive = true;
+    const tick = async () => {
+      try {
+        const rows = await api.adminTopups("pending");
+        if (alive) setPendingTopups(rows.length);
+      } catch {
+        /* навсозӣ ноком шуд — дархостҳо дар таб худашон нав мешаванд */
+      }
+    };
+    void tick();
+    const id = window.setInterval(() => void tick(), 20000);
+    return () => {
+      alive = false;
+      window.clearInterval(id);
+    };
+  }, [isAdmin]);
 
   if (!isAdmin) return <LoginGate />;
 
@@ -34,6 +60,8 @@ export default function Admin() {
     { id: "products", label: t("products"), icon: Gem },
     { id: "users", label: t("users"), icon: UsersIcon },
     { id: "reviews", label: t("reviews"), icon: Star },
+    { id: "topups", label: t("topupRequests"), icon: Wallet },
+    { id: "fireloot", label: "FireLoot", icon: Flame },
   ];
 
   return (
@@ -64,6 +92,14 @@ export default function Admin() {
           >
             <Ic icon={x.icon} />
             {x.label}
+            {x.id === "topups" && pendingTopups > 0 && (
+              <span
+                aria-label={`${pendingTopups} ${t("topupWaitReview")}`}
+                className="ml-1 px-1.5 py-0.5 rounded-full bg-rose-600 text-white text-[10px] font-black tabular-nums"
+              >
+                {pendingTopups}
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -73,6 +109,8 @@ export default function Admin() {
       {tab === "products" && <Products />}
       {tab === "users" && <Users />}
       {tab === "reviews" && <Reviews />}
+      {tab === "topups" && <Topups />}
+      {tab === "fireloot" && <Fireloot />}
     </div>
   );
 }

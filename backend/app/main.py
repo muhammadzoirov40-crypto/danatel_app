@@ -13,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from app.config import settings
 from app.database import init_db
 from app.models import User
-from app.routers import admin, auth, coins, games, lookup, orders, reviews, webhook
+from app.routers import admin, auth, coins, games, lookup, orders, reviews, topups, webhook
 from app.security import require_admin
 
 logging.basicConfig(
@@ -76,6 +76,7 @@ app.include_router(lookup.router)
 app.include_router(admin.router)
 app.include_router(reviews.router)
 app.include_router(coins.router)
+app.include_router(topups.router)
 
 
 # ========================== Роутҳои умумӣ ==========================
