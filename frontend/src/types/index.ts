@@ -316,7 +316,7 @@ export interface PlayerLookupResponse {
 export interface Topup {
   id: number;
   amount_tjs: number;
-  status: "awaiting_receipt" | "pending" | "approved" | "rejected" | "expired";
+  status: "awaiting_receipt" | "pending" | "approved" | "rejected" | "reverted" | "expired";
   receipt_file: string | null;
   receipt_deadline: string | null;
   dc_ref: string | null;

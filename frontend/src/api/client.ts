@@ -324,6 +324,13 @@ export const api = {
       { method: "POST" },
     ),
 
+  /** 🔄 Возвратка: боз гирифти маблағи қабулшуда → баланс − маблағ */
+  adminTopupRevert: (id: number) =>
+    request<{ id: number; status: string }>(
+      `/admin/balance-requests/${id}/revert`,
+      { method: "POST" },
+    ),
+
   // ========================== 💰 БАЛАНС ==========================
   myBalance: () => request<BalanceInfo>("/auth/me/balance"),
   myOrders: (lang = "tj") => request<Order[]>(`/orders/my?lang=${lang}`),

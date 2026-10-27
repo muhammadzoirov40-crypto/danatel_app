@@ -178,6 +178,8 @@ def debit_balance(
     amount,
     reason: str | None,
     order_id: int | None = None,
+    admin_id: int | None = None,
+    allow_negative: bool = False,
 ) -> tuple[User, BalanceTransaction]:
     """
     Аз баланс маблағ буридан (донат).
@@ -186,8 +188,9 @@ def debit_balance(
       1. Қулфи сатри User
       2. Санҷиш: balance >= amount ?
            Не → InsufficientBalance → ROLLBACK (баланс бетағйир)
+           (лағв мешавад, агар `allow_negative=True` — возвраткаи админ)
       3. Баланс - маблағ
-      4. Сабти таърихи буриш
+      4. Сабти таърихи буриш (бо admin_id, агар дода шуда бошад)
       5. COMMIT
 
     Агар ҳамаи қадамҳо муваффақ набошанд → ROLLBACK,
@@ -200,12 +203,13 @@ def debit_balance(
         current = _to_decimal(user.balance or 0)
 
         # ===== 🛡️ САНҶИШИ БАЛАНС =====
-        if current <= Decimal("0.00"):
-            raise InsufficientBalance("Баланс сифат аст — донат ғайриимкон аст")
-        if current < value:
-            raise InsufficientBalance(
-                f"Баланс нокифоя аст: {current} сомонӣ (лозим {value} сомонӣ)"
-            )
+        if not allow_negative:
+            if current <= Decimal("0.00"):
+                raise InsufficientBalance("Баланс сифат аст — донат ғайриимкон аст")
+            if current < value:
+                raise InsufficientBalance(
+                    f"Баланс нокифоя аст: {current} сомонӣ (лозим {value} сомонӣ)"
+                )
 
         # ===== ➖ БУРИШ =====
         user.balance = current - value
@@ -216,6 +220,7 @@ def debit_balance(
             kind=BalanceTransactionKind.DEBIT,
             amount=-value,                   # бо аломати манфӣ
             reason=reason or "Донат аз баланс",
+            admin_id=admin_id,
             order_id=order_id,
         )
 

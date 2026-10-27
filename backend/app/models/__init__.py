@@ -448,6 +448,7 @@ class BalanceRequestStatus:
     PENDING = "pending"            # чек расид → интизори тасдиқи админ
     APPROVED = "approved"          # тасдиқ → баланс + маблағ
     REJECTED = "rejected"          # рад
+    REVERTED = "reverted"          # 🔄 возвратка → баланс − маблағ
     EXPIRED = "expired"            # вақти фиристодани чек гузашт
 
 

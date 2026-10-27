@@ -470,6 +470,30 @@ def reject_topup_request(
     return TopupDecideOut(id=req.id, status=req.status)
 
 
+@router.post("/balance-requests/{request_id}/revert", response_model=TopupDecideOut)
+def revert_topup_request(
+    request_id: int,
+    admin: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """🔄 Возвратка → баланс − маблағ, ҳолат: reverted.
+
+    Аз ҷониби админ (веб ё Telegram) — ҳамеша иҷро мешавад,
+    баланс манфӣ ҳам мешавад; такрорӣ → 409.
+    """
+    try:
+        req, _user = topups.revert_topup(
+            db, request_id, admin_user_id=admin.id, via="web"
+        )
+    except topups.TopupError as exc:
+        raise HTTPException(status_code=exc.status, detail=str(exc)) from exc
+    except wallet.WalletError as exc:
+        raise HTTPException(
+            status_code=getattr(exc, "status", 400), detail=str(exc)
+        ) from exc
+    return TopupDecideOut(id=req.id, status=req.status)
+
+
 # =====================================================================
 # 💰 ИДОРАКУНИИ БАЛАНСИ КОРБАРОН (танҳо Admin)
 # =====================================================================

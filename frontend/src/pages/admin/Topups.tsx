@@ -1,17 +1,18 @@
 import { useCallback, useEffect, useState } from "react";
-import { CircleCheck, ExternalLink, Loader2, RefreshCw, X } from "lucide-react";
+import { CircleCheck, ExternalLink, Loader2, RefreshCw, Undo2, X } from "lucide-react";
 import { api } from "../../api/client";
 import { useApp } from "../../context/AppContext";
 import { Ic } from "../../components/Icons";
 import type { AdminTopup } from "../../types";
 
-type Filter = "" | "pending" | "approved" | "rejected";
+type Filter = "" | "pending" | "approved" | "reverted" | "rejected";
 
 const STATUS_LABEL: Record<AdminTopup["status"], string> = {
   awaiting_receipt: "topupAwaiting",
   pending: "topupWaitReview",
   approved: "topupApproved",
   rejected: "topupRejected",
+  reverted: "topupReverted",
   expired: "topupExpiredShort",
 };
 
@@ -20,6 +21,7 @@ const STATUS_CLS: Record<AdminTopup["status"], string> = {
   pending: "bg-amber-100 text-amber-800",
   approved: "bg-emerald-100 text-emerald-800",
   rejected: "bg-rose-100 text-rose-800",
+  reverted: "bg-violet-100 text-violet-800",
   expired: "bg-slate-200 text-slate-600",
 };
 
@@ -66,6 +68,22 @@ export default function Topups() {
     }
   };
 
+  /** 🔄 Возвратка — бо тасдиқи корбар */
+  const revert = async (id: number) => {
+    if (busy !== null) return; // бе дубликация
+    if (!window.confirm(t("topupRevertConfirm"))) return;
+    setBusy(id);
+    setErr("");
+    try {
+      await api.adminTopupRevert(id);
+      await load();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : t("error"));
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const viewReceipt = async (path: string) => {
     try {
       const url = await api.fetchReceipt(path);
@@ -80,6 +98,7 @@ export default function Topups() {
     { id: "", label: allLabel },
     { id: "pending", label: t("topupWaitReview") },
     { id: "approved", label: t("topupApproved") },
+    { id: "reverted", label: t("topupReverted") },
     { id: "rejected", label: t("topupRejected") },
   ];
 
@@ -190,6 +209,22 @@ export default function Topups() {
                       {t("reject")}
                     </button>
                   </>
+                )}
+
+                {r.status === "approved" && (
+                  <button
+                    onClick={() => void revert(r.id)}
+                    disabled={busy !== null}
+                    className="btn text-xs bg-violet-600 text-white hover:bg-violet-700 disabled:opacity-50"
+                    aria-label={t("topupRevert")}
+                  >
+                    {busy === r.id ? (
+                      <Ic icon={Loader2} className="animate-spin" />
+                    ) : (
+                      <Ic icon={Undo2} />
+                    )}
+                    {t("topupRevert")}
+                  </button>
                 )}
               </div>
             </div>

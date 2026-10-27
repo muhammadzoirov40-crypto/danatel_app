@@ -316,7 +316,10 @@ def _admin_chat(chat_id: int | str) -> bool:
 
 @router.callback_query(F.data.startswith("topup:"))
 async def cb_topup(call: CallbackQuery):
-    """✅ Қабул / ❌ Рад — дархости пур кардан, танҳо барои админ."""
+    """✅ Қабул / ❌ Рад / 🔄 Возвратка — танҳо барои админ.
+
+    Баъди қабул тугмаи «🔄 Боз гирифт» мемонад → возвратка аз ҳамон паём.
+    """
     if call.message is None or not _admin_chat(call.message.chat.id):
         await call.answer("⛔ Ин амал танҳо барои админ аст", show_alert=True)
         return
@@ -335,6 +338,7 @@ async def cb_topup(call: CallbackQuery):
     from app.services import topups as topup_service
 
     db = SessionLocal()
+    markup: InlineKeyboardMarkup | None = None
     try:
         admin_id = topup_service.admin_id_for_chat(db, call.message.chat.id)
         if action == "ok":
@@ -342,6 +346,22 @@ async def cb_topup(call: CallbackQuery):
                 db, request_id, admin_user_id=admin_id, via="telegram"
             )
             result = f"✅ Қабул шуд — баланс +{req.amount_tjs} сомонӣ"
+            # 🔄 Возвратка ҳам аз ҳамон паём дастрас мемонад
+            markup = InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [
+                        InlineKeyboardButton(
+                            text="🔄 Боз гирифт",
+                            callback_data=f"topup:revert:{request_id}",
+                        )
+                    ]
+                ]
+            )
+        elif action == "revert":
+            req, _user = topup_service.revert_topup(
+                db, request_id, admin_user_id=admin_id, via="telegram"
+            )
+            result = f"↩️ Боз гирифта шуд — баланс −{req.amount_tjs} сомонӣ"
         else:
             req = topup_service.reject_topup(
                 db, request_id, admin_user_id=admin_id, via="telegram"
@@ -354,17 +374,17 @@ async def cb_topup(call: CallbackQuery):
     finally:
         db.close()
 
-    # Ҳамон паёмро навсозӣ: +натиҷа, тугмаҳо пок мешаванд
+    # Ҳамон паёмро навсозӣ: +натиҷа; тугмаҳо → вазифаи возвратка
     try:
         if call.message.photo:
             await call.message.edit_caption(
                 caption=f"{call.message.caption or ''}\n\n{result}",
-                reply_markup=None,
+                reply_markup=markup,
             )
         else:
             await call.message.edit_text(
                 text=f"{call.message.text or ''}\n\n{result}",
-                reply_markup=None,
+                reply_markup=markup,
             )
     except Exception:  # noqa: BLE001 — паём навсозӣ нашуд, муҳим не
         pass

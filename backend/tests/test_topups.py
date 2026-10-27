@@ -264,3 +264,154 @@ def test_approve_before_receipt_refused(client: TestClient):
     )
     assert r.status_code == 409
     assert balance_of(client, token) == before
+
+
+# =====================================================================
+# 🔄 ВОЗВРОТКА (боз гирифтан аз ҷониби админ)
+# =====================================================================
+
+
+def _approve_flow(client: TestClient, amount: str = "25") -> tuple[str, int, float]:
+    """Дархост то ҳолати approved: (user_token, req_id, баланси ПЕШ)."""
+    token = register(client)
+    before = balance_of(client, token)
+    prepared = prepare(client, token, amount=amount).json()
+    send_receipt(client, token, prepared["id"])
+    adm = admin_token(client)
+    r = client.post(
+        f"/api/admin/balance-requests/{prepared['id']}/approve", headers=auth(adm)
+    )
+    assert r.status_code == 200, r.text
+    return token, prepared["id"], before
+
+
+def test_revert_after_approve_balance_exact(client: TestClient):
+    """🔄 Қабул → возвратка: баланс ПАС ба ҳамон рақам, ҳолат reverted."""
+    token, req_id, before = _approve_flow(client)
+    adm = admin_token(client)
+    assert balance_of(client, token) == before + 25.0
+
+    r = client.post(
+        f"/api/admin/balance-requests/{req_id}/revert", headers=auth(adm)
+    )
+    assert r.status_code == 200, r.text
+    assert r.json()["status"] == "reverted"
+    assert balance_of(client, token) == before  # ПАС ҳамон рақам
+
+    # рӯйхати админ ҳолати навро нишон медиҳад
+    rows = client.get("/api/admin/balance-requests", headers=auth(adm)).json()
+    row = next(x for x in rows if x["id"] == req_id)
+    assert row["status"] == "reverted"
+
+    # таърихи баланс: сатри буриш бо истинод ба #id ҳаст
+    from app.database import SessionLocal
+    from sqlalchemy import text as _text
+
+    db = SessionLocal()
+    try:
+        n = db.execute(
+            _text(
+                "SELECT count(*) FROM balance_transactions "
+                "WHERE kind = 'debit' AND user_id = :u AND reason LIKE :r"
+            ),
+            {"u": client.get("/api/auth/me", headers=auth(token)).json()["id"],
+             "r": f"%пур кардан #{req_id} (%"},
+        ).scalar()
+    finally:
+        db.close()
+    assert n == 1
+
+
+def test_revert_twice_409(client: TestClient):
+    """Такроран возвратка → 409, баланс дубора намешинад."""
+    token, req_id, before = _approve_flow(client)
+    adm = admin_token(client)
+
+    assert (
+        client.post(
+            f"/api/admin/balance-requests/{req_id}/revert", headers=auth(adm)
+        ).status_code
+        == 200
+    )
+    mid = balance_of(client, token)
+    assert mid == before
+
+    r2 = client.post(
+        f"/api/admin/balance-requests/{req_id}/revert", headers=auth(adm)
+    )
+    assert r2.status_code == 409
+    assert balance_of(client, token) == mid  # баланс бетағйир
+
+
+def test_revert_only_approved(client: TestClient):
+    """Возвратка танҳо аз approved: awaiting / pending / rejected → 409."""
+    token = register(client)
+    adm = admin_token(client)
+    prepared = prepare(client, token, amount="20").json()
+
+    # awaiting_receipt
+    assert (
+        client.post(
+            f"/api/admin/balance-requests/{prepared['id']}/revert",
+            headers=auth(adm),
+        ).status_code
+        == 409
+    )
+
+    # pending (чек расид, ҳанӯз қабул нашуда)
+    send_receipt(client, token, prepared["id"])
+    assert (
+        client.post(
+            f"/api/admin/balance-requests/{prepared['id']}/revert",
+            headers=auth(adm),
+        ).status_code
+        == 409
+    )
+
+    # rejected
+    client.post(
+        f"/api/admin/balance-requests/{prepared['id']}/reject", headers=auth(adm)
+    )
+    assert (
+        client.post(
+            f"/api/admin/balance-requests/{prepared['id']}/revert",
+            headers=auth(adm),
+        ).status_code
+        == 409
+    )
+
+
+def test_revert_requires_admin(client: TestClient):
+    """Ғайриадмин возвратка карда наметавонад → 403."""
+    token, req_id, _ = _approve_flow(client)
+    assert (
+        client.post(
+            f"/api/admin/balance-requests/{req_id}/revert", headers=auth(token)
+        ).status_code
+        == 403
+    )
+
+
+def test_revert_allows_negative_balance(client: TestClient):
+    """Корбар сарф кардааст → возвратка ҳамеша кор мекунад (баланс манфӣ)."""
+    from app.database import SessionLocal
+    from app.services import wallet
+
+    token, req_id, _ = _approve_flow(client, amount="30")  # баланс 30
+    uid = client.get("/api/auth/me", headers=auth(token)).json()["id"]
+
+    # 30-ро сарф мекунад → баланс 0
+    db = SessionLocal()
+    try:
+        wallet.debit_balance(db, user_id=uid, amount="30", reason="санҷиши сарф")
+    finally:
+        db.close()
+    assert balance_of(client, token) == 0.0
+
+    adm = admin_token(client)
+    r = client.post(
+        f"/api/admin/balance-requests/{req_id}/revert", headers=auth(adm)
+    )
+    assert r.status_code == 200, r.text
+    assert r.json()["status"] == "reverted"
+    assert balance_of(client, token) == -30.0  # манфӣ — қабул аст

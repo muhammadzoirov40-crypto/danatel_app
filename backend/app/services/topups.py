@@ -1,9 +1,10 @@
 """
-💳 Дархостҳои пур кардани баланс: қабул / радкунӣ.
+💳 Дархостҳои пур кардани баланс: қабул / радкунӣ / возвратка.
 
 ЯК хидмат барои ҳам веб (админ-панел) ва ҳам боти Telegram —
 дархост танҳо ЯК дафъа ҳал мешавад (бо қулфи сатр), пас аз қабул
-баланс дар як transaction бо сабти таърих зиёд мешавад.
+баланс дар як transaction бо сабти таърих зиёд мешавад,
+вазифаи возвратка маблағро боз мегирад (ҳолат: reverted).
 """
 from __future__ import annotations
 
@@ -198,3 +199,63 @@ def reject_topup(
     db.refresh(req)
     logger.info("💳 Дархости #%s рад шуд (%s)", req.id, via)
     return req
+
+
+# =====================================================================
+# 🔄 ВОЗВРОТКА — боз гирифти маблағи қабулшуда
+# =====================================================================
+def revert_topup(
+    db: Session,
+    request_id: int,
+    *,
+    admin_user_id: int | None = None,
+    via: str = "web",
+) -> tuple[BalanceRequest, User]:
+    """🔄 Боз гирифтан: approved → reverted + буриши маблағ аз баланс.
+
+    Қоидаи соҳиб (27.10.2026): админ ҳамеша метавонад маблағи
+    қабулшударо боз гирад — ҳатто агар баланси корбар нокифоя бошад,
+    баланс манфӣ мешавад (фармоиш то барқарорсозӣ баста мешавад).
+    Такроран боз гирифтан → 409.
+    """
+    req = _load_locked(db, request_id)
+    if req.status == BalanceRequestStatus.REVERTED:
+        raise TopupAlreadyDecided("Дархост аллакай боз гирифта шудааст")
+    if req.status != BalanceRequestStatus.APPROVED:
+        raise TopupError(
+            "Боз гирифтан танҳо аз ҳолати «қабулшуда» мумкин аст", 409
+        )
+    if req.user_id is None:
+        raise TopupError("Корбари дархост ёфт нашуд", 404)
+
+    admin_id = _admin_for(db, admin_user_id)
+
+    # Ҳолат + audit ПЕШ аз debit → як commit; агар debit ноком → ROLLBACK
+    req.status = BalanceRequestStatus.REVERTED
+    req.decided_by_id = admin_id
+    req.decided_at = datetime.utcnow()
+    db.add(
+        AuditLog(
+            admin_id=admin_id,
+            action="topup_revert",
+            entity="balance_request",
+            entity_id=str(req.id),
+            details=f"-{req.amount_tjs} TJS | user={req.user_id} | {via}",
+        )
+    )
+
+    user, _entry = wallet.debit_balance(
+        db,
+        user_id=req.user_id,
+        amount=req.amount_tjs,
+        reason=f"Боз гирифти дархости пур кардан #{req.id} ({via})",
+        admin_id=admin_id,
+        allow_negative=True,   # возвратка ҳамеша иҷро мешавад
+    )
+
+    logger.info(
+        "🔄 Дархости #%s боз гирифта шуд (%s): −%s → %s",
+        req.id, via, req.amount_tjs, user.balance,
+    )
+    db.refresh(req)
+    return req, user
