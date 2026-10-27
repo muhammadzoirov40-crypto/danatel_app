@@ -239,11 +239,6 @@ export default function Profile() {
     /* 🌅 Заминаи мулоими кабуди градиентӣ (дар торик — таркиби торик) */
     <div className="profile-soft min-h-[calc(100vh-4rem)]">
       <div className="mx-auto max-w-3xl px-4 py-8 space-y-5">
-        {/* ===== САРЛАВҲА ===== */}
-        <h1 className="text-2xl md:text-3xl font-black tracking-tight">
-          {t("profile")}
-        </h1>
-
         {/* ===== 1️⃣ КАРТОЧКАИ ПРОФИЛ ===== */}
         <section className="card p-5 sm:p-6" aria-labelledby="profile-name">
           <div className="flex items-start gap-4">
