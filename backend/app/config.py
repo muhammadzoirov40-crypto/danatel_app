@@ -33,6 +33,13 @@ class Settings(BaseSettings):
     TELEGRAM_BOT_TOKEN: str = ""
     TELEGRAM_ADMIN_CHAT_ID: str = ""
 
+    # ===== DC City (pay.dc.tj) — пардохти воқеӣ =====
+    PAYDC_URL: str = "https://pay.dc.tj/"
+    PAYDC_ENABLED: bool = True
+    PAYDC_ACCOUNT: str = "9762000220865843"
+    PAYDC_ARTICUL: str = "133"
+    PAYDC_DESCRIPTION: str = "donatshop"
+
     # 🔄 ИМПОРТИ МАЪЛОМОТ аз боти Telegram (фақат DB, токен истифода намешавад)
     # Масалан: postgresql+psycopg://postgres:pass@127.0.0.1:5432/fastapi
     BOT_DATABASE_URL: str = ""

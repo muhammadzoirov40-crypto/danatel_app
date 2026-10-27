@@ -312,10 +312,21 @@ export interface PlayerLookupResponse {
 export interface Topup {
   id: number;
   amount_tjs: number;
-  status: "pending" | "approved" | "rejected";
+  status: "awaiting_receipt" | "pending" | "approved" | "rejected" | "expired";
   receipt_file: string | null;
+  receipt_deadline: string | null;
+  dc_ref: string | null;
+  dc_payment_url: string | null;
   created_at: string;
   decided_at: string | null;
+}
+
+/** Ҷавоби омодасозии пардохт: линки DC City + мӯҳлати чек */
+export interface TopupPrepare {
+  id: number;
+  amount_tjs: number;
+  payment_url: string;
+  receipt_deadline: string;
 }
 
 /** Дархост барои админ + маълумоти корбар */

@@ -109,6 +109,8 @@ def approve_topup(
     яке TopupAlreadyDecided (409) мегирад, баланс ЯК бор зиёд мешавад.
     """
     req = _load_locked(db, request_id)
+    if req.status == BalanceRequestStatus.AWAITING:
+        raise TopupError("Корбари ҳанӯз чек навастодааст", 409)
     if req.status != BalanceRequestStatus.PENDING:
         raise TopupAlreadyDecided("Дархост аллакай ҳал шудааст")
     if req.user_id is None:
@@ -174,6 +176,8 @@ def reject_topup(
 ) -> BalanceRequest:
     """Радкунии дархост — баланс ҲЕҶ гуна тағйир намеёбад."""
     req = _load_locked(db, request_id)
+    if req.status == BalanceRequestStatus.AWAITING:
+        raise TopupError("Корбари ҳанӯз чек навастодааст", 409)
     if req.status != BalanceRequestStatus.PENDING:
         raise TopupAlreadyDecided("Дархост аллакай ҳал шудааст")
 

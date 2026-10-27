@@ -504,6 +504,9 @@ class TopupOut(BaseModel):
     amount_tjs: Decimal
     status: str
     receipt_file: str | None = None
+    receipt_deadline: datetime | None = None
+    dc_ref: str | None = None
+    dc_payment_url: str | None = None
     created_at: datetime
     decided_at: datetime | None = None
 
@@ -521,3 +524,18 @@ class TopupDecideOut(BaseModel):
 
     id: int
     status: str
+
+
+class TopupPrepareIn(BaseModel):
+    """Омодасозии пардохт: танҳо маблағ."""
+
+    amount: str
+
+
+class TopupPrepareOut(BaseModel):
+    """Ҷавоб: линки пардохти DC City + мӯҳлати фиристодани чек."""
+
+    id: int
+    amount_tjs: Decimal
+    payment_url: str
+    receipt_deadline: datetime

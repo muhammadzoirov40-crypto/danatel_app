@@ -439,9 +439,11 @@ class RevokedToken(Base):
 class BalanceRequestStatus:
     """Ҳолатҳои дархости пур кардани баланс."""
 
-    PENDING = "pending"      # интизори тасдиқи админ
-    APPROVED = "approved"    # тасдиқ → баланс + маблағ
-    REJECTED = "rejected"    # рад
+    AWAITING = "awaiting_receipt"  # пардохт карда шуд → чек дар давоми 1 дақиқа
+    PENDING = "pending"            # чек расид → интизори тасдиқи админ
+    APPROVED = "approved"          # тасдиқ → баланс + маблағ
+    REJECTED = "rejected"          # рад
+    EXPIRED = "expired"            # вақти фиристодани чек гузашт
 
 
 class BalanceRequest(Base):
@@ -459,8 +461,12 @@ class BalanceRequest(Base):
     )
     amount_tjs: Mapped[Decimal] = mapped_column(Numeric(12, 2))
     receipt_file: Mapped[str | None] = mapped_column(String(512))
+    # Пардохти DC City: референс дар f3 + линк + мӯҳлати чек (1 дақиқа)
+    dc_ref: Mapped[str | None] = mapped_column(String(64), unique=True, index=True)
+    dc_payment_url: Mapped[str | None] = mapped_column(String(512))
+    receipt_deadline: Mapped[datetime | None] = mapped_column(DateTime)
     status: Mapped[str] = mapped_column(
-        String(16), default=BalanceRequestStatus.PENDING, index=True
+        String(16), default=BalanceRequestStatus.AWAITING, index=True
     )
     decided_by_id: Mapped[int | None] = mapped_column(Integer)
     decided_at: Mapped[datetime | None] = mapped_column(DateTime)

@@ -21,6 +21,7 @@ import type {
   Review,
   ReviewSummary,
   Topup,
+  TopupPrepare,
   User,
   WheelData,
   WheelSpin,
@@ -269,14 +270,20 @@ export const api = {
   },
 
   // ========================== 💳 ДАРХОСТҲОИ ПУР КАРДАН ==========================
-  /** ➕ Дархости пур кардан: миқдор + расми чек (multipart/form-data) */
-  createTopup: async (amount: number, file: File): Promise<Topup> => {
+  /** 1️⃣ Омодасозии пардохт: миқдор → линки pay.dc.tj + мӯҳлати чек (1 дақиқа) */
+  prepareTopup: (amount: number) =>
+    request<TopupPrepare>("/balance-requests", {
+      method: "POST",
+      body: JSON.stringify({ amount: String(amount) }),
+    }),
+
+  /** 2️⃣ Расми чек дар вақти муқарраршуда → Telegram-и админ */
+  submitTopupReceipt: async (id: number, file: File): Promise<Topup> => {
     const fd = new FormData();
-    fd.append("amount", String(amount));
     fd.append("file", file);
     const headers: Record<string, string> = {};
     if (token) headers.Authorization = `Bearer ${token}`;
-    const res = await fetch(`${BASE}/balance-requests`, {
+    const res = await fetch(`${BASE}/balance-requests/${id}/receipt`, {
       method: "POST",
       headers,
       body: fd,

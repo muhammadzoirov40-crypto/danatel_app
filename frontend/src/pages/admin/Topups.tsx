@@ -8,15 +8,19 @@ import type { AdminTopup } from "../../types";
 type Filter = "" | "pending" | "approved" | "rejected";
 
 const STATUS_LABEL: Record<AdminTopup["status"], string> = {
+  awaiting_receipt: "topupAwaiting",
   pending: "topupWaitReview",
   approved: "topupApproved",
   rejected: "topupRejected",
+  expired: "topupExpiredShort",
 };
 
 const STATUS_CLS: Record<AdminTopup["status"], string> = {
+  awaiting_receipt: "bg-sky-100 text-sky-800",
   pending: "bg-amber-100 text-amber-800",
   approved: "bg-emerald-100 text-emerald-800",
   rejected: "bg-rose-100 text-rose-800",
+  expired: "bg-slate-200 text-slate-600",
 };
 
 /**

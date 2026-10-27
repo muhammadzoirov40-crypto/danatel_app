@@ -2,16 +2,17 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   CircleCheck,
+  ExternalLink,
   ImagePlus,
   Loader2,
-  Plus,
   Send,
+  Timer,
   TriangleAlert,
   X,
 } from "lucide-react";
 import { api } from "../api/client";
 import { useApp } from "../context/AppContext";
-import type { Topup } from "../types";
+import type { Topup, TopupPrepare } from "../types";
 import { GoldCoin, Ic } from "./Icons";
 
 interface Props {
@@ -22,25 +23,37 @@ interface Props {
 const PRESETS = [20, 50, 100, 200, 500, 1000];
 
 const STATUS_LABEL: Record<Topup["status"], string> = {
+  awaiting_receipt: "topupAwaiting",
   pending: "topupWaitReview",
   approved: "topupApproved",
   rejected: "topupRejected",
+  expired: "topupExpiredShort",
 };
 
 const STATUS_CLS: Record<Topup["status"], string> = {
+  awaiting_receipt: "bg-sky-100 text-sky-800",
   pending: "bg-amber-100 text-amber-800",
   approved: "bg-emerald-100 text-emerald-800",
   rejected: "bg-rose-100 text-rose-800",
+  expired: "bg-slate-200 text-slate-600",
 };
 
 /**
- * 💳 Пур кардани баланс: ДАРХОСТ — миқдор + расми чеки пардохт.
- * Админ (веб ё Telegram) санҷида, балансро зиёд мекунад.
+ * 💳 Пур кардани баланс:
+ * 1️⃣ маблағ → линки пардохти DC City (pay.dc.tj)
+ * 2️⃣ расми чек дар давоми 1 дақиқа → ба админ дар Telegram
+ * 3️⃣ админ қабул мекунад → баланс худкор зиёд мешавад
  */
 export default function TopUpModal({ open, onClose }: Props) {
   const { user, balance, lang, t } = useApp();
+  // маблағ
   const [amount, setAmount] = useState<number>(50);
   const [custom, setCustom] = useState<string>("50");
+  // қадамҳо
+  const [step, setStep] = useState<"amount" | "pay" | "done">("amount");
+  const [prepared, setPrepared] = useState<TopupPrepare | null>(null);
+  const [left, setLeft] = useState(0); // сонияҳо то охири вақти чек
+  // чек
   const [file, setFile] = useState<File | null>(null);
   const [sending, setSending] = useState(false);
   const [err, setErr] = useState("");
@@ -51,7 +64,25 @@ export default function TopUpModal({ open, onClose }: Props) {
   const loadRequests = useCallback(async () => {
     if (!user) return;
     try {
-      setRequests(await api.myTopups());
+      const rows = await api.myTopups();
+      setRequests(rows);
+      // агар дархости фаъоли бе чек монда бошад → қадамро идома медиҳем
+      const active = rows.find(
+        (r) =>
+          r.status === "awaiting_receipt" &&
+          r.receipt_deadline &&
+          new Date(r.receipt_deadline).getTime() > Date.now() &&
+          r.dc_payment_url,
+      );
+      if (active) {
+        setPrepared({
+          id: active.id,
+          amount_tjs: active.amount_tjs,
+          payment_url: active.dc_payment_url!,
+          receipt_deadline: active.receipt_deadline!,
+        });
+        setStep("pay");
+      }
     } catch {
       /* рӯйхат гирифт нашуд — хатогӣ нишон намедиҳем */
     }
@@ -68,7 +99,22 @@ export default function TopUpModal({ open, onClose }: Props) {
     return () => document.removeEventListener("keydown", onKey);
   }, [open, onClose, loadRequests]);
 
+  // ⏱ Шумораи воз барои чек: 1 сония = 1 тик
+  useEffect(() => {
+    if (step !== "pay" || !prepared) return;
+    const tick = () => {
+      const ms = new Date(prepared.receipt_deadline).getTime() - Date.now();
+      setLeft(Math.max(0, Math.ceil(ms / 1000)));
+    };
+    tick();
+    const id = window.setInterval(tick, 1000);
+    return () => window.clearInterval(id);
+  }, [step, prepared]);
+
   if (!open) return null;
+
+  const expired = step === "pay" && left <= 0;
+  const mmss = `${String(Math.floor(left / 60)).padStart(2, "0")}:${String(left % 60).padStart(2, "0")}`;
 
   const handleSelect = (val: number) => {
     setAmount(val);
@@ -78,15 +124,12 @@ export default function TopUpModal({ open, onClose }: Props) {
   const handleCustomChange = (val: string) => {
     setCustom(val);
     const num = parseFloat(val);
-    if (!isNaN(num) && num > 0) setAmount(num);
+    setAmount(!isNaN(num) && num > 0 ? num : 0);
   };
 
-  const handleSubmit = async () => {
+  // 1️⃣ Омодасозии пардохт → кушодани саҳифаи pay.dc.tj
+  const handlePrepare = async () => {
     if (!user || sending) return; // як дафъа — бе дубликация
-    if (!file) {
-      setErr(lang === "ru" ? "Прикрепите фото чека" : "Расми чекро замима кунед");
-      return;
-    }
     if (!(amount > 0)) {
       setErr(lang === "ru" ? "Введите сумму" : "Маблағро ворид кунед");
       return;
@@ -94,7 +137,31 @@ export default function TopUpModal({ open, onClose }: Props) {
     setErr("");
     setSending(true);
     try {
-      const req = await api.createTopup(amount, file);
+      const p = await api.prepareTopup(amount);
+      setPrepared(p);
+      setStep("pay");
+      window.open(p.payment_url, "_blank"); // саҳифаи пардохт
+      await loadRequests();
+    } catch (e) {
+      setErr(
+        e instanceof Error
+          ? e.message
+          : lang === "ru"
+            ? "Ошибка отправки"
+            : "Хатогӣ ҳангоми фиристодан",
+      );
+    } finally {
+      setSending(false);
+    }
+  };
+
+  // 2️⃣ Расми чек → Telegram-и админ
+  const handleSendReceipt = async () => {
+    if (!prepared || !file || sending || expired) return;
+    setSending(true);
+    setErr("");
+    try {
+      const req = await api.submitTopupReceipt(prepared.id, file);
       setDone(req);
       setFile(null);
       if (fileRef.current) fileRef.current.value = "";
@@ -110,6 +177,14 @@ export default function TopUpModal({ open, onClose }: Props) {
     } finally {
       setSending(false);
     }
+  };
+
+  const backToAmount = () => {
+    setStep("amount");
+    setPrepared(null);
+    setFile(null);
+    setErr("");
+    if (fileRef.current) fileRef.current.value = "";
   };
 
   return (
@@ -131,7 +206,7 @@ export default function TopUpModal({ open, onClose }: Props) {
         {/* Сарлавҳа */}
         <div className="flex items-center gap-3 mb-4 pr-8">
           <div className="grid place-items-center w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/25">
-            <Ic icon={Plus} size="lg" strokeWidth={2.5} />
+            <Ic icon={step === "pay" ? Timer : Send} size="lg" strokeWidth={2.5} />
           </div>
           <div>
             <h2 className="text-lg font-black text-slate-900">
@@ -139,14 +214,14 @@ export default function TopUpModal({ open, onClose }: Props) {
             </h2>
             <p className="text-xs text-slate-500">
               {lang === "ru"
-                ? "Заявка на пополнение в сомони (TJS)"
-                : "Дархости пуркунии баланс бо сомонӣ (TJS)"}
+                ? "Оплата DC City (pay.dc.tj) в сомони"
+                : "Пардохти DC City (pay.dc.tj) бо сомонӣ"}
             </p>
           </div>
         </div>
 
         {done ? (
-          /* ============ ✅ ДАРХОСТ ФИРИСТОДА ШУД ============ */
+          /* ============ 3️⃣ ДАРХОСТ ФИРИСТОДА ШУД ============ */
           <div className="text-center py-2">
             <div className="grid place-items-center w-14 h-14 mx-auto rounded-2xl bg-emerald-100 text-emerald-600 mb-3">
               <Ic icon={CircleCheck} size="xl" strokeWidth={2} />
@@ -162,10 +237,9 @@ export default function TopUpModal({ open, onClose }: Props) {
             </span>
             <div className="mt-5 space-y-2">
               <button
-                onClick={() => setDone(null)}
+                onClick={backToAmount}
                 className="w-full btn btn-primary text-sm"
               >
-                <Ic icon={Plus} />
                 {lang === "ru" ? "Новая заявка" : "Дархости нав"}
               </button>
               <button
@@ -176,7 +250,8 @@ export default function TopUpModal({ open, onClose }: Props) {
               </button>
             </div>
           </div>
-        ) : (
+        ) : step === "amount" ? (
+          /* ============ 1️⃣ ИНТИХОБИ МАБЛАҒ ============ */
           <>
             {/* Ҳолати корбар */}
             {user ? (
@@ -203,8 +278,8 @@ export default function TopUpModal({ open, onClose }: Props) {
                 />
                 <span className="flex-1">
                   {lang === "ru"
-                    ? "Чтобы отправить заявку, войдите в аккаунт:"
-                    : "Барои фиристодани дархост лутфан ворид шавед:"}
+                    ? "Чтобы пополнить баланс, войдите в аккаунт:"
+                    : "Барои пур кардани баланс лутфан ворид шавед:"}
                 </span>
                 <Link
                   to="/login"
@@ -243,7 +318,7 @@ export default function TopUpModal({ open, onClose }: Props) {
             </div>
 
             {/* Ворид кардани маблағи дилхоҳ */}
-            <div className="mb-4">
+            <div className="mb-5">
               <label className="block text-xs font-bold text-slate-700 mb-1.5">
                 {lang === "ru"
                   ? "Или введите другую сумму:"
@@ -265,8 +340,80 @@ export default function TopUpModal({ open, onClose }: Props) {
               </div>
             </div>
 
-            {/* 📷 Чеки пардохт — ҳатмӣ */}
-            <div className="mb-5">
+            {err && (
+              <div
+                role="alert"
+                className="mb-3 rounded-xl bg-rose-50 border border-rose-200 p-2.5 text-xs font-bold text-rose-700"
+              >
+                {err}
+              </div>
+            )}
+
+            {/* Тугмаи пардохт */}
+            <button
+              onClick={handlePrepare}
+              disabled={!user || sending || !(amount > 0)}
+              className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-sm shadow-md hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98] transition flex items-center justify-center gap-2 disabled:opacity-60 disabled:pointer-events-none"
+            >
+              {sending ? (
+                <Ic icon={Loader2} className="animate-spin" />
+              ) : (
+                <Ic icon={Send} />
+              )}
+              <span>
+                {sending
+                  ? lang === "ru"
+                    ? "Отправка..."
+                    : "Мефиристад..."
+                  : `${t("topupPay")} — ${amount} TJS`}
+              </span>
+            </button>
+          </>
+        ) : (
+          /* ============ 2️⃣ ПАРДОХТ → ЧЕК ДАР 1 ДАҚИҚА ============ */
+          <>
+            {/* Маблағ + шумораи воз */}
+            <div className="mb-4 rounded-2xl bg-slate-50 border border-slate-200/80 p-3.5 flex items-center justify-between">
+              <div>
+                <div className="text-xs font-semibold text-slate-500">
+                  {lang === "ru" ? "Сумма заявки:" : "Маблағи дархост:"}
+                </div>
+                <div className="text-sm font-black text-slate-900 tabular-nums">
+                  {Number(prepared?.amount_tjs || 0).toLocaleString("tj-TJ")} сомонӣ
+                </div>
+              </div>
+              <div
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-xl border font-black tabular-nums shadow-xs ${
+                  left <= 15
+                    ? "bg-rose-50 border-rose-300 text-rose-700"
+                    : "bg-white border-slate-200 text-slate-900"
+                }`}
+                aria-label={t("topupTimeLeft")}
+              >
+                <Ic icon={Timer} />
+                <span>{mmss}</span>
+              </div>
+            </div>
+
+            {/* Дастур */}
+            <div className="mb-4 rounded-xl bg-sky-50 border border-sky-200 p-3 text-xs font-semibold text-sky-900">
+              {t("topupPayStep")}
+            </div>
+
+            {/* Кушодани саҳифаи пардохт (дубора) */}
+            <button
+              onClick={() =>
+                prepared && window.open(prepared.payment_url, "_blank")
+              }
+              disabled={expired}
+              className="w-full mb-4 py-2.5 px-4 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold text-xs transition flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              <Ic icon={ExternalLink} />
+              {t("topupReopenPay")}
+            </button>
+
+            {/* 📷 Чеки пардохт */}
+            <div className="mb-4">
               <label
                 htmlFor="topup-receipt"
                 className="block text-xs font-bold text-slate-700 mb-1.5"
@@ -278,6 +425,7 @@ export default function TopUpModal({ open, onClose }: Props) {
                 id="topup-receipt"
                 type="file"
                 accept="image/*"
+                disabled={expired}
                 className="hidden"
                 onChange={(e) => {
                   setFile(e.target.files?.[0] ?? null);
@@ -287,8 +435,9 @@ export default function TopUpModal({ open, onClose }: Props) {
               <button
                 type="button"
                 onClick={() => fileRef.current?.click()}
+                disabled={expired}
                 aria-label={t("topupChooseReceipt")}
-                className={`w-full py-2.5 px-4 rounded-xl border-2 border-dashed text-xs font-bold transition flex items-center justify-center gap-2 ${
+                className={`w-full py-2.5 px-4 rounded-xl border-2 border-dashed text-xs font-bold transition flex items-center justify-center gap-2 disabled:opacity-50 ${
                   file
                     ? "border-emerald-300 bg-emerald-50 text-emerald-800"
                     : "border-slate-300 bg-slate-50 text-slate-600 hover:border-brand-400"
@@ -310,25 +459,39 @@ export default function TopUpModal({ open, onClose }: Props) {
               </div>
             )}
 
-            {/* Тугмаи фиристодани дархост */}
-            <button
-              onClick={handleSubmit}
-              disabled={!user || sending}
-              className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-sm shadow-md hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98] transition flex items-center justify-center gap-2 disabled:opacity-60 disabled:pointer-events-none"
-            >
-              {sending ? (
-                <Ic icon={Loader2} className="animate-spin" />
-              ) : (
-                <Ic icon={Send} />
-              )}
-              <span>
-                {sending
-                  ? lang === "ru"
-                    ? "Отправка..."
-                    : "Мефиристад..."
-                  : `${t("topupSend")} — ${amount} TJS`}
-              </span>
-            </button>
+            {expired ? (
+              /* ⏱ Вақт гузашт */
+              <div className="space-y-2">
+                <div
+                  role="alert"
+                  className="rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs font-bold text-rose-700 text-center"
+                >
+                  {t("topupExpired")}
+                </div>
+                <button onClick={backToAmount} className="w-full btn btn-primary text-sm">
+                  {t("topupNewRequest")}
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={handleSendReceipt}
+                disabled={!file || sending}
+                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-sm shadow-md hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98] transition flex items-center justify-center gap-2 disabled:opacity-60 disabled:pointer-events-none"
+              >
+                {sending ? (
+                  <Ic icon={Loader2} className="animate-spin" />
+                ) : (
+                  <Ic icon={Send} />
+                )}
+                <span>
+                  {sending
+                    ? lang === "ru"
+                      ? "Отправка..."
+                      : "Мефиристад..."
+                    : t("topupSendReceipt")}
+                </span>
+              </button>
+            )}
           </>
         )}
 
