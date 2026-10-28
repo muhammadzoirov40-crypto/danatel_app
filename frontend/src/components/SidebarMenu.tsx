@@ -8,6 +8,7 @@ import {
   LogOut,
   Moon,
   Package,
+  Send,
   Settings,
   Star,
   Sun,
@@ -245,6 +246,21 @@ export default function SidebarMenu({
               <Ic icon={Info} className="text-slate-400 shrink-0" />
               {t("navAbout")}
             </button>
+
+            {/* ✈️ Дастгирӣ дар Telegram — пайванди воқеӣ ба бот (кушода
+                дар таби нав). Қаблан тугмаи шинокунанда дар саҳифа буд;
+                аккун дар меню, то саҳифа тоза шавад (талаби соҳиб, 28.10.2026). */}
+            <a
+              href="https://t.me/ONLAYN_ALMAZ_TJ_bot"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Дастгирӣ дар Telegram"
+              title="Дастгирӣ дар Telegram"
+              className={rowCls}
+            >
+              <Ic icon={Send} className="text-sky-500 shrink-0" />
+              Дастгирӣ дар Telegram
+            </a>
 
             {isAdmin && (
               <button type="button" onClick={() => go("/admin")} className={rowCls}>

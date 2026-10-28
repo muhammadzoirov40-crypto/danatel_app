@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { House, LayoutGrid, Package, Plus, Send, Settings, User } from "lucide-react";
+import { House, LayoutGrid, Package, Plus, Settings, User } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import TopUpModal from "./TopUpModal";
 import OrderSearchModal from "./OrderSearchModal";
@@ -136,24 +136,6 @@ export default function BottomNav() {
       {/* Модалҳо */}
       <TopUpModal open={topUpOpen} onClose={() => setTopUpOpen(false)} />
       <OrderSearchModal open={orderSearchOpen} onClose={() => setOrderSearchOpen(false)} />
-
-      {/* Тугмаи шинокунандаи дастгирӣ дар Telegram
-          ⚠️ Вақте футер дар экран аст → пинҳон мешавад. */}
-      {!footerOnScreen && (
-        <a
-          href="https://t.me/ONLAYN_ALMAZ_TJ_bot"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Дастгирӣ дар Telegram"
-          className="fixed bottom-20 left-4 z-40 md:bottom-6 md:right-6 md:left-auto
-                     w-12 h-12 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600
-                     text-white shadow-[0_8px_24px_-4px_rgba(37,99,235,0.5)]
-                     grid place-items-center hover:scale-105 active:scale-95 transition-transform
-                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
-        >
-          <Ic icon={Send} size="lg" />
-        </a>
-      )}
 
       {/* ⚙️ Тугмаи шинокунандаи «Панели идора» — ТАНҲО барои админ, ТАНҲО иконка. */}
       {isAdmin && authReady && !footerOnScreen && (
