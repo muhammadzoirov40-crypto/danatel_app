@@ -79,12 +79,15 @@ export default function Navbar() {
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70";
 
   return (
-    /* 📱 Сарлавҳа ТАНҲО дар саҳифаи асосӣ (/) дар телефон намоён аст —
-       дар саҳифаҳои дигар пинҳон (талаби корбар). Дар десктоп ҳама ҷо.
-       Блоки рост (забон/мавзӯ/баланс/профил) → дар SIDEBAR. */
+    /* 📱 Сарлавҳа дар ҳамаи саҳифаҳо (мобилӣ + десктоп).
+       ⚠️ ИСЛОҲ 28.10.2026 (талаби соҳиб): қаблӣ сарлавҳа дар мобилӣ ТАНҲО
+       дар / буд → дар саҳифаҳои дигар ҳам 🪙 баланс ва ҳам ☰ меню пинҳон
+       буданд («dar injo inhoeo nishon nadihad»). Аккун ҳама ҷо намоён →
+       меню/баланс аз ҳар саҳифа дастрас. Сарлавҳа дар мобилӣ хеле тоза аст
+       (танҳо логотип + баланс + ☰). */
     <>
     <header
-      className={`${pathname === "/" ? "" : "hidden md:block"} sticky top-0 z-40 nav-blue text-white`}
+      className="sticky top-0 z-40 nav-blue text-white"
     >
       <div className="mx-auto max-w-6xl px-3 sm:px-4 h-14 sm:h-16 flex items-center gap-1.5 sm:gap-2">
         {/* 💎 Логотипи расмӣ (SVG) */}
