@@ -17,7 +17,6 @@ import {
 import { useApp } from "../context/AppContext";
 import { LANGS } from "../i18n";
 import {
-  GoldCoin,
   Ic,
   RussianFlag,
   TajikFlag,
@@ -53,7 +52,7 @@ export default function SidebarMenu({
   open: boolean;
   onClose: () => void;
 }) {
-  const { lang, setLang, t, user, balance, isAdmin, logout, theme, toggleTheme } =
+  const { lang, setLang, t, user, isAdmin, logout, theme, toggleTheme } =
     useApp();
   const nav = useNavigate();
   const { pathname } = useLocation();
@@ -97,12 +96,6 @@ export default function SidebarMenu({
       scroll();
     }
   };
-
-  /** Ҳарфи аввали ном — «сурати профил» */
-  const initial = (user?.full_name || user?.username || "")
-    .trim()
-    .charAt(0)
-    .toUpperCase();
 
   /** 🚩 Ростшавии флаг барои забон */
   const Flag = ({ code }: { code: string }) =>
@@ -172,30 +165,11 @@ export default function SidebarMenu({
         </div>
 
         <div className="flex-1 overflow-y-auto overscroll-contain px-4 pb-4">
-          {/* 👤 Агар вуруд карда бошад → хулосаи профил; вагарна → қайд/вуруд */}
-          {user ? (
-            <button
-              type="button"
-              onClick={() => go("/profile")}
-              className="w-full flex items-center gap-3 rounded-2xl bg-slate-50 dark:bg-slate-800
-                         px-3.5 py-3 mb-4 text-left ring-1 ring-slate-100 dark:ring-slate-700
-                         hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-[.99] transition
-                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
-            >
-              <span className="grid place-items-center w-11 h-11 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-black shrink-0">
-                {initial || <Ic icon={Package} />}
-              </span>
-              <span className="flex-1 min-w-0">
-                <span className="block font-bold text-[15px] text-slate-900 dark:text-white truncate">
-                  {user.full_name || user.username || t("profile")}
-                </span>
-                <span className="flex items-center gap-1.5 text-[13px] font-semibold text-slate-500 dark:text-slate-400 tabular-nums">
-                  <GoldCoin className="w-3.5 h-3.5" />
-                  {Number(balance || 0).toLocaleString("tj-TJ")} TJS
-                </span>
-              </span>
-            </button>
-          ) : (
+          {/* 🔑 Агар вуруд НАКАРДА бошад → қайд/вуруд.
+              ⚠️ КОРТИ ПРОФИЛ (ном + баланс) АЗ SIDEBAR БАРДОРДА ШУД
+              (талаби соҳиб, 28.10.2026): баланс аккун дар сарлавҳа (🪙) аст,
+              профил тавассути BottomNav «Профил» дастрас. */}
+          {!user && (
             <div className="flex flex-col gap-2.5 mb-4">
               {/* 🔑 Ворид шудан */}
               <button
