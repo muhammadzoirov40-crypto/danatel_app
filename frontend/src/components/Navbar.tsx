@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Disc3, Info, LayoutGrid, Menu, Package, Send, Star } from "lucide-react";
 import { api } from "../api/client";
 import { useApp } from "../context/AppContext";
-import { Ic } from "./Icons";
+import { GoldCoin, Ic } from "./Icons";
 import Logo from "./Logo";
 import SidebarMenu from "./SidebarMenu";
 
@@ -28,7 +28,7 @@ import SidebarMenu from "./SidebarMenu";
  *  ❗ Дар лоиҳа САБАД (cart) вуҷуд надорад → тугмаи сабад гузошта НАШУД.
  */
 export default function Navbar() {
-  const { t, user } = useApp();
+  const { t, user, balance } = useApp();
   const nav = useNavigate();
   const { pathname } = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -165,6 +165,20 @@ export default function Navbar() {
           <Ic icon={Send} size="sm" />
           <span>TG</span>
         </a>
+
+        {/* 🪙 Баланс — тангаи воқеӣ; клик → /profile (дар мобилӣ ҳам ҳаст) */}
+        <Link
+          to={user ? "/profile" : "/login"}
+          aria-label={t("balance")}
+          title={t("balance")}
+          className="flex items-center gap-1.5 rounded-full bg-white/15 ring-1 ring-white/25
+                     px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-black hover:bg-white/25
+                     transition tabular-nums shrink-0
+                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+        >
+          <GoldCoin className="w-4 h-4" />
+          <span>{user ? Number(balance || 0).toLocaleString("tj-TJ") : "0"}</span>
+        </Link>
 
         {/* ☰ Меню — ҲАМАИ экранҳо (мобилӣ + десктоп); кушодани SIDEBAR
             (чап→рост): забон, мавзӯ, баланс, профил, баромад — ҳама дар он ҷост */}
