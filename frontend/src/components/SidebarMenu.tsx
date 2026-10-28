@@ -201,12 +201,9 @@ export default function SidebarMenu({
             </div>
           )}
 
-          {/* 📌 Унвони бахш */}
-          <p className="px-3 mb-1 text-[11px] font-black uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500">
-            {t("menu")}
-          </p>
-
-          {/* 🧭 Бандҳои меню — ҳама ба саҳифаи воқеӣ */}
+          {/* 🧭 Бандҳои меню — ҳама ба саҳифаи воқеӣ.
+              ⚠️ Унвони «МЕНЮ» АЗ САТР БАРДОРДА ШУД (талаби соҳиб, 28.10.2026);
+              `aria-label` дар <nav> барои screen-reader боқӣ мондааст. */}
           <nav className="flex flex-col" aria-label={t("menu")}>
             <button type="button" onClick={() => go("/")} className={rowCls}>
               <Ic icon={LayoutGrid} className="text-blue-500 shrink-0" />
