@@ -28,8 +28,10 @@ export default function Login() {
     .trim()
     .slice(0, 16);
 
+  // 🔘 Аз sidebar-меню тугмаи «Ба қайд гирифтан» → /login?register=1
+  const wantRegister = searchParams.get("register") === "1";
   const [mode, setMode] = useState<"login" | "register">(
-    refCode ? "register" : "login",
+    refCode || wantRegister ? "register" : "login",
   );
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");

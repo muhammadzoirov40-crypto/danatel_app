@@ -22,6 +22,7 @@ import { useApp } from "../context/AppContext";
 import { LANGS } from "../i18n";
 import { GoldCoin, Ic, RussianFlag, TajikFlag, USAFlag, UzbekFlag } from "./Icons";
 import Logo from "./Logo";
+import SidebarMenu from "./SidebarMenu";
 
 /**
  * Сарлавҳа — услуби «Pers Shop»: логотип, пайвандҳои пилюлавӣ бо иконка,
@@ -48,7 +49,6 @@ export default function Navbar() {
   const [langOpen, setLangOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const langRef = useRef<HTMLDivElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
   const cur = LANGS.find((l) => l.code === lang) ?? LANGS[0];
 
   /** 👤 Ҳарфи аввали ном — «сурати профил» дар сарлавҳа (ҳамон услуби Профил) */
@@ -76,16 +76,12 @@ export default function Navbar() {
 
   // Пӯшидани рӯйхатҳо ҳангоми клик берун ё калиди Escape
   useEffect(() => {
-    if (!langOpen && !menuOpen) return;
+    if (!langOpen) return;
     const onDown = (e: MouseEvent) => {
       if (langRef.current && !langRef.current.contains(e.target as Node)) setLangOpen(false);
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setLangOpen(false);
-        setMenuOpen(false);
-      }
+      if (e.key === "Escape") setLangOpen(false);
     };
     document.addEventListener("mousedown", onDown);
     document.addEventListener("keydown", onKey);
@@ -93,7 +89,7 @@ export default function Navbar() {
       document.removeEventListener("mousedown", onDown);
       document.removeEventListener("keydown", onKey);
     };
-  }, [langOpen, menuOpen]);
+  }, [langOpen]);
 
   const onLogout = () => {
     logout();
@@ -133,6 +129,7 @@ export default function Navbar() {
     /* 📱 Сарлавҳа ТАНҲО дар саҳифаи асосӣ (/) дар телефон намоён аст —
        дар саҳифаҳои дигар пинҳон (талаби корбар): ҳама чиз дар худи
        саҳифаҳо + BottomNav ҳаст. Дар десктоп сарлавҳа ҳама ҷо мемонад. */
+    <>
     <header
       className={`${pathname === "/" ? "" : "hidden md:block"} sticky top-0 z-40 nav-blue text-white`}
     >
@@ -336,119 +333,26 @@ export default function Navbar() {
           )}
         </Link>
 
-        {/* 🚪 Баромад — ДАР ДЕСКТОП НЕСТ (талаби корбар); дар менюи телефон монд */}
-
-        {/* ☰ Меню — танҳо телефон (дар десктоп ҳама пайвандҳо намоёнанд) */}
-        <div className="relative md:hidden" ref={menuRef}>
+        {/* ☰ Меню — танҳо телефон; кушодани SIDEBAR (чап→рост, мисли RentHub) */}
+        <div className="md:hidden">
           <button
             type="button"
-            onClick={() => setMenuOpen((v) => !v)}
+            onClick={() => setMenuOpen(true)}
             aria-label={t("menu")}
-            aria-haspopup="menu"
+            aria-haspopup="dialog"
             aria-expanded={menuOpen}
             title={t("menu")}
             className={`${iconBtn} grid`}
           >
-            <Ic
-              icon={Menu}
-              size="md"
-              className={`transition-transform ${menuOpen ? "rotate-90" : ""}`}
-            />
+            <Ic icon={Menu} size="md" />
           </button>
-
-          {menuOpen && (
-            <div
-              role="menu"
-              className="absolute right-0 mt-2 w-56 rounded-2xl bg-white text-slate-800
-                         border border-slate-200 shadow-xl overflow-hidden p-1 z-50"
-            >
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  setMenuOpen(false);
-                  nav(user ? "/profile" : "/login");
-                }}
-                className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium
-                           hover:bg-slate-50 transition text-left"
-              >
-                <Ic icon={User} className="text-slate-400" />
-                {user ? t("profile") : t("login")}
-              </button>
-
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  setMenuOpen(false);
-                  nav("/reviews");
-                }}
-                className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium
-                           hover:bg-slate-50 transition text-left"
-              >
-                <Ic icon={Star} className="text-amber-400 fill-current" />
-                {t("navReviews")}
-              </button>
-
-              <button type="button" role="menuitem" onClick={goAbout} className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium hover:bg-slate-50 transition text-left">
-                <Ic icon={Info} className="text-slate-400" />
-                {t("navAbout")}
-              </button>
-
-              {!user && (
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    nav("/login");
-                  }}
-                  className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium
-                             hover:bg-slate-50 transition text-left"
-                >
-                  <Ic icon={LogIn} className="text-slate-400" />
-                  {t("login")}
-                </button>
-              )}
-
-              {isAdmin && (
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    nav("/admin");
-                  }}
-                  className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium
-                             hover:bg-slate-50 transition text-left"
-                >
-                  <Ic icon={Settings} className="text-slate-400" />
-                  {t("adminPanel")}
-                </button>
-              )}
-
-              {user && (
-                <>
-                  <div className="h-px bg-slate-100 my-1" />
-                  <button
-                    type="button"
-                    role="menuitem"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      onLogout();
-                    }}
-                    className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold
-                               text-rose-600 hover:bg-rose-50 transition text-left"
-                  >
-                    <Ic icon={LogOut} />
-                    {t("logout")}
-                  </button>
-                </>
-              )}
-            </div>
-          )}
         </div>
       </div>
     </header>
+
+      {/* 📚 SIDEBAR-MENЮ (чап → рост) — ҷудо аз <header> → overlay аз
+          болои ҳамаи муҳтавои саҳифа мебарояд (з-[60] > z-40) */}
+      <SidebarMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
+    </>
   );
 }
