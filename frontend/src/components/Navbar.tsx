@@ -130,7 +130,12 @@ export default function Navbar() {
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70";
 
   return (
-    <header className="sticky top-0 z-40 nav-blue text-white">
+    /* 📱 Дар саҳифаи /profile сарлавҳа дар телефон ПИНҲОН мешавад —
+       ҳама маълумот (ном, баланс, тугмаҳо) дар худи профил ҳаст ва
+       дар поён BottomNav ҳаст. Дар десктоп сарлавҳа боқӣ мемонад. */
+    <header
+      className={`${pathname === "/profile" ? "hidden md:block" : ""} sticky top-0 z-40 nav-blue text-white`}
+    >
       <div className="mx-auto max-w-6xl px-3 sm:px-4 h-14 sm:h-16 flex items-center gap-1.5 sm:gap-2">
         {/* 💎 Логотипи расмӣ (SVG) */}
         <Link to="/" className="shrink-0" title="donatshop" aria-label="donatshop">
