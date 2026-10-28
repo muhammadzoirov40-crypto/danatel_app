@@ -312,20 +312,11 @@ export default function Wheel() {
   return (
     <div className="profile-soft min-h-[calc(100vh-4rem)]">
       <div className="mx-auto max-w-3xl px-4 py-8 space-y-4">
-        {/* ⬅️ Тугмаи бозгашт (услуби якхела дар ҳамаи саҳифаҳо) */}
-        <BackButton />
-        {/* ===== САРЛАВҲА ===== */}
-        <header className="flex items-start justify-between gap-3 flex-wrap">
-          <div className="min-w-0">
-            <h1 className="text-2xl md:text-3xl font-black tracking-tight inline-flex items-center gap-2">
-              <Ic icon={Sparkles} size="md" className="text-brand-600" />
-              {t("wheel")}
-            </h1>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              {t("wheelHint")}
-            </p>
-          </div>
-
+        {/* ⬅️ Тугмаи бозгашт + 📖 «Таърих» — ДАР ЯК САТРИ БОЛО.
+            ⚠️ 29.10.2026 (талаби соҳиб): «Таърих» аз зери сарлавҳа ба
+            боло, ба тарафи рост, дар як сатр бо тугмаи бозгашт кӯчонда шуд. */}
+        <div className="flex items-center justify-between gap-2">
+          <BackButton />
           {user && (
             <button
               type="button"
@@ -337,6 +328,19 @@ export default function Wheel() {
               {t("historyShort")}
             </button>
           )}
+        </div>
+
+        {/* ===== САРЛАВҲА ===== */}
+        <header className="flex items-start justify-between gap-3 flex-wrap">
+          <div className="min-w-0">
+            <h1 className="text-2xl md:text-3xl font-black tracking-tight inline-flex items-center gap-2">
+              <Ic icon={Sparkles} size="md" className="text-brand-600" />
+              {t("wheel")}
+            </h1>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              {t("wheelHint")}
+            </p>
+          </div>
         </header>
 
         {/* ===== 📖 ГАРДИШҲОИ МАН ===== */}
