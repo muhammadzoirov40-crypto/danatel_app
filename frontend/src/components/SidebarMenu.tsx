@@ -205,7 +205,15 @@ export default function SidebarMenu({
               ⚠️ Унвони «МЕНЮ» АЗ САТР БАРДОРДА ШУД (талаби соҳиб, 28.10.2026);
               `aria-label` дар <nav> барои screen-reader боқӣ мондааст. */}
           <nav className="flex flex-col" aria-label={t("menu")}>
-            <button type="button" onClick={() => go("/")} className={rowCls}>
+            {/* ⚠️ «Феҳрист» ва «Фармоишҳои ман» — танҳо дар экранҳои
+                калон (PC, >420px). Дар мобилии 320–420px ПИНҲОН
+                (талаби соҳиб, 28.10.2026), зеро ҳар ду аллакай дар
+                BottomNav ҳастанд. `max-[420px]:hidden` = Tailwind arbitrary. */}
+            <button
+              type="button"
+              onClick={() => go("/")}
+              className={`${rowCls} max-[420px]:hidden`}
+            >
               <Ic icon={LayoutGrid} className="text-blue-500 shrink-0" />
               {t("navCatalog")}
             </button>
@@ -213,7 +221,7 @@ export default function SidebarMenu({
             <button
               type="button"
               onClick={() => go(user ? "/orders" : "/login")}
-              className={rowCls}
+              className={`${rowCls} max-[420px]:hidden`}
             >
               <Ic icon={Package} className="text-indigo-500 shrink-0" />
               {t("navOrders")}
