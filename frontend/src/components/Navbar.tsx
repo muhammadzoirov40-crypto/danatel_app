@@ -1,32 +1,20 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import {
-  Check,
-  ChevronDown,
-  Disc3,
-  Info,
-  LayoutGrid,
-  LogIn,
-  LogOut,
-  Menu,
-  Moon,
-  Package,
-  Send,
-  Settings,
-  Star,
-  Sun,
-  User,
-} from "lucide-react";
+import { Disc3, Info, LayoutGrid, Menu, Package, Send, Star } from "lucide-react";
 import { api } from "../api/client";
 import { useApp } from "../context/AppContext";
-import { LANGS } from "../i18n";
-import { GoldCoin, Ic, RussianFlag, TajikFlag, USAFlag, UzbekFlag } from "./Icons";
+import { Ic } from "./Icons";
 import Logo from "./Logo";
 import SidebarMenu from "./SidebarMenu";
 
 /**
- * Сарлавҳа — услуби «Pers Shop»: логотип, пайвандҳои пилюлавӣ бо иконка,
- * тугмаҳои торик-равшан, забон, баланс ва «сурати профил».
+ * Сарлавҳа — танҳо логотип + пайвандҳои пилюлавӣ (lg+) + бейҷи рейтинги
+ * воқеӣ + TG + тугмаи ☰ (ҳамаи экранҳо → кушодани SIDEBAR).
+ *
+ *  ⚠️ ТАҒЙИРИ 28.10.2026 (талаби соҳиб): блоки рост (🌐 забон, 🌙 мавзӯ,
+ *     🪙 баланс, 👤 профил) аз сарлавҳа БАРДОШТА ШУД → ҳамааш акнун дар
+ *     SIDEBAR-меню аст (чат ба рост). Тугмаи ☰ дар ҳамаи экранҳо (аз ҷумла
+ *     десктоп) намоён аст → sidebar дастрас аст.
  *
  *  ҲАМАИ тугмаҳо ба функсияи воқеӣ пайванданд:
  *   · Феҳрист      → /
@@ -35,27 +23,15 @@ import SidebarMenu from "./SidebarMenu";
  *   · Тақризҳо     → /reviews (саҳифаи алоҳида)
  *   · Дар бораи мo → бахши SEO дар саҳифаи асосӣ (#about)
  *   · TG           → https://t.me/ONLAYN_ALMAZ_TJ_bot
- *   · 🌙/☀️        → мавзӯи воқеӣ (localStorage)
- *   · 🪙 баланс    → /profile
- *   · 🚪 баромад   → танҳо дар менюи телефон (дар десктоп нест — талаби корбар)
+ *   · ☰            → SIDEBAR (забон / мавзӯ / баланс / профил / баромад)
  *
- *  ❗ Дар лоиҳа САБАД (cart) вуҷуд надорад → тугмаи сабад гузошта НАШУД,
- *  то тугмаи бекоркор пайдо нашавад (дар сабти корҳо қайд шудааст).
+ *  ❗ Дар лоиҳа САБАД (cart) вуҷуд надорад → тугмаи сабад гузошта НАШУД.
  */
 export default function Navbar() {
-  const { lang, setLang, t, user, balance, isAdmin, logout, theme, toggleTheme } = useApp();
+  const { t, user } = useApp();
   const nav = useNavigate();
   const { pathname } = useLocation();
-  const [langOpen, setLangOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const langRef = useRef<HTMLDivElement>(null);
-  const cur = LANGS.find((l) => l.code === lang) ?? LANGS[0];
-
-  /** 👤 Ҳарфи аввали ном — «сурати профил» дар сарлавҳа (ҳамон услуби Профил) */
-  const initial = (user?.full_name || user?.username || "")
-    .trim()
-    .charAt(0)
-    .toUpperCase();
 
   /** ⭐ Рейтинги воқеӣ аз ҷадвали тақризҳои тасдиқшуда → /reviews */
   const [sum, setSum] = useState<{ rating_avg: number; reviews_total: number } | null>(null);
@@ -74,32 +50,9 @@ export default function Navbar() {
   const avg = sum?.rating_avg ?? 0;
   const total = sum?.reviews_total ?? 0;
 
-  // Пӯшидани рӯйхатҳо ҳангоми клик берун ё калиди Escape
-  useEffect(() => {
-    if (!langOpen) return;
-    const onDown = (e: MouseEvent) => {
-      if (langRef.current && !langRef.current.contains(e.target as Node)) setLangOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setLangOpen(false);
-    };
-    document.addEventListener("mousedown", onDown);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onDown);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [langOpen]);
-
-  const onLogout = () => {
-    logout();
-    nav("/");
-  };
-
   /** ➡️ «Дар бораи мo» — ба бахши SEO дар саҳифаи асосӣ */
   const goAbout = (e: React.MouseEvent) => {
     e.preventDefault();
-    setMenuOpen(false);
     const scroll = () => {
       const el = document.getElementById("about");
       if (el) el.scrollIntoView({ behavior: "smooth" });
@@ -119,7 +72,7 @@ export default function Navbar() {
        active ? "bg-white/20 text-white" : "text-white/85 hover:text-white hover:bg-white/15"
      }`;
 
-  /** Тугмаи гардишӣ дар сарлавҳа (забон / мавзӯ / профил / баромад / меню) */
+  /** Тугмаи гардишӣ дар сарлавҳа (меню → SIDEBAR) */
   const iconBtn =
     "place-items-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/15 ring-1 ring-white/25 " +
     "text-white hover:bg-white/25 transition active:scale-95 shrink-0 " +
@@ -127,8 +80,8 @@ export default function Navbar() {
 
   return (
     /* 📱 Сарлавҳа ТАНҲО дар саҳифаи асосӣ (/) дар телефон намоён аст —
-       дар саҳифаҳои дигар пинҳон (талаби корбар): ҳама чиз дар худи
-       саҳифаҳо + BottomNav ҳаст. Дар десктоп сарлавҳа ҳама ҷо мемонад. */
+       дар саҳифаҳои дигар пинҳон (талаби корбар). Дар десктоп ҳама ҷо.
+       Блоки рост (забон/мавзӯ/баланс/профил) → дар SIDEBAR. */
     <>
     <header
       className={`${pathname === "/" ? "" : "hidden md:block"} sticky top-0 z-40 nav-blue text-white`}
@@ -174,8 +127,6 @@ export default function Navbar() {
             <Ic icon={Info} className="opacity-90" />
             <span>{t("navAbout")}</span>
           </button>
-          {/* ⚠️ Тугмаи «Панели идора» аз сарлавҳа БАРДОШТА ШУД →
-              акнун тангмаи шинокунандаи иконкаӣ дар поён-чап (BottomNav) */}
         </nav>
 
         <div className="flex-1" />
@@ -215,138 +166,19 @@ export default function Navbar() {
           <span>TG</span>
         </a>
 
-        {/* 🌐 Забон */}
-        <div className="relative" ref={langRef}>
-          <button
-            onClick={() => setLangOpen((v) => !v)}
-            className="flex items-center gap-1.5 rounded-full bg-white/15 ring-1 ring-white/25
-                       px-2.5 py-1.5 text-xs sm:text-sm font-bold hover:bg-white/25 transition
-                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
-            title={t("language")}
-            aria-label={t("language")}
-            aria-haspopup="listbox"
-            aria-expanded={langOpen}
-          >
-            {cur.code === "tj" ? (
-              <TajikFlag className="w-4 h-2.5 rounded-xs" />
-            ) : cur.code === "ru" ? (
-              <RussianFlag className="w-4 h-2.5 rounded-xs" />
-            ) : cur.code === "en" ? (
-              <USAFlag className="w-4 h-2.5 rounded-xs" />
-            ) : (
-              <UzbekFlag className="w-4 h-2.5 rounded-xs" />
-            )}
-            <span className="uppercase">{cur.code}</span>
-            <Ic
-              icon={ChevronDown}
-              size="xs"
-              className={`opacity-70 transition-transform ${langOpen ? "rotate-180" : ""}`}
-            />
-          </button>
-
-          {langOpen && (
-            <div
-              role="listbox"
-              className="absolute right-0 mt-2 w-40 rounded-2xl bg-white text-slate-800
-                         border border-slate-200 shadow-xl overflow-hidden p-1 z-50"
-            >
-              {LANGS.map((l) => (
-                <button
-                  key={l.code}
-                  role="option"
-                  aria-selected={lang === l.code}
-                  onClick={() => {
-                    setLang(l.code);
-                    setLangOpen(false);
-                  }}
-                  className={`w-full flex items-center gap-2 rounded-xl px-3 py-2 text-sm
-                              font-medium transition ${
-                                lang === l.code
-                                  ? "bg-brand-50 text-brand-700"
-                                  : "hover:bg-slate-50"
-                              }`}
-                >
-                  {l.code === "tj" ? (
-                    <TajikFlag className="w-4 h-2.5 rounded-xs" />
-                  ) : l.code === "ru" ? (
-                    <RussianFlag className="w-4 h-2.5 rounded-xs" />
-                  ) : l.code === "en" ? (
-                    <USAFlag className="w-4 h-2.5 rounded-xs" />
-                  ) : (
-                    <UzbekFlag className="w-4 h-2.5 rounded-xs" />
-                  )}
-                  <span>{l.label}</span>
-                  {lang === l.code && (
-                    <Ic icon={Check} size="xs" className="ml-auto text-brand-600" />
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* 🌙 Мавзӯи равшан / торик — функсияи воқеӣ */}
+        {/* ☰ Меню — ҲАМАИ экранҳо (мобилӣ + десктоп); кушодани SIDEBAR
+            (чап→рост): забон, мавзӯ, баланс, профил, баромад — ҳама дар он ҷост */}
         <button
           type="button"
-          onClick={toggleTheme}
-          aria-label={theme === "dark" ? t("themeLight") : t("themeDark")}
-          title={theme === "dark" ? t("themeLight") : t("themeDark")}
+          onClick={() => setMenuOpen(true)}
+          aria-label={t("menu")}
+          aria-haspopup="dialog"
+          aria-expanded={menuOpen}
+          title={t("menu")}
           className={`${iconBtn} grid`}
         >
-          <Ic
-            icon={theme === "dark" ? Sun : Moon}
-            size="md"
-            className={theme === "dark" ? "text-amber-300" : "text-white/90"}
-          />
+          <Ic icon={Menu} size="md" />
         </button>
-
-        {/* 🪙 Баланс (тангаи воқеӣ) */}
-        <Link
-          to={user ? "/profile" : "/login"}
-          className="flex items-center gap-1.5 rounded-full bg-white/15 ring-1 ring-white/25
-                     px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-black hover:bg-white/25
-                     transition tabular-nums shrink-0
-                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
-          title={t("balance")}
-        >
-          <GoldCoin className="w-4 h-4" />
-          <span>{user ? Number(balance || 0).toLocaleString("tj-TJ") : "0"}</span>
-        </Link>
-
-        {/* 👤 «Сурати профил» / Вуруд — ҳарфи аввали ном (танҳо пайванд ба /profile) */}
-        <Link
-          to={user ? "/profile" : "/login"}
-          aria-label={user ? t("profile") : t("login")}
-          title={user ? t("profile") : t("login")}
-          className={`${iconBtn} grid bg-white/20 ring-white/30 text-xs sm:text-sm font-bold`}
-        >
-          {user && initial ? (
-            <span
-              aria-hidden
-              className="grid h-6 w-6 place-items-center rounded-full bg-white leading-none
-                         text-[11px] font-black text-blue-700 sm:h-7 sm:w-7 sm:text-xs"
-            >
-              {initial}
-            </span>
-          ) : (
-            <Ic icon={User} size="md" />
-          )}
-        </Link>
-
-        {/* ☰ Меню — танҳо телефон; кушодани SIDEBAR (чап→рост, мисли RentHub) */}
-        <div className="md:hidden">
-          <button
-            type="button"
-            onClick={() => setMenuOpen(true)}
-            aria-label={t("menu")}
-            aria-haspopup="dialog"
-            aria-expanded={menuOpen}
-            title={t("menu")}
-            className={`${iconBtn} grid`}
-          >
-            <Ic icon={Menu} size="md" />
-          </button>
-        </div>
       </div>
     </header>
 
