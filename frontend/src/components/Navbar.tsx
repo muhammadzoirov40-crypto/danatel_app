@@ -189,7 +189,7 @@ export default function Navbar() {
             to="/reviews"
             title={t("reviewsTitle")}
             aria-label={`${t("reviewsTitle")}: ${avg.toFixed(1)} / 5, ${total}`}
-            className="hidden xl:inline-flex items-center gap-1.5 rounded-full bg-amber-400/20 ring-1
+            className="hidden 2xl:inline-flex items-center gap-1.5 rounded-full bg-amber-400/20 ring-1
                        ring-amber-300/50 px-3 py-1.5 text-sm font-black text-white
                        hover:bg-amber-400/30 transition active:scale-95 shrink-0
                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
@@ -209,7 +209,7 @@ export default function Navbar() {
           rel="noopener noreferrer"
           aria-label="Telegram"
           title="Telegram"
-          className="hidden xl:inline-flex items-center gap-1.5 rounded-full bg-white/15 ring-1
+          className="hidden 2xl:inline-flex items-center gap-1.5 rounded-full bg-white/15 ring-1
                      ring-white/25 px-3 py-1.5 text-sm font-black hover:bg-white/25 transition
                      active:scale-95 shrink-0 focus-visible:outline-none focus-visible:ring-2
                      focus-visible:ring-white/70"

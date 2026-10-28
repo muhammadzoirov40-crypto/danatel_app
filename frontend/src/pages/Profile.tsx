@@ -33,7 +33,6 @@ import { api, ApiError } from "../api/client";
 import type { CoinsInfo, Order } from "../types";
 import { STATUS_META } from "../types";
 import { Ic } from "../components/Icons";
-import CoinsCard from "../components/CoinsCard";
 import TopUpModal from "../components/TopUpModal";
 
 /**
@@ -335,7 +334,10 @@ export default function Profile() {
               </span>
             </div>
 
-            <div className="mt-4 flex gap-2">
+            {/* 📱 Мобилӣ: тугма ТАГ БА ТАГ пурарӯза;
+               тугмаи «Фармоишҳои ман» БАРДОШТА ШУД (талаби корбар) —
+               фармоишҳо тавассути BottomNav («Фармоишҳо») дастрасанд */}
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
               <button
                 type="button"
                 onClick={() => setTopUpOpen(true)}
@@ -348,23 +350,11 @@ export default function Profile() {
                 <Ic icon={Plus} className="shrink-0 text-blue-600" />
                 <span className="text-center leading-tight">{t("topup")}</span>
               </button>
-              <Link
-                to="/orders"
-                className="flex min-w-0 flex-1 items-center justify-center gap-1.5
-                           rounded-xl bg-white/15 px-2 py-2.5 text-[13px] sm:px-3 sm:text-sm font-bold tracking-wide text-white
-                           ring-1 ring-white/25 transition hover:bg-white/25 active:scale-[0.98]
-                           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
-              >
-                <Ic icon={Package} className="shrink-0" />
-                <span className="text-center leading-tight">{t("myOrders")}</span>
-              </Link>
             </div>
           </div>
 
-          {/* 🪙 КОРТИ PERS COINS — «Pers Coins: N» + «То гардиш» + «Гардондан» */}
-          <div className="mt-3">
-            <CoinsCard data={coins} />
-          </div>
+          {/* 🪙 КОРТИ PERS COINS — аз профил БАРДОШТА ШУД (талаби корбар);
+              тангаҳо/чарх тавассути BottomNav дастрасанд */}
 
           {/* ⚡ Амали умумӣ */}
           <div className="mt-4 flex gap-2 flex-wrap">
