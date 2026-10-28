@@ -1,7 +1,6 @@
 import {
   useCallback,
   useEffect,
-  useMemo,
   useState,
   type FormEvent,
 } from "react";
@@ -13,14 +12,10 @@ import {
   CircleCheck,
   CircleX,
   Copy,
-  Gamepad2,
   Gift,
   History,
-  Inbox,
-  LayoutDashboard,
   Loader2,
   LogOut,
-  Package,
   Plus,
   Save,
   ShieldCheck,
@@ -30,8 +25,7 @@ import {
 } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { api, ApiError } from "../api/client";
-import type { CoinsInfo, Order } from "../types";
-import { STATUS_META } from "../types";
+import type { CoinsInfo } from "../types";
 import { Ic } from "../components/Icons";
 import TopUpModal from "../components/TopUpModal";
 
@@ -56,18 +50,15 @@ import TopUpModal from "../components/TopUpModal";
  *   • «Пур кардан» → TopUpModal (ҳамон модале, ки дар BottomNav аст).
  */
 /** 🗂️ Кадом панели гурӯҳӣ кушода аст (як вақт якто) */
-type PanelKey = "orders" | "ids" | "info" | "security" | "bonuses";
+type PanelKey = "info" | "security" | "bonuses";
 
 export default function Profile() {
   const { t, lang, user, balance, isAdmin, authReady, logout } = useApp();
   const nav = useNavigate();
 
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [err, setErr] = useState("");
   const [phoneCopied, setPhoneCopied] = useState(false);
   const [idCopied, setIdCopied] = useState(false);
   /** 📋 Кадом ID-и бозӣ дар панел нусха шуд (фақат ӯст) */
-  const [copiedPid, setCopiedPid] = useState<string | null>(null);
   const [topUpOpen, setTopUpOpen] = useState(false);
 
   // 🪙 Pers Coins — худи корт дар компоненти `CoinsCard` (ҳамон дар Home)
@@ -75,7 +66,7 @@ export default function Profile() {
   const [inviteCopied, setInviteCopied] = useState(false);
 
   // 🗂️ Як панели кушода (accordion)
-  const [panel, setPanel] = useState<PanelKey | null>("orders");
+  const [panel, setPanel] = useState<PanelKey | null>(null);
   const toggle = (key: PanelKey) =>
     setPanel((cur) => (cur === key ? null : key));
 
@@ -153,20 +144,6 @@ export default function Profile() {
     if (!user && authReady) nav("/login", { replace: true });
   }, [user, authReady, nav]);
 
-  const loadOrders = useCallback(async () => {
-    if (!user) return;
-    try {
-      const all = await api.myOrders();
-      setOrders(all);
-    } catch (e) {
-      setErr((e as Error)?.message ?? t("error"));
-    }
-  }, [user, t]);
-
-  useEffect(() => {
-    void loadOrders();
-  }, [loadOrders]);
-
   // 🪙 Тангаҳо + қоидаҳо + коди даъват (як дафъа ҳангоми вуруд)
   const loadCoins = useCallback(async () => {
     if (!user) return;
@@ -196,18 +173,6 @@ export default function Profile() {
       /* иҷозат нест */
     }
   };
-
-  // 🎮 IDҳои бозӣ — аз фармоишҳои воқеӣ (ягона, бе такрор)
-  const gameIds = useMemo(() => {
-    const seen = new Map<string, { id: string; game: string }>();
-    for (const o of orders) {
-      const pid = (o.player_id || "").trim();
-      if (pid && !seen.has(pid)) {
-        seen.set(pid, { id: pid, game: o.game_name || "" });
-      }
-    }
-    return [...seen.values()];
-  }, [orders]);
 
   // Ҳангоми боргирии аввалия → скелетон (на саҳифаи холӣ, на партофт)
   if (!user) {
@@ -356,18 +321,10 @@ export default function Profile() {
           {/* 🪙 КОРТИ PERS COINS — аз профил БАРДОШТА ШУД (талаби корбар);
               тангаҳо/чарх тавассути BottomNav дастрасанд */}
 
-          {/* ⚡ Амали умумӣ */}
+          {/* ⚡ Амали умумӣ — тугмаҳои «Бозиро интихоб кунед» ва «Панели идора»
+              аз профил БАРДОШТА ШУД (талаби корбар): бозӣ → BottomNav «Каталог»,
+              админ → нишонаи алоҳида. Танҳо «Баромад» монд. */}
           <div className="mt-4 flex gap-2 flex-wrap">
-            <Link to="/" className="btn-ghost text-sm">
-              <Ic icon={Gamepad2} />
-              {t("chooseGame")}
-            </Link>
-            {isAdmin && (
-              <Link to="/admin" className="btn-ghost text-sm">
-                <Ic icon={LayoutDashboard} />
-                {t("adminPanel")}
-              </Link>
-            )}
             <button
               onClick={() => {
                 logout();
@@ -379,135 +336,6 @@ export default function Profile() {
               {t("logout")}
             </button>
           </div>
-        </section>
-
-        {/* ===== 2️⃣ ГУРУҲИ 1: Фармоишҳо · IDҳои бозӣ ===== */}
-        <section
-          className="glass min-w-0 rounded-2xl overflow-hidden"
-          aria-label={`${t("orders")} · ${t("gameIds")}`}
-        >
-          <div className="divide-y divide-slate-100 dark:divide-white/10">
-            <MenuRow
-              icon={Package}
-              title={t("orders")}
-              hint={t("ordersHint")}
-              open={panel === "orders"}
-              onClick={() => toggle("orders")}
-            />
-            <MenuRow
-              icon={Gamepad2}
-              title={t("gameIds")}
-              hint={t("gameIdsHint")}
-              open={panel === "ids"}
-              onClick={() => toggle("ids")}
-            />
-          </div>
-
-          {/* 📦 Панели фармоишҳо */}
-          {panel === "orders" && (
-            <div className="border-t border-slate-100 px-5 py-4 dark:border-white/10">
-              {err && (
-                <div
-                  role="alert"
-                  className="rounded-xl bg-rose-50 border border-rose-200 px-4 py-3 text-sm text-rose-700 mb-3"
-                >
-                  {err}
-                </div>
-              )}
-
-              {orders.length === 0 ? (
-                <div className="py-6 text-center text-sm text-slate-500">
-                  <div className="mb-2 flex justify-center text-slate-300">
-                    <Ic icon={Inbox} size="xl" />
-                  </div>
-                  {t("noOrders")}
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {orders.map((o) => {
-                    const meta = STATUS_META[o.status];
-                    return (
-                      <Link
-                        key={o.id}
-                        to={`/order/${o.id}`}
-                        className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 p-3 sm:p-4 transition hover:border-brand-300 dark:border-white/10"
-                      >
-                        <div className="min-w-0 flex-1">
-                          <div className="truncate text-xs sm:text-sm font-semibold">
-                            #{o.id} — {o.game_name}
-                          </div>
-                          <div className="mt-0.5 truncate text-[11px] sm:text-xs text-slate-500">
-                            {o.product_name} ·{" "}
-                            {new Date(o.created_at).toLocaleDateString(lang)}
-                          </div>
-                        </div>
-                        <div className="shrink-0 text-right">
-                          <div className="text-xs sm:text-sm font-bold whitespace-nowrap">
-                            {Number(o.amount_tjs).toLocaleString("tj-TJ")}{" "}
-                            {t("currency")}
-                          </div>
-                          <span
-                            className={`badge mt-1 !py-0.5 !px-2 text-[11px] ${meta.cls}`}
-                          >
-                            <Ic icon={meta.icon} size="xs" strokeWidth={2.25} />
-                            {t(meta.key)}
-                          </span>
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* 🎮 Панели IDҳои бозӣ (аз фармоишҳои воқеӣ) */}
-          {panel === "ids" && (
-            <div className="border-t border-slate-100 px-5 py-4 dark:border-white/10">
-              {gameIds.length === 0 ? (
-                <p className="py-4 text-center text-sm text-slate-500">
-                  {t("noGameIds")}
-                </p>
-              ) : (
-                <ul className="space-y-2">
-                  {gameIds.map((g) => (
-                    <li
-                      key={g.id}
-                      className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 px-4 py-3 dark:border-white/10"
-                    >
-                      <div className="min-w-0">
-                        <div className="text-sm font-semibold tabular-nums break-all">
-                          {g.id}
-                        </div>
-                        {g.game && (
-                          <div className="text-xs text-slate-500">{g.game}</div>
-                        )}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          void navigator.clipboard
-                            .writeText(g.id)
-                            .then(() => {
-                              setCopiedPid(g.id);
-                              setTimeout(() => setCopiedPid(null), 1500);
-                            })
-                            .catch(() => undefined);
-                        }}
-                        aria-label={`${t("copy")}: ${g.id}`}
-                        className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-500 transition hover:bg-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 dark:bg-white/10 dark:text-slate-300"
-                      >
-                        <Ic
-                          icon={copiedPid === g.id ? Check : Copy}
-                          size="sm"
-                        />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
         </section>
 
         {/* ===== 3️⃣ ГУРУҲИ 2: Маълумоти шахсӣ · Амният ===== */}

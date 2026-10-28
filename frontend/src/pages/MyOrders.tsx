@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Inbox, Loader2, PackageOpen, RefreshCw } from "lucide-react";
+import { Check, Copy, Gamepad2, Inbox, Loader2, PackageOpen, RefreshCw } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { api } from "../api/client";
 import type { Order } from "../types";
@@ -23,6 +23,20 @@ export default function MyOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(true);
+  const [copiedPid, setCopiedPid] = useState<string | null>(null);
+
+  // 🎮 IDҳои бозӣ — аз фармоишҳои воқеӣ (ягона, бе такрор).
+  // Аз профил ба ин ҷо оварда шуд (талаби корбар).
+  const gameIds = useMemo(() => {
+    const seen = new Map<string, { id: string; game: string }>();
+    for (const o of orders) {
+      const pid = (o.player_id || "").trim();
+      if (pid && !seen.has(pid)) {
+        seen.set(pid, { id: pid, game: o.game_name || "" });
+      }
+    }
+    return [...seen.values()];
+  }, [orders]);
 
   // Ҳангоми боргирии аввалия анҷом ёфт → агар вуруд накарда бошад, ба /login
   useEffect(() => {
@@ -145,6 +159,55 @@ export default function MyOrders() {
               </li>
             ))}
           </ul>
+        )}
+
+        {/* 🎮 IDҲОИ БОЗИИ МАН — аз профил ба ин ҷо оварда шуд (талаби корбар):
+            ягона, бе такрор; ҳар як ID бо тугмаи нусха */}
+        {!loading && !err && gameIds.length > 0 && (
+          <section className="card p-4" aria-label={t("gameIds")}>
+            <h2 className="flex items-center gap-2 text-sm font-extrabold tracking-tight text-slate-700 dark:text-slate-200">
+              <Ic icon={Gamepad2} className="text-brand-600" />
+              {t("gameIds")}
+            </h2>
+            <ul className="mt-3 space-y-2">
+              {gameIds.map((g) => (
+                <li
+                  key={g.id}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 px-4 py-3 dark:border-white/10"
+                >
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold tabular-nums break-all">
+                      {g.id}
+                    </div>
+                    {g.game && (
+                      <div className="text-xs text-slate-500 dark:text-slate-400">
+                        {g.game}
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void navigator.clipboard
+                        .writeText(g.id)
+                        .then(() => {
+                          setCopiedPid(g.id);
+                          setTimeout(() => setCopiedPid(null), 1500);
+                        })
+                        .catch(() => undefined);
+                    }}
+                    aria-label={`${t("copy")}: ${g.id}`}
+                    className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-500 transition hover:bg-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 dark:bg-white/10 dark:text-slate-300"
+                  >
+                    <Ic
+                      icon={copiedPid === g.id ? Check : Copy}
+                      size="sm"
+                    />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
         )}
       </div>
     </div>
