@@ -285,6 +285,35 @@ def _approve_flow(client: TestClient, amount: str = "25") -> tuple[str, int, flo
     return token, prepared["id"], before
 
 
+# =====================================================================
+# 📏 МАҲДУДИЯТИ МАБЛАҒ: 10 … 1000 сомонӣ (бо UI якхела)
+# =====================================================================
+
+
+def test_prepare_amount_min_10(client: TestClient):
+    """⬇️ Аз 10 камтар → 422 (пештар 0.01 қабул мешуд)."""
+    token = register(client)
+    assert prepare(client, token, amount="9.99").status_code == 422
+    assert prepare(client, token, amount="5").status_code == 422
+    assert prepare(client, token, amount="0").status_code == 422
+
+
+def test_prepare_amount_max_1000(client: TestClient):
+    """⬆️ Аз 1000 зиёд → 422 (пеш то 999999999 қабул мешуд)."""
+    token = register(client)
+    assert prepare(client, token, amount="1000.01").status_code == 422
+    assert prepare(client, token, amount="5000").status_code == 422
+
+
+def test_prepare_amount_boundaries_ok(client: TestClient):
+    """✅ Ҳудудҳои 10 ва 1000 худашон қабул мешаванд."""
+    token = register(client)
+    r = prepare(client, token, amount="10")
+    assert r.status_code == 200, r.text
+    r = prepare(client, token, amount="1000")
+    assert r.status_code == 200, r.text
+
+
 def test_revert_after_approve_balance_exact(client: TestClient):
     """🔄 Қабул → возвратка: баланс ПАС ба ҳамон рақам, ҳолат reverted."""
     token, req_id, before = _approve_flow(client)

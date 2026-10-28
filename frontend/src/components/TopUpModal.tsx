@@ -22,6 +22,11 @@ interface Props {
 
 const PRESETS = [20, 50, 100, 200, 500, 1000];
 
+/** 💳 Маҳдудияти пардохти DC City: 10 … 1000 сомонӣ (бо backend якхела —
+ *  server-side дар `parse_amount` ҳамон маҳдудият аст). */
+const MIN_TJS = 10;
+const MAX_TJS = 1000;
+
 const STATUS_LABEL: Record<Topup["status"], string> = {
   awaiting_receipt: "topupAwaiting",
   pending: "topupWaitReview",
@@ -129,11 +134,26 @@ export default function TopUpModal({ open, onClose }: Props) {
     setAmount(!isNaN(num) && num > 0 ? num : 0);
   };
 
+  /** 🚦 Маблағ дар ҳудуд 10…1000 аст? (тугмаи пардохт ҳаминро истифода мебарад) */
+  const inRange = amount >= MIN_TJS && amount <= MAX_TJS;
+
+  /** ⚠️ Хатогии эҳтимолӣ барои нишон додан пеш аз фиристодан */
+  const rangeErr =
+    amount > 0 && !inRange
+      ? lang === "ru"
+        ? `Сумма должна быть от ${MIN_TJS} до ${MAX_TJS} сомони`
+        : `Маблағ бояд аз ${MIN_TJS} то ${MAX_TJS} сомонӣ бошад`
+      : "";
+
   // 1️⃣ Омодасозии пардохт → кушодани саҳифаи pay.dc.tj
   const handlePrepare = async () => {
     if (!user || sending) return; // як дафъа — бе дубликация
     if (!(amount > 0)) {
       setErr(lang === "ru" ? "Введите сумму" : "Маблағро ворид кунед");
+      return;
+    }
+    if (!inRange) {
+      setErr(rangeErr);
       return;
     }
     setErr("");
@@ -210,11 +230,13 @@ export default function TopUpModal({ open, onClose }: Props) {
                      bg-[radial-gradient(120%_90%_at_50%_-20%,rgba(37,99,235,0.16),transparent_70%)]"
         />
 
-        {/* Тугмаи пӯшидан — доираи равшан, дастрасии калон (44px тавсия) */}
+        {/* Тугмаи пӯшидан — доираи равшан, дастрасии калон (44px тавсия).
+            z-10 → аз сатри сарлавҳа (`relative`) боло, вагарна сарлавҳа
+            кликро мепӯшонад ва ✕ кор намекард */}
         <button
           onClick={onClose}
           aria-label={t("close")}
-          className="absolute top-4 right-4 grid place-items-center w-9 h-9 rounded-full
+          className="absolute top-4 right-4 z-10 grid place-items-center w-9 h-9 rounded-full
                      bg-slate-100/90 text-slate-500 ring-1 ring-slate-200/80
                      hover:bg-slate-200 hover:text-slate-700 active:scale-95 transition
                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
@@ -380,16 +402,19 @@ export default function TopUpModal({ open, onClose }: Props) {
                 <input
                   id="topup-custom-amount"
                   type="number"
-                  min="1"
+                  min={MIN_TJS}
+                  max={MAX_TJS}
                   step="1"
-                  inputMode="decimal"
+                  inputMode="numeric"
                   value={custom}
                   onChange={(e) => handleCustomChange(e.target.value)}
+                  aria-invalid={amount > 0 && !inRange}
                   className="w-full rounded-2xl border border-slate-200 bg-slate-50/80
                              px-4 py-3 pr-24 text-[17px] font-extrabold tabular-nums
                              tracking-[-0.01em] text-slate-900 placeholder:font-medium placeholder:text-slate-400
                              outline-none transition
-                             focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                             focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100
+                             aria-invalid:border-rose-400 aria-invalid:focus:ring-rose-100"
                   placeholder={lang === "ru" ? "Сумма в сомони..." : "Маблағ бо сомонӣ..."}
                 />
                 <span
@@ -399,6 +424,17 @@ export default function TopUpModal({ open, onClose }: Props) {
                   сомонӣ
                 </span>
               </div>
+              {/* 📏 Нишондиҳии диапазон — ҳамеша намоён (на танҳо ҳангоми хатогӣ) */}
+              <p
+                className={`mt-1.5 text-[11px] font-semibold tabular-nums transition-colors ${
+                  amount > 0 && !inRange ? "text-rose-600" : "text-slate-400"
+                }`}
+                aria-live="polite"
+              >
+                {lang === "ru"
+                  ? `От ${MIN_TJS} до ${MAX_TJS} сомони`
+                  : `Аз ${MIN_TJS} то ${MAX_TJS} сомонӣ`}
+              </p>
             </div>
 
             {err && (
@@ -410,10 +446,11 @@ export default function TopUpModal({ open, onClose }: Props) {
               </div>
             )}
 
-            {/* Тугмаи пардохт — CTA бо градиент + сояи равшан + сатри болоӣ */}
+            {/* Тугмаи пардохт — CTA бо градиент + сояи равшан + сатри болоӣ.
+                Ғайрифаъол, агар маблағ аз 10…1000 берун бошад */}
             <button
               onClick={handlePrepare}
-              disabled={!user || sending || !(amount > 0)}
+              disabled={!user || sending || !inRange}
               className="w-full relative overflow-hidden rounded-2xl py-3.5 px-4
                          bg-gradient-to-r from-blue-600 via-blue-600 to-indigo-600
                          text-white text-[15px] font-extrabold tracking-[0.01em]

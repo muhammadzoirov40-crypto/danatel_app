@@ -52,15 +52,19 @@ class TopupAlreadyDecided(TopupError):
 # 🔍 ЯРДАМЧӢҲО
 # =====================================================================
 def parse_amount(value) -> Decimal:
-    """Санҷиши маблағ: 0.01 … 999999999.99 (сомонӣ)."""
+    """Санҷиши маблағи пардохти DC City: 10 … 1000 сомонӣ (маҳдудияти UI).
+
+    Ҳамон маҳдудият дар фронт ҳам ҳаст (тугмаи пардохт ғайрифаъол мешавад),
+    ин ҷо ҳамонро ҳимояи дуюм (server-side validation).
+    """
     try:
         amount = Decimal(str(value)).quantize(Decimal("0.01"))
     except (InvalidOperation, ValueError) as exc:
         raise TopupError("Маблағ нодуруст аст", 422) from exc
-    if amount <= Decimal("0.00"):
-        raise TopupError("Маблағ бояд аз сифат зиёд бошад", 422)
-    if amount > Decimal("999999999.99"):
-        raise TopupError("Маблағ аз ҳад зиёд аст", 422)
+    if amount < Decimal("10"):
+        raise TopupError("Маблағ бояд аз 10 сомонӣ кам набошад", 422)
+    if amount > Decimal("1000"):
+        raise TopupError("Маблағ аз 1000 сомонӣ зиёд набошад", 422)
     return amount
 
 
