@@ -28,6 +28,7 @@ import { api, ApiError } from "../api/client";
 import type { CoinsInfo } from "../types";
 import { Ic } from "../components/Icons";
 import TopUpModal from "../components/TopUpModal";
+import BackButton from "../components/BackButton";
 
 /**
  * 👤 ПРОФИЛИ КОРБАР
@@ -203,6 +204,8 @@ export default function Profile() {
     /* 🌅 Заминаи мулоими кабуди градиентӣ (дар торик — таркиби торик) */
     <div className="profile-soft min-h-[calc(100vh-4rem)] w-full max-w-full overflow-x-clip">
       <div className="mx-auto max-w-3xl px-4 py-6 sm:py-8 grid gap-4 sm:gap-5">
+        {/* ⬅️ Тугмаи бозгашт (услуби якхела дар ҳамаи саҳифаҳо) */}
+        <BackButton />
         {/* ===== 1️⃣ КАРТОЧКАИ ПРОФИЛ ===== */}
         <section className="glass min-w-0 rounded-2xl p-4 sm:p-6" aria-labelledby="profile-name">
           <div className="flex items-start gap-4">

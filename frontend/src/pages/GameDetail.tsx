@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
-import { ArrowLeft, Frown, Gem } from "lucide-react";
+import { Frown, Gem } from "lucide-react";
 import { api } from "../api/client";
 import type { Game, Product } from "../types";
 import OrderForm from "../components/OrderForm";
 import GameLogo from "../components/GameLogo";
+import BackButton from "../components/BackButton";
 import { useApp } from "../context/AppContext";
 import { Ic } from "../components/Icons";
 
@@ -109,19 +110,9 @@ export default function GameDetail() {
 
   return (
     <div className="mx-auto max-w-6xl px-3 sm:px-4 py-5 sm:py-8">
-      {/* ⬅️ Тугмаи бозгашт — ДАР ЗЕРИ navbar (болои баннер, берун аз он) */}
-      <button
-        type="button"
-        onClick={() => nav(-1)}
-        className="mb-3 inline-flex items-center gap-1.5
-                   rounded-full bg-slate-900/60 hover:bg-slate-900/75 border border-white/25
-                   text-white text-xs sm:text-sm font-semibold px-3.5 py-2 backdrop-blur-md
-                   transition active:scale-95 focus-visible:outline-none focus-visible:ring-2
-                   focus-visible:ring-white/70"
-      >
-        <Ic icon={ArrowLeft} size="xs" />
-        {t("back")}
-      </button>
+      {/* ⬅️ Тугмаи бозгашт — ДАР ЗЕРИ navbar (болои баннер, берун аз он).
+          Аккун аз компоненти ягонаи BackButton (услуби якхела дар ҳамаи саҳифаҳо). */}
+      <BackButton />
 
       {/* ============ САРПӯШИ БОЗӢ (COVER) ============ */}
       <div

@@ -19,6 +19,7 @@ import { api, ApiError } from "../api/client";
 import { useApp } from "../context/AppContext";
 import type { CoinsInfo, CoinTx, Game, WheelData, WheelSpin } from "../types";
 import CoinsCard from "../components/CoinsCard";
+import BackButton from "../components/BackButton";
 import { Ic } from "../components/Icons";
 
 /**
@@ -311,6 +312,8 @@ export default function Wheel() {
   return (
     <div className="profile-soft min-h-[calc(100vh-4rem)]">
       <div className="mx-auto max-w-3xl px-4 py-8 space-y-4">
+        {/* ⬅️ Тугмаи бозгашт (услуби якхела дар ҳамаи саҳифаҳо) */}
+        <BackButton />
         {/* ===== САРЛАВҲА ===== */}
         <header className="flex items-start justify-between gap-3 flex-wrap">
           <div className="min-w-0">

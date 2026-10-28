@@ -4,6 +4,7 @@ import { api } from "../api/client";
 import { useApp } from "../context/AppContext";
 import Customers from "../components/Customers";
 import Reviews from "../components/Reviews";
+import BackButton from "../components/BackButton";
 import { Ic } from "../components/Icons";
 
 type TabId = "customers" | "reviews";
@@ -54,6 +55,8 @@ export default function ReviewsPage() {
       {/* ===== Header-и саҳифа: ном + бейҷи рейтинги воқеӣ + номи ду бахш ===== */}
       <section className="text-white">
         <div className="mx-auto max-w-6xl px-4 pt-4 pb-5 sm:pt-6">
+          {/* ⬅️ Тугмаи бозгашт (услуби якхела дар ҳамаи саҳифаҳо) */}
+          <BackButton />
           <div className="flex items-start justify-between gap-3 flex-wrap">
             <div className="min-w-0">
               <h1 className="text-xl sm:text-2xl font-black leading-tight">

@@ -5,6 +5,7 @@ import { useApp } from "../context/AppContext";
 import { api } from "../api/client";
 import type { Order } from "../types";
 import StatusBadge from "../components/StatusBadge";
+import BackButton from "../components/BackButton";
 import { Ic } from "../components/Icons";
 
 /**
@@ -77,6 +78,8 @@ export default function MyOrders() {
   return (
     <div className="profile-soft min-h-[calc(100vh-4rem)]">
       <div className="mx-auto max-w-3xl px-4 py-8 space-y-4">
+        {/* ⬅️ Тугмаи бозгашт (услуби якхела дар ҳамаи саҳифаҳо) */}
+        <BackButton />
         {/* ===== САРЛАВҲА ===== */}
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <h1 className="text-2xl md:text-3xl font-black tracking-tight">

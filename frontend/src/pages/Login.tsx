@@ -4,6 +4,7 @@ import { Loader2, LogIn, UserPlus } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { api, ApiError } from "../api/client";
 import Logo from "../components/Logo";
+import BackButton from "../components/BackButton";
 import { Ic } from "../components/Icons";
 
 /**
@@ -97,6 +98,8 @@ export default function Login() {
 
   return (
     <div className="mx-auto max-w-md px-4 py-10">
+      {/* ⬅️ Тугмаи бозгашт (услуби якхела дар ҳамаи саҳифаҳо) */}
+      <BackButton />
       <div className="card p-6 sm:p-8">
         <div className="text-center mb-6">
           <div className="flex justify-center mb-3">
