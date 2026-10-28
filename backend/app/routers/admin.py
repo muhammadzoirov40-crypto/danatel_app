@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.config import settings
 from app.database import get_db
 from app.models import (
     AuditLog,
@@ -579,12 +580,31 @@ def add_balance(
     if user.email:
         try:
             from app.services.email_service import send_balance_topup_email
-            from datetime import datetime
             send_balance_topup_email(
                 to_email=user.email,
                 user_id=user.id,
                 amount_added=float(payload.amount),
                 new_balance=float(user.balance),
+                date_str=datetime.utcnow().strftime("%Y-%m-%d %H:%M"),
+            )
+        except Exception:
+            pass  # Email failure won't block balance credit
+
+    # 📩 Огоҳиномаи EMAIL барои админ — бо тафсилоти маблағ
+    #    (корбари ҳадаф + маблағ + баланси нав + сабаб + кӣ илова кард).
+    #    ADMIN_EMAIL ё SMTP холӣ → хомӯш; хатогӣ ҷавобро бозмедорад.
+    if settings.ADMIN_EMAIL:
+        try:
+            from app.services.email_service import send_balance_admin_email
+            send_balance_admin_email(
+                to_email=settings.ADMIN_EMAIL,
+                user_id=user.id,
+                user_label=user.full_name or user.username or user.phone or f"#{user.id}",
+                amount=float(payload.amount),
+                new_balance=float(user.balance),
+                reason=payload.reason or "",
+                admin_label=f"#{admin.id}"
+                + (f" {admin.full_name or admin.username}" if (admin.full_name or admin.username) else ""),
                 date_str=datetime.utcnow().strftime("%Y-%m-%d %H:%M"),
             )
         except Exception:

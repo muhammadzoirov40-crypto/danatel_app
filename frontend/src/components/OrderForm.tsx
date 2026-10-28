@@ -441,7 +441,7 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                     </p>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-2.5 mb-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-2 sm:gap-2.5 mb-6">
                   {items.map((p) => {
                     const active = selected?.id === p.id;
                     const view = packView(p, game, t);
@@ -452,7 +452,7 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                         aria-pressed={active}
                         aria-label={p.name}
                         title={p.name}
-                        className={`relative rounded-2xl border-2 px-3.5 py-3 text-left transition-all
+                        className={`relative flex min-w-0 flex-col gap-2 rounded-2xl border-2 px-3 py-3 text-left transition-all
                           ${
                             active
                               ? "border-brand-600 bg-brand-50 shadow-[0_8px_20px_-10px_rgba(37,99,235,0.7)] scale-[1.02]"
@@ -465,36 +465,51 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                             {t("popular")}
                           </span>
                         )}
-                        {/* 🖇 ҲАМА ДАР 1 САТР: иконка + рақам/ном … … … нарх (талаби корбар) */}
-                        <div className="flex items-center justify-between gap-2 min-w-0">
-                          <span className="flex min-w-0 items-center gap-1.5">
-                            <Ic
-                              icon={view.icon}
-                              size="sm"
-                              className={`shrink-0 ${active ? "text-brand-600" : "text-brand-500"}`}
-                            />
-                            <span
-                              className={`min-w-0 truncate font-bold text-sm leading-tight ${
-                                active ? "text-brand-700" : "text-slate-700"
-                              }`}
-                            >
-                              {view.text}
-                              {view.sub && (
-                                <span className="ml-1 font-medium text-slate-400">{view.sub}</span>
-                              )}
-                            </span>
-                          </span>
-                          <span
-                            className={`shrink-0 font-extrabold tabular-nums text-sm ${
-                              active ? "text-brand-700" : "text-brand-600"
+
+                        {/* 🎯 Иконкаи асъор ДАР БОЛОИ корт:
+                            Free Fire → 💎 алмос · PUBG → 🪙 UC (аз номи воқеӣ) */}
+                        <span
+                          aria-hidden
+                          className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border
+                            ${
+                              active
+                                ? "border-brand-200 bg-white"
+                                : "border-brand-100 bg-gradient-to-br from-brand-50 to-blue-50"
                             }`}
-                          >
+                        >
+                          <Ic
+                            icon={view.icon}
+                            size="sm"
+                            className={active ? "text-brand-700" : "text-brand-600"}
+                          />
+                        </span>
+
+                        {/* Ном/рақам — ҳеҷ гоҳ берун намебарояд */}
+                        <span
+                          className={`line-clamp-1 w-full min-w-0 text-xs sm:text-sm font-bold leading-tight ${
+                            active ? "text-brand-700" : "text-slate-700"
+                          }`}
+                        >
+                          {view.text}
+                          {view.sub && (
+                            <span className="ml-1 font-medium text-slate-400">{view.sub}</span>
+                          )}
+                        </span>
+
+                        {/* Нарх — доимо бо асъор, набурда */}
+                        <span
+                          className={`flex min-w-0 items-baseline gap-1 ${
+                            active ? "text-brand-700" : "text-brand-600"
+                          }`}
+                        >
+                          <span className="truncate font-extrabold tabular-nums text-sm sm:text-base">
                             {Number(p.price_tjs).toLocaleString("tj-TJ")}
-                            <span className="ml-1 text-[10px] font-semibold text-slate-400 hidden sm:inline">
-                              {t("currency")}
-                            </span>
                           </span>
-                        </div>
+                          <span className="shrink-0 text-[10px] font-semibold text-slate-400">
+                            {t("currency")}
+                          </span>
+                        </span>
+
                         {active && (
                           <span
                             className="absolute -top-2.5 -left-2.5 w-6 h-6 rounded-full bg-brand-600 text-white

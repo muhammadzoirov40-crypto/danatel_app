@@ -82,6 +82,10 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str = ""
     SMTP_FROM_EMAIL: str = "noreply@danatel.tj"
     SMTP_FROM_NAME: str = "Danatel.tj"
+    # 📩 Огоҳиномаи EMAIL барои админ ҳангоми пур кардани баланси корбар
+    #    (холӣ → хомӯш; SMTP ҳам холӣ → email намеравад, баланс ҳамон тавр
+    #    сабт мешавад — хатогии email ҷавобро бозмедорад)
+    ADMIN_EMAIL: str = ""
 
     # 🏭 МУҲИТ: production / development / test
     ENVIRONMENT: str = "production"

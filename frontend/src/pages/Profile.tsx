@@ -214,10 +214,10 @@ export default function Profile() {
   if (!user) {
     if (authReady) return null; // → эффект боло ба `/login` меафтонад
     return (
-      <div className="profile-soft min-h-[calc(100vh-4rem)]">
-        <div className="mx-auto max-w-3xl px-4 py-8 space-y-6">
-          <div className="card h-44 animate-pulse bg-slate-100" aria-hidden />
-          <div className="card h-64 animate-pulse bg-slate-100" aria-hidden />
+      <div className="profile-soft min-h-[calc(100vh-4rem)] w-full max-w-full overflow-x-clip">
+        <div className="mx-auto max-w-3xl px-4 py-6 sm:py-8 grid gap-4 sm:gap-5">
+          <div className="glass rounded-2xl h-44 animate-pulse" aria-hidden />
+          <div className="glass rounded-2xl h-64 animate-pulse" aria-hidden />
         </div>
       </div>
     );
@@ -237,15 +237,15 @@ export default function Profile() {
 
   return (
     /* 🌅 Заминаи мулоими кабуди градиентӣ (дар торик — таркиби торик) */
-    <div className="profile-soft min-h-[calc(100vh-4rem)]">
-      <div className="mx-auto max-w-3xl px-4 py-8 space-y-5">
+    <div className="profile-soft min-h-[calc(100vh-4rem)] w-full max-w-full overflow-x-clip">
+      <div className="mx-auto max-w-3xl px-4 py-6 sm:py-8 grid gap-4 sm:gap-5">
         {/* ===== 1️⃣ КАРТОЧКАИ ПРОФИЛ ===== */}
-        <section className="card p-5 sm:p-6" aria-labelledby="profile-name">
+        <section className="glass rounded-2xl p-4 sm:p-6" aria-labelledby="profile-name">
           <div className="flex items-start gap-4">
             {/* Аватар бо ҳарфи аввали ном */}
             <div
               aria-hidden
-              className="grid h-16 w-16 shrink-0 select-none place-items-center rounded-full bg-gradient-to-br from-blue-100 to-blue-200 text-blue-700 text-2xl font-black dark:from-blue-500/30 dark:to-indigo-500/30 dark:text-blue-100"
+              className="grid h-16 w-16 shrink-0 select-none place-items-center rounded-full bg-gradient-to-br from-blue-100 to-blue-200 text-blue-700 text-2xl font-black ring-4 ring-white/80 shadow-lg shadow-blue-500/20 dark:from-blue-500/30 dark:to-indigo-500/30 dark:text-blue-100"
             >
               {initial || <Ic icon={UserRound} size="xl" strokeWidth={1.75} />}
             </div>
@@ -309,7 +309,7 @@ export default function Profile() {
              (Тугмаи тағйир додани ном НЕСТ — талаботи корбар) */}
           <div
             className="mt-4 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 p-4
-                       text-white shadow-sm shadow-blue-600/25
+                       text-white shadow-lg shadow-blue-700/30 ring-1 ring-white/20
                        dark:from-blue-700 dark:to-indigo-800 dark:shadow-none"
           >
             <div className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-100">
@@ -380,7 +380,7 @@ export default function Profile() {
 
         {/* ===== 2️⃣ ГУРУҲИ 1: Фармоишҳо · IDҳои бозӣ ===== */}
         <section
-          className="card overflow-hidden"
+          className="glass rounded-2xl overflow-hidden"
           aria-label={`${t("orders")} · ${t("gameIds")}`}
         >
           <div className="divide-y divide-slate-100 dark:divide-white/10">
@@ -427,19 +427,19 @@ export default function Profile() {
                       <Link
                         key={o.id}
                         to={`/order/${o.id}`}
-                        className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 p-4 transition hover:border-brand-300 dark:border-white/10"
+                        className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 p-3 sm:p-4 transition hover:border-brand-300 dark:border-white/10"
                       >
-                        <div className="min-w-0">
-                          <div className="text-sm font-semibold">
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate text-xs sm:text-sm font-semibold">
                             #{o.id} — {o.game_name}
                           </div>
-                          <div className="mt-0.5 text-xs text-slate-500">
+                          <div className="mt-0.5 truncate text-[11px] sm:text-xs text-slate-500">
                             {o.product_name} ·{" "}
                             {new Date(o.created_at).toLocaleDateString(lang)}
                           </div>
                         </div>
                         <div className="shrink-0 text-right">
-                          <div className="text-sm font-bold">
+                          <div className="text-xs sm:text-sm font-bold whitespace-nowrap">
                             {Number(o.amount_tjs).toLocaleString("tj-TJ")}{" "}
                             {t("currency")}
                           </div>
@@ -509,7 +509,7 @@ export default function Profile() {
 
         {/* ===== 3️⃣ ГУРУҲИ 2: Маълумоти шахсӣ · Амният ===== */}
         <section
-          className="card overflow-hidden"
+          className="glass rounded-2xl overflow-hidden"
           aria-label={`${t("personalInfo")} · ${t("security")}`}
         >
           <div className="divide-y divide-slate-100 dark:divide-white/10">
@@ -636,7 +636,7 @@ export default function Profile() {
         </section>
 
         {/* ===== 4️⃣ ГУРУҲИ 3: Бонусҳо ва даъватҳо ===== */}
-        <section className="card overflow-hidden" aria-label={t("bonusesInvites")}>
+        <section className="glass rounded-2xl overflow-hidden" aria-label={t("bonusesInvites")}>
           <div className="divide-y divide-slate-100 dark:divide-white/10">
             <MenuRow
               icon={Gift}
@@ -706,8 +706,8 @@ export default function Profile() {
                         key={tx.id}
                         className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 px-4 py-2.5 dark:border-white/10"
                       >
-                        <div className="min-w-0">
-                          <div className="text-sm font-semibold">
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate text-xs sm:text-sm font-semibold">
                             {t(KIND_KEY[tx.kind] ?? "kindCashback")}
                           </div>
                           {tx.reason && (
