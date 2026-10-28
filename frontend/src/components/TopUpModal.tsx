@@ -190,31 +190,52 @@ export default function TopUpModal({ open, onClose }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+    /* 🔵 Overlay: торики + blur — қисми поёнро нопайдар мекунад.
+       z-[60] > z-50-и BottomNav → навигатсияи поёнӣ ҳангоми кушодани
+       модалка аз боло намебарояд */
+    <div className="fixed inset-0 z-[60] grid place-items-center p-4 sm:p-6 bg-slate-950/60 backdrop-blur-md animate-in fade-in duration-200">
       <div
-        className="relative w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl border border-slate-100 max-h-[92vh] overflow-y-auto"
+        className="relative w-full max-w-md rounded-[28px] bg-white/95 backdrop-blur-xl p-5 sm:p-6
+                   shadow-[0_1px_0_rgba(255,255,255,0.9)_inset,0_24px_60px_-20px_rgba(15,23,42,0.45),0_60px_120px_-40px_rgba(37,99,235,0.35)]
+                   border border-white/70 ring-1 ring-blue-200/50
+                   max-h-[92dvh] overflow-y-auto overscroll-contain"
         role="dialog"
         aria-modal="true"
+        aria-label={lang === "ru" ? "Пополнение баланса" : "Пур кардани баланс"}
       >
-        {/* Тугмаи пӯшидан */}
+        {/* 🎯 Glow-и болоии кабуд — ҳисси «дорогой» */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-32 rounded-t-[28px]
+                     bg-[radial-gradient(120%_90%_at_50%_-20%,rgba(37,99,235,0.16),transparent_70%)]"
+        />
+
+        {/* Тугмаи пӯшидан — доираи равшан, дастрасии калон (44px тавсия) */}
         <button
           onClick={onClose}
           aria-label={t("close")}
-          className="absolute top-4 right-4 grid place-items-center w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
+          className="absolute top-4 right-4 grid place-items-center w-9 h-9 rounded-full
+                     bg-slate-100/90 text-slate-500 ring-1 ring-slate-200/80
+                     hover:bg-slate-200 hover:text-slate-700 active:scale-95 transition
+                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
         >
           <Ic icon={X} />
         </button>
 
-        {/* Сарлавҳа */}
-        <div className="flex items-center gap-3 mb-4 pr-8">
-          <div className="grid place-items-center w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/25">
+        {/* Сарлавҳа: иконка-плита + матн бо типографияи фишурда */}
+        <div className="relative flex items-center gap-3.5 mb-5 pr-10">
+          <div
+            className="grid place-items-center w-12 h-12 shrink-0 rounded-2xl
+                       bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 text-white
+                       shadow-[0_10px_22px_-8px_rgba(37,99,235,0.75)] ring-1 ring-white/25"
+          >
             <Ic icon={step === "pay" ? Timer : Send} size="lg" strokeWidth={2.5} />
           </div>
-          <div>
-            <h2 className="text-lg font-black text-slate-900">
+          <div className="min-w-0">
+            <h2 className="text-[1.15rem] leading-tight font-extrabold tracking-[-0.01em] text-slate-900">
               {lang === "ru" ? "Пополнение баланса" : "Пур кардани баланс"}
             </h2>
-            <p className="text-xs text-slate-500">
+            <p className="mt-0.5 text-[11px] sm:text-xs leading-snug font-medium text-slate-500">
               {lang === "ru"
                 ? "Оплата DC City (pay.dc.tj) в сомони"
                 : "Пардохти DC City (pay.dc.tj) бо сомонӣ"}
@@ -255,20 +276,32 @@ export default function TopUpModal({ open, onClose }: Props) {
         ) : step === "amount" ? (
           /* ============ 1️⃣ ИНТИХОБИ МАБЛАҒ ============ */
           <>
-            {/* Ҳолати корбар */}
+            {/* Ҳолати корбар — картти glass бо кикер + рақами калон.
+                320px: телефон дар як сатр (nowrap), «сомонӣ» зери рақам → ҳеҷ печидан */}
             {user ? (
-              <div className="mb-4 rounded-2xl bg-slate-50 border border-slate-200/80 p-3.5 flex items-center justify-between">
-                <div>
-                  <div className="text-xs font-semibold text-slate-500">
+              <div className="mb-5 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100/70 border border-slate-200/80 p-3.5 sm:p-4 flex items-center justify-between gap-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
+                <div className="min-w-0">
+                  <div className="text-[10px] font-extrabold uppercase tracking-[0.1em] text-slate-400 whitespace-nowrap">
                     {lang === "ru" ? "Текущий баланс:" : "Баланси ҷорӣ:"}
                   </div>
-                  <div className="text-sm font-bold text-slate-800">
+                  <div className="mt-1 text-[13px] sm:text-sm font-bold tabular-nums text-slate-800 whitespace-nowrap">
                     {user.phone || user.username || `#${user.id}`}
                   </div>
                 </div>
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white border border-slate-200 text-slate-900 font-black tabular-nums shadow-xs">
-                  <GoldCoin className="w-4 h-4" />
-                  <span>{Number(balance || 0).toLocaleString("tj-TJ")} сомонӣ</span>
+                <div
+                  className="flex shrink-0 items-center gap-1.5 px-2.5 sm:px-3.5 py-2 rounded-xl bg-white
+                             border border-slate-200/80 text-slate-900
+                             shadow-[0_6px_16px_-8px_rgba(15,23,42,0.3)]"
+                >
+                  <GoldCoin className="w-4 h-4 shrink-0" />
+                  <div className="leading-none text-right">
+                    <div className="font-black text-[15px] tabular-nums tracking-[-0.01em]">
+                      {Number(balance || 0).toLocaleString("tj-TJ")}
+                    </div>
+                    <div className="mt-1 text-[9px] font-bold uppercase tracking-[0.1em] text-slate-400">
+                      сомонӣ
+                    </div>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -293,50 +326,76 @@ export default function TopUpModal({ open, onClose }: Props) {
               </div>
             )}
 
-            {/* Интихоби маблағ (presets) */}
-            <div className="mb-4">
-              <label className="block text-xs font-bold text-slate-700 mb-2">
+            {/* Интихоби маблағ (presets) — 3 сатр, ҳар як кнопка «объёмӣ» */}
+            <div className="mb-5">
+              <label className="block text-[11px] font-extrabold uppercase tracking-[0.1em] text-slate-500 mb-2.5">
                 {lang === "ru"
                   ? "Выберите сумму (сомони):"
                   : "Маблағро интихоб кунед (сомонӣ):"}
               </label>
-              <div className="grid grid-cols-3 gap-2">
-                {PRESETS.map((p) => (
-                  <button
-                    key={p}
-                    type="button"
-                    onClick={() => handleSelect(p)}
-                    aria-pressed={amount === p}
-                    className={`py-2 px-3 rounded-xl text-xs font-black transition-all ${
-                      amount === p
-                        ? "bg-brand-600 text-white shadow-md shadow-brand-500/25 scale-[1.02]"
-                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                    }`}
-                  >
-                    {p} TJS
-                  </button>
-                ))}
+              <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
+                {PRESETS.map((p) => {
+                  const active = amount === p;
+                  return (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => handleSelect(p)}
+                      aria-pressed={active}
+                      className={`relative rounded-2xl py-3 px-2 text-[13px] font-extrabold
+                                  tabular-nums tracking-[0.01em] transition-all duration-150
+                                  ring-1 active:scale-[0.97]
+                                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-1
+                                  ${
+                                    active
+                                      ? "bg-gradient-to-b from-blue-500 to-blue-600 text-white ring-blue-400/60 shadow-[0_10px_20px_-8px_rgba(37,99,235,0.7),inset_0_1px_0_rgba(255,255,255,0.35)]"
+                                      : "bg-white text-slate-700 ring-slate-200/90 shadow-[0_1px_2px_rgba(15,23,42,0.06),0_6px_14px_-10px_rgba(15,23,42,0.25)] hover:ring-blue-300 hover:text-blue-700 hover:shadow-[0_10px_20px_-10px_rgba(37,99,235,0.45)]"
+                                  }`}
+                    >
+                      <span className="block leading-none">{p}</span>
+                      <span
+                        className={`block mt-1 text-[9px] font-bold uppercase tracking-[0.14em] ${
+                          active ? "text-blue-100/90" : "text-slate-400"
+                        }`}
+                      >
+                        TJS
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             {/* Ворид кардани маблағи дилхоҳ */}
             <div className="mb-5">
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+              <label
+                htmlFor="topup-custom-amount"
+                className="block text-[11px] font-extrabold uppercase tracking-[0.1em] text-slate-500 mb-2"
+              >
                 {lang === "ru"
                   ? "Или введите другую сумму:"
                   : "Ё маблағи дилхоҳро нависед:"}
               </label>
               <div className="relative">
                 <input
+                  id="topup-custom-amount"
                   type="number"
                   min="1"
                   step="1"
+                  inputMode="decimal"
                   value={custom}
                   onChange={(e) => handleCustomChange(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-black text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 transition"
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50/80
+                             px-4 py-3 pr-24 text-[17px] font-extrabold tabular-nums
+                             tracking-[-0.01em] text-slate-900 placeholder:font-medium placeholder:text-slate-400
+                             outline-none transition
+                             focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
                   placeholder={lang === "ru" ? "Сумма в сомони..." : "Маблағ бо сомонӣ..."}
                 />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                <span
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[11px] font-bold
+                             uppercase tracking-[0.1em] text-slate-400"
+                >
                   сомонӣ
                 </span>
               </div>
@@ -351,18 +410,26 @@ export default function TopUpModal({ open, onClose }: Props) {
               </div>
             )}
 
-            {/* Тугмаи пардохт */}
+            {/* Тугмаи пардохт — CTA бо градиент + сояи равшан + сатри болоӣ */}
             <button
               onClick={handlePrepare}
               disabled={!user || sending || !(amount > 0)}
-              className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-sm shadow-md hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98] transition flex items-center justify-center gap-2 disabled:opacity-60 disabled:pointer-events-none"
+              className="w-full relative overflow-hidden rounded-2xl py-3.5 px-4
+                         bg-gradient-to-r from-blue-600 via-blue-600 to-indigo-600
+                         text-white text-[15px] font-extrabold tracking-[0.01em]
+                         shadow-[0_14px_30px_-12px_rgba(37,99,235,0.85),inset_0_1px_0_rgba(255,255,255,0.3)]
+                         transition hover:from-blue-700 hover:to-indigo-700
+                         active:scale-[0.98]
+                         flex items-center justify-center gap-2.5
+                         disabled:opacity-60 disabled:pointer-events-none
+                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
             >
               {sending ? (
                 <Ic icon={Loader2} className="animate-spin" />
               ) : (
                 <Ic icon={Send} />
               )}
-              <span>
+              <span className="tabular-nums">
                 {sending
                   ? lang === "ru"
                     ? "Отправка..."
@@ -375,17 +442,18 @@ export default function TopUpModal({ open, onClose }: Props) {
           /* ============ 2️⃣ ПАРДОХТ → ЧЕК ДАР 1 ДАҚИҚА ============ */
           <>
             {/* Маблағ + шумораи воз */}
-            <div className="mb-4 rounded-2xl bg-slate-50 border border-slate-200/80 p-3.5 flex items-center justify-between">
-              <div>
-                <div className="text-xs font-semibold text-slate-500">
+            <div className="mb-4 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100/70 border border-slate-200/80 p-4 flex items-center justify-between gap-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
+              <div className="min-w-0">
+                <div className="text-[10px] font-extrabold uppercase tracking-[0.12em] text-slate-400">
                   {lang === "ru" ? "Сумма заявки:" : "Маблағи дархост:"}
                 </div>
-                <div className="text-sm font-black text-slate-900 tabular-nums">
-                  {Number(prepared?.amount_tjs || 0).toLocaleString("tj-TJ")} сомонӣ
+                <div className="mt-1 text-[17px] font-black text-slate-900 tabular-nums tracking-[-0.01em]">
+                  {Number(prepared?.amount_tjs || 0).toLocaleString("tj-TJ")}
+                  <span className="ml-1 text-[11px] font-bold text-slate-400">сомонӣ</span>
                 </div>
               </div>
               <div
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-xl border font-black tabular-nums shadow-xs ${
+                className={`flex shrink-0 items-center gap-1.5 px-3 py-2 rounded-xl border font-black text-[15px] tabular-nums shadow-sm transition ${
                   left <= 15
                     ? "bg-rose-50 border-rose-300 text-rose-700"
                     : "bg-white border-slate-200 text-slate-900"
@@ -478,7 +546,14 @@ export default function TopUpModal({ open, onClose }: Props) {
               <button
                 onClick={handleSendReceipt}
                 disabled={!file || sending}
-                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-sm shadow-md hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98] transition flex items-center justify-center gap-2 disabled:opacity-60 disabled:pointer-events-none"
+                className="w-full rounded-2xl py-3.5 px-4
+                           bg-gradient-to-r from-blue-600 via-blue-600 to-indigo-600
+                           text-white text-[15px] font-extrabold tracking-[0.01em]
+                           shadow-[0_14px_30px_-12px_rgba(37,99,235,0.85),inset_0_1px_0_rgba(255,255,255,0.3)]
+                           transition hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98]
+                           flex items-center justify-center gap-2.5
+                           disabled:opacity-60 disabled:pointer-events-none
+                           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
               >
                 {sending ? (
                   <Ic icon={Loader2} className="animate-spin" />
