@@ -264,14 +264,16 @@ export default function SidebarMenu({
 
         {/* ⚙️ Панели поёнӣ: мавзӯ + забон (мисли RentHub) */}
         <div className="border-t border-slate-100 dark:border-slate-800 px-4 py-3.5 flex items-center gap-2">
-          {/* 🌙 Мавзӯи равшан / торик */}
+          {/* 🌙 Мавзӯи равшан / торик — ТАНҲО ИКОНКА (бе матн), то бо
+              флагҳои забон якхела ва зебо шавад (талаби соҳиб, 28.10.2026).
+              `aria-label` + `title` барои screen-reader/tooltip боқӣ. */}
           <button
             type="button"
             onClick={toggleTheme}
             aria-label={theme === "dark" ? t("themeLight") : t("themeDark")}
             title={theme === "dark" ? t("themeLight") : t("themeDark")}
-            className="flex items-center gap-2 rounded-full bg-slate-100 dark:bg-slate-800
-                       px-3.5 py-2 text-[13px] font-bold text-slate-700 dark:text-slate-200
+            className="grid place-items-center w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800
+                       text-slate-600 dark:text-slate-300
                        ring-1 ring-slate-200 dark:ring-slate-700 shrink-0
                        hover:bg-slate-200 dark:hover:bg-slate-700 active:scale-95 transition
                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
@@ -281,7 +283,6 @@ export default function SidebarMenu({
               size="sm"
               className={theme === "dark" ? "text-amber-400" : "text-slate-500"}
             />
-            {theme === "dark" ? t("themeLight") : t("themeDark")}
           </button>
 
           <div className="flex-1" />
