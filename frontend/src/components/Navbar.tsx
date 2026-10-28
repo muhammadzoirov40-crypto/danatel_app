@@ -90,9 +90,11 @@ export default function Navbar() {
       className="sticky top-0 z-40 nav-blue text-white"
     >
       <div className="mx-auto max-w-6xl px-3 sm:px-4 h-14 sm:h-16 flex items-center gap-1.5 sm:gap-2">
-        {/* 💎 Логотипи расмӣ (SVG) */}
+        {/* 💎 Логотипи расмӣ (SVG) + калимаи «donatshop».
+            ⚠️ 28.10.2026 (талаби соҳиб): калимаи бренда ҲАМЕША намоён
+            (қаблӣ дар мобилӣ `hidden sm:inline` буд → танҳо нишонаи D). */}
         <Link to="/" className="shrink-0" title="donatshop" aria-label="donatshop">
-          <Logo size={32} variant="onDark" withText textClass="hidden sm:inline" />
+          <Logo size={32} variant="onDark" withText textClass="text-[15px] sm:text-base" />
         </Link>
 
         {/* 🔗 Пайвандҳо — танҳо аз lg (дар экранҳои хурд дар меню) */}
