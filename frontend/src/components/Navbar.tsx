@@ -79,15 +79,16 @@ export default function Navbar() {
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70";
 
   return (
-    /* 📱 Сарлавҳа дар ҳамаи саҳифаҳо (мобилӣ + десктоп).
-       ⚠️ ИСЛОҲ 28.10.2026 (талаби соҳиб): қаблӣ сарлавҳа дар мобилӣ ТАНҲО
-       дар / буд → дар саҳифаҳои дигар ҳам 🪙 баланс ва ҳам ☰ меню пинҳон
-       буданд («dar injo inhoeo nishon nadihad»). Аккун ҳама ҷо намоён →
-       меню/баланс аз ҳар саҳифа дастрас. Сарлавҳа дар мобилӣ хеле тоза аст
-       (танҳо логотип + баланс + ☰). */
+    /* 📱 Сарлавҳа: дар МОБИЛӢ танҳо дар саҳифаи асосӣ (/); дар ДЕСКТОП
+       ҳама ҷо (пайвандҳо + 🪙 баланс + ☰ меню дастрас).
+       ⚠️ 28.10.2026 (талаби соҳиб): аз нав ба ҳолати аввал баргаштем, зеро
+       сарлавҳа дар саҳифаҳои ғайри-асосии мобилӣ (аз ҷумла /profile)
+       лозим нест — «dar profil headero nishon nadihad… tanho dar asosi
+       nishon dihad». Дар мобилӣ навигатсия → BottomNav; дар десктоп
+       сарлавҳа ҳама ҷо мемонад (кашодани меню/баланс). */
     <>
     <header
-      className="sticky top-0 z-40 nav-blue text-white"
+      className={`${pathname === "/" ? "" : "hidden md:block"} sticky top-0 z-40 nav-blue text-white`}
     >
       <div className="mx-auto max-w-6xl px-3 sm:px-4 h-14 sm:h-16 flex items-center gap-1.5 sm:gap-2">
         {/* 💎 Логотипи расмӣ (SVG) + калимаи «donatshop».
