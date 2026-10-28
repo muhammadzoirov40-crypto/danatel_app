@@ -12,6 +12,9 @@ body {
   background: #f4f7ff; /* --background */
   color: #0f1e3d; /* --foreground */
   font-family: Onest, Inter, system-ui, -apple-system, sans-serif;
+  /* ✒️ Матнҳои тозаву равон (типографикаи SaaS) */
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* Hero-и aurora — ҳамон градиенти persshop */
@@ -28,13 +31,17 @@ body {
 }
 
 /* 🪟 ГЛASSMORPHISM — контейнери шаффофи мулоим (саҳифаи бозӣ).
-   Бе `card` истифода мешавад, то худаш фон/садд/сояро идора кунад. */
+   Сояҳои қатрабандӣ (SaaS-ӣ): ҳалқаи равшан аз боло + ду сояи чуқур →
+   корт «лавҳ» менамояд, контури сафед ҷудо мекунад. */
 .glass {
   background: rgba(255, 255, 255, 0.82);
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.85);
-  box-shadow: 0 26px 60px -32px rgba(37, 99, 235, 0.55);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.95),
+    0 10px 22px -16px rgba(30, 58, 138, 0.28),
+    0 30px 60px -40px rgba(37, 99, 235, 0.45);
 }
 
 /* Навъи афтодаи амудии промо-картоҳо (мобилӣ) */

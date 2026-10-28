@@ -58,7 +58,7 @@ export default function CoinsCard({ data }: { data?: CoinsInfo | null }) {
   const pct = Math.min(100, Math.round((amount / cost) * 100));
 
   return (
-    <div className="flex items-center gap-3 sm:gap-4 rounded-2xl border border-slate-200 bg-slate-100/80 px-4 py-3.5 shadow-sm dark:border-white/10 dark:bg-white/5">
+    <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2.5 rounded-2xl border border-slate-200 bg-slate-100/80 px-4 py-3.5 shadow-sm dark:border-white/10 dark:bg-white/5">
       {/* 🪙 Тиллоӣ бо «P» дар дохили доираи кабуд */}
       <div
         aria-hidden
@@ -69,12 +69,12 @@ export default function CoinsCard({ data }: { data?: CoinsInfo | null }) {
         </span>
       </div>
 
-      <div className="min-w-0 flex-1">
-        <div className="text-sm font-extrabold text-slate-900 sm:text-base dark:text-white">
+      <div className="min-w-[132px] flex-1">
+        <div className="text-[13px] font-extrabold leading-tight text-slate-900 sm:text-base dark:text-white">
           Pers Coins:{" "}
           <span className="tabular-nums">{amount.toLocaleString("tj-TJ")}</span>
         </div>
-        <div className="text-[11px] font-medium text-slate-500 sm:text-xs dark:text-slate-400">
+        <div className="text-[11px] font-medium leading-tight text-slate-500 sm:text-xs dark:text-slate-400">
           {left > 0 ? t("toSpin").replace("{n}", String(left)) : t("spinReady")}
         </div>
 
@@ -97,7 +97,7 @@ export default function CoinsCard({ data }: { data?: CoinsInfo | null }) {
       {/* 🔵 Тугмаи «Гардондан» → /wheel */}
       <Link
         to="/wheel"
-        className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-blue-600 px-3.5 py-2.5 text-xs font-bold text-white shadow-md shadow-blue-600/25 transition hover:bg-blue-700 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 sm:text-sm"
+        className="inline-flex w-full shrink-0 items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-3 sm:w-auto sm:px-3.5 py-2.5 text-[11px] sm:text-xs font-bold text-white shadow-md shadow-blue-600/25 transition hover:bg-blue-700 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
       >
         <Ic icon={Sparkles} size="sm" />
         {t("gardonan")}

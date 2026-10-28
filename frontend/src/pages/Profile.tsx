@@ -240,7 +240,7 @@ export default function Profile() {
     <div className="profile-soft min-h-[calc(100vh-4rem)] w-full max-w-full overflow-x-clip">
       <div className="mx-auto max-w-3xl px-4 py-6 sm:py-8 grid gap-4 sm:gap-5">
         {/* ===== 1️⃣ КАРТОЧКАИ ПРОФИЛ ===== */}
-        <section className="glass rounded-2xl p-4 sm:p-6" aria-labelledby="profile-name">
+        <section className="glass min-w-0 rounded-2xl p-4 sm:p-6" aria-labelledby="profile-name">
           <div className="flex items-start gap-4">
             {/* Аватар бо ҳарфи аввали ном */}
             <div
@@ -252,11 +252,21 @@ export default function Profile() {
 
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 id="profile-name" className="text-xl font-bold truncate">
+                {/* ✒️ Ном — градиенти сӯяшуда, фишурда (SaaS-ӣ) */}
+                <h2
+                  id="profile-name"
+                  className="truncate text-[1.3rem] sm:text-2xl font-extrabold tracking-tight leading-tight
+                             bg-gradient-to-br from-slate-900 via-slate-700 to-slate-500
+                             bg-clip-text text-transparent"
+                >
                   {displayName}
                 </h2>
                 {isAdmin && (
-                  <span className="inline-flex items-center rounded-full bg-brand-600 text-white text-[11px] font-bold px-2.5 py-1">
+                  <span className="inline-flex shrink-0 items-center rounded-full
+                                   bg-gradient-to-r from-brand-500 to-indigo-500
+                                   text-white text-[10px] font-extrabold uppercase tracking-[0.12em]
+                                   px-2.5 py-1
+                                   shadow-[0_6px_14px_-6px_rgba(37,99,235,0.9)] ring-1 ring-white/25">
                     {t("admin")}
                   </span>
                 )}
@@ -267,7 +277,7 @@ export default function Profile() {
                   type="button"
                   onClick={copyPhone}
                   aria-label={`${t("copy")}: ${user.phone}`}
-                  className="mt-1 -mx-1.5 inline-flex max-w-full items-center gap-1.5 rounded-lg px-1.5 py-1 text-sm text-slate-500 transition hover:text-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 dark:text-slate-400"
+                  className="mt-1 -mx-1.5 inline-flex max-w-full items-center gap-1.5 rounded-lg px-1.5 py-1 text-[13px] sm:text-sm font-medium text-slate-500 transition hover:text-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 dark:text-slate-400"
                 >
                   <Ic icon={Smartphone} className="text-slate-400" />
                   <span className="tabular-nums break-all">{user.phone}</span>
@@ -287,7 +297,7 @@ export default function Profile() {
                 type="button"
                 onClick={copyId}
                 aria-label={`${t("profileIdLabel")} ${user.id}`}
-                className="mt-1 inline-flex items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700 transition hover:border-blue-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 dark:border-blue-400/30 dark:bg-blue-500/15 dark:text-blue-200"
+                className="mt-1 inline-flex items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-[11px] sm:text-xs font-extrabold tracking-wide text-blue-700 transition hover:border-blue-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 dark:border-blue-400/30 dark:bg-blue-500/15 dark:text-blue-200"
               >
                 {t("profileIdLabel")} {user.id}
                 <Ic
@@ -299,7 +309,7 @@ export default function Profile() {
               </button>
 
               {/* 📅 «Кушодашуда: <сана>» — аз backend (user.created_at) */}
-              <div className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+              <div className="mt-1.5 text-[11px] sm:text-xs font-medium tracking-wide text-slate-400 dark:text-slate-400">
                 {t("registeredAt")}: {new Date(user.created_at).toLocaleDateString(lang)}
               </div>
             </div>
@@ -312,13 +322,15 @@ export default function Profile() {
                        text-white shadow-lg shadow-blue-700/30 ring-1 ring-white/20
                        dark:from-blue-700 dark:to-indigo-800 dark:shadow-none"
           >
-            <div className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-100">
+            {/* ✒️ Кикер — хурд, фишурда, сафед */}
+            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-blue-100/90">
               <Ic icon={Wallet} size="xs" />
-              {t("balance")}:
+              {t("balance")}
             </div>
-            <div className="mt-0.5 text-3xl font-black leading-none tabular-nums">
+            {/* ✒️ Маблағ — калон, рақамҳои баробар (tabular), фишурда */}
+            <div className="mt-1 text-[2rem] sm:text-4xl font-black leading-none tracking-[-0.02em] tabular-nums [text-shadow:0_2px_14px_rgba(15,23,42,0.28)]">
               {balance.toLocaleString("tj-TJ")}
-              <span className="ml-1.5 text-base font-semibold text-blue-100">
+              <span className="ml-1.5 text-base sm:text-lg font-semibold text-blue-200 [text-shadow:none]">
                 {t("currency")}
               </span>
             </div>
@@ -327,23 +339,24 @@ export default function Profile() {
               <button
                 type="button"
                 onClick={() => setTopUpOpen(true)}
-                className="flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap
-                           rounded-xl bg-white px-3 py-2.5 text-sm font-bold text-blue-700
+                className="flex min-w-0 flex-1 items-center justify-center gap-1.5
+                           rounded-xl bg-white px-2 py-2.5 text-[13px] sm:px-3 sm:text-sm font-bold tracking-wide text-blue-700
+                           shadow-md shadow-blue-900/20
                            transition hover:bg-blue-50 active:scale-[0.98]
                            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
               >
-                <Ic icon={Plus} className="text-blue-600" />
-                {t("topup")}
+                <Ic icon={Plus} className="shrink-0 text-blue-600" />
+                <span className="text-center leading-tight">{t("topup")}</span>
               </button>
               <Link
                 to="/orders"
-                className="flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap
-                           rounded-xl bg-white/15 px-3 py-2.5 text-sm font-bold text-white
+                className="flex min-w-0 flex-1 items-center justify-center gap-1.5
+                           rounded-xl bg-white/15 px-2 py-2.5 text-[13px] sm:px-3 sm:text-sm font-bold tracking-wide text-white
                            ring-1 ring-white/25 transition hover:bg-white/25 active:scale-[0.98]
                            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
               >
-                <Ic icon={Package} />
-                {t("myOrders")}
+                <Ic icon={Package} className="shrink-0" />
+                <span className="text-center leading-tight">{t("myOrders")}</span>
               </Link>
             </div>
           </div>
@@ -380,7 +393,7 @@ export default function Profile() {
 
         {/* ===== 2️⃣ ГУРУҲИ 1: Фармоишҳо · IDҳои бозӣ ===== */}
         <section
-          className="glass rounded-2xl overflow-hidden"
+          className="glass min-w-0 rounded-2xl overflow-hidden"
           aria-label={`${t("orders")} · ${t("gameIds")}`}
         >
           <div className="divide-y divide-slate-100 dark:divide-white/10">
@@ -651,7 +664,7 @@ export default function Profile() {
             <div className="border-t border-slate-100 px-5 py-4 space-y-4 dark:border-white/10">
               {/* 🔗 Линки даъват */}
               <div className="rounded-2xl border border-brand-100 bg-brand-50/60 p-4 dark:border-brand-400/30 dark:bg-brand-500/10">
-                <div className="text-sm font-bold">{t("inviteLink")}</div>
+                <div className="text-[15px] font-bold tracking-tight">{t("inviteLink")}</div>
                 <div className="mt-1 text-xs text-slate-600 dark:text-slate-300">
                   {t("inviteHint")}
                 </div>
@@ -690,7 +703,7 @@ export default function Profile() {
 
               {/* 🪙 Таърихи тангаҳо */}
               <div>
-                <div className="mb-2 inline-flex items-center gap-2 text-sm font-bold">
+                <div className="mb-2 inline-flex items-center gap-2 text-[15px] font-bold tracking-tight">
                   <Ic icon={History} className="text-amber-600" />
                   {t("coinHistory")}
                 </div>
@@ -768,14 +781,17 @@ function MenuRow({
       type="button"
       onClick={onClick}
       aria-expanded={open}
-      className="flex w-full items-center gap-3 px-5 py-4 text-left transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-400 dark:hover:bg-white/5"
+      className="flex w-full items-center gap-3 px-4 sm:px-5 py-3.5 sm:py-4 text-left transition hover:bg-slate-50 active:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-400 dark:hover:bg-white/5"
     >
-      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600 dark:bg-white/10 dark:text-brand-300">
+      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600
+                       ring-1 ring-brand-100/80 shadow-sm dark:bg-white/10 dark:text-brand-300 dark:ring-white/10">
         <Ic icon={icon} />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block text-sm font-semibold">{title}</span>
-        <span className="block truncate text-xs text-slate-500 dark:text-slate-400">
+        <span className="block text-[15px] font-bold tracking-tight text-slate-800 dark:text-slate-100">
+          {title}
+        </span>
+        <span className="block truncate text-[11px] sm:text-xs font-medium text-slate-500 dark:text-slate-400">
           {hint}
         </span>
       </span>
