@@ -430,7 +430,7 @@ export default function Wheel() {
               {t("myGameHint")}
             </p>
             <div
-              className="flex flex-wrap gap-2"
+              className="flex gap-2 overflow-x-auto pb-1"
               role="radiogroup"
               aria-label={t("myGame")}
             >
@@ -445,7 +445,7 @@ export default function Wheel() {
                     aria-label={g.name}
                     onClick={() => void pickGame(g.slug)}
                     disabled={savingGame}
-                    className={`inline-flex items-center gap-1.5 rounded-2xl border px-3 py-2 text-sm font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 disabled:opacity-60 ${
+                    className={`inline-flex shrink-0 items-center gap-1.5 rounded-2xl border px-3 py-2 text-sm font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 disabled:opacity-60 ${
                       active
                         ? "border-brand-500 bg-brand-600 text-white shadow-md shadow-brand-500/25"
                         : "border-slate-200 bg-slate-50 text-slate-700 hover:border-brand-400 dark:border-white/10 dark:bg-white/5 dark:text-slate-200"
