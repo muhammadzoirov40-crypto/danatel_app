@@ -6,6 +6,7 @@ import {
   Coins,
   Copy,
   Gamepad2,
+  Grid,
   History,
   Loader2,
   Percent,
@@ -13,14 +14,15 @@ import {
   ScrollText,
   Sparkles,
   Trophy,
+  List,
   UserPlus,
 } from "lucide-react";
 import { api, ApiError } from "../api/client";
 import { useApp } from "../context/AppContext";
 import type { CoinsInfo, CoinTx, Game, WheelData, WheelSpin } from "../types";
-import CoinsCard from "../components/CoinsCard";
 import BackButton from "../components/BackButton";
 import { Ic } from "../components/Icons";
+import { copyText } from "../utils/clipboard";
 
 /**
  * 🎡 САҲИФАИ «ЧАРХ» — гардиши тангаҳо (Фаза 2).
@@ -83,6 +85,7 @@ export default function Wheel() {
   const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState<WheelSpin | null>(null);
   const [showHistory, setShowHistory] = useState(false);
+  const [showGrid, setShowGrid] = useState(true);
   const [rotation, setRotation] = useState(0);
 
   // 💱 Иваз ба баланс
@@ -192,12 +195,10 @@ export default function Wheel() {
 
   const copyInvite = async () => {
     if (!inviteLink) return;
-    try {
-      await navigator.clipboard.writeText(inviteLink);
+    const ok = await copyText(inviteLink);
+    if (ok) {
       setInviteCopied(true);
       window.setTimeout(() => setInviteCopied(false), 1800);
-    } catch {
-      /* иҷозат нест */
     }
   };
 
@@ -317,6 +318,17 @@ export default function Wheel() {
             боло, ба тарафи рост, дар як сатр бо тугмаи бозгашт кӯчонда шуд. */}
         <div className="flex items-center justify-between gap-2">
           <BackButton />
+          {/* 🪙 PERS COINS — фишурда, дар сатри боло (моҳии header) */}
+          {mine && (
+            <div
+              className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-3 py-1.5 text-xs font-extrabold text-white shadow-md shadow-blue-500/25"
+              aria-label={`${mine.coins} танга`}
+            >
+              <Ic icon={Coins} size="xs" />
+              <span className="tabular-nums">{mine.coins}</span>
+              <span className="opacity-80">танга</span>
+            </div>
+          )}
           {user && (
             <button
               type="button"
@@ -393,9 +405,6 @@ export default function Wheel() {
           </section>
         )}
 
-        {/* ===== 🪙 КОРТИ ТАНГАҲО (ҳамон корти саҳифаи асосӣ/профил) ===== */}
-        <CoinsCard data={mine} />
-
         {/* ===== ХАТОГӢ ===== */}
         {err && (
           <div
@@ -422,15 +431,24 @@ export default function Wheel() {
         {/* ===== 🎮 БОЗИИ МАН — интихоб пеш аз гардиш ===== */}
         {user && games.length > 0 && (
           <section className="card p-4" aria-label={t("myGame")}>
-            <div className="inline-flex items-center gap-2 text-sm font-extrabold">
+            <div className="flex items-center gap-2 mb-3">
               <Ic icon={Gamepad2} size="md" className="text-brand-600" />
-              {t("myGame")}
+              <span className="text-sm font-extrabold">{t("myGame")}</span>
+              {/* ⚙️ Калл тижperi — ҳавони гӯйи истифода (граи лутф) */}
+              <button
+                type="button"
+                onClick={() => setShowGrid((v) => !v)}
+                aria-label={showGrid ? "List view" : "Grid view"}
+                className="ml-2 btn-ghost text-xs p-1 rounded outline-none"
+              >
+                <Ic icon={showGrid ? List : Grid} size="xs" />
+              </button>
             </div>
             <p className="mt-0.5 mb-3 text-xs text-slate-500 dark:text-slate-400">
               {t("myGameHint")}
             </p>
             <div
-              className="flex flex-wrap gap-2"
+              className={showGrid ? "grid grid-cols-2 gap-2" : "flex flex-wrap gap-2"}
               role="radiogroup"
               aria-label={t("myGame")}
             >

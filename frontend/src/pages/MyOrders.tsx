@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Check, Copy, Gamepad2, Inbox, Loader2, PackageOpen, RefreshCw } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { api } from "../api/client";
+import { copyText } from "../utils/clipboard";
 import type { Order } from "../types";
 import StatusBadge from "../components/StatusBadge";
 import BackButton from "../components/BackButton";
@@ -190,14 +191,11 @@ export default function MyOrders() {
                   </div>
                   <button
                     type="button"
-                    onClick={() => {
-                      void navigator.clipboard
-                        .writeText(g.id)
-                        .then(() => {
-                          setCopiedPid(g.id);
-                          setTimeout(() => setCopiedPid(null), 1500);
-                        })
-                        .catch(() => undefined);
+                    onClick={async () => {
+                      if (await copyText(g.id)) {
+                        setCopiedPid(g.id);
+                        setTimeout(() => setCopiedPid(null), 1500);
+                      }
                     }}
                     aria-label={`${t("copy")}: ${g.id}`}
                     className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-500 transition hover:bg-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 dark:bg-white/10 dark:text-slate-300"

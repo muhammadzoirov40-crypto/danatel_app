@@ -13,6 +13,7 @@ import {
 import { useApp } from "../context/AppContext";
 import Logo from "./Logo";
 import { Ic } from "./Icons";
+import { copyText } from "../utils/clipboard";
 
 /**
  * 🦶 Футери расмӣ ва касбии danatel.tj
@@ -40,9 +41,10 @@ export default function Footer() {
       }
     }
     try {
-      await navigator.clipboard.writeText(window.location.origin);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      if (await copyText(window.location.origin)) {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
     } catch {}
   };
 

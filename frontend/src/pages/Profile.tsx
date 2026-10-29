@@ -29,6 +29,7 @@ import type { CoinsInfo } from "../types";
 import { Ic } from "../components/Icons";
 import TopUpModal from "../components/TopUpModal";
 import BackButton from "../components/BackButton";
+import { copyText } from "../utils/clipboard";
 
 /**
  * 👤 ПРОФИЛИ КОРБАР
@@ -74,24 +75,18 @@ export default function Profile() {
   // 📋 Нусхаи рақами телефон (маҳаллӣ — ягон дархост ба сервер намеравад)
   const copyPhone = async () => {
     if (!user?.phone) return;
-    try {
-      await navigator.clipboard.writeText(user.phone);
+    if (await copyText(user.phone)) {
       setPhoneCopied(true);
       setTimeout(() => setPhoneCopied(false), 1800);
-    } catch {
-      /* иҷозат нест — нодида гирифта мешавад */
     }
   };
 
   // 📋 Нусхаи ID
   const copyId = async () => {
     if (!user) return;
-    try {
-      await navigator.clipboard.writeText(String(user.id));
+    if (await copyText(String(user.id))) {
       setIdCopied(true);
       setTimeout(() => setIdCopied(false), 1800);
-    } catch {
-      /* иҷозат нест */
     }
   };
 
@@ -166,12 +161,9 @@ export default function Profile() {
 
   const copyInvite = async () => {
     if (!inviteLink) return;
-    try {
-      await navigator.clipboard.writeText(inviteLink);
+    if (await copyText(inviteLink)) {
       setInviteCopied(true);
       setTimeout(() => setInviteCopied(false), 1800);
-    } catch {
-      /* иҷозат нест */
     }
   };
 

@@ -58,48 +58,45 @@ export default function CoinsCard({ data }: { data?: CoinsInfo | null }) {
   const pct = Math.min(100, Math.round((amount / cost) * 100));
 
   return (
-    <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2.5 rounded-2xl border border-slate-200 bg-slate-100/80 px-4 py-3.5 shadow-sm dark:border-white/10 dark:bg-white/5">
-      {/* 🪙 Тиллоӣ бо «P» дар дохили доираи кабуд */}
-      <div
-        aria-hidden
-        className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-blue-600 shadow-md shadow-blue-600/30 sm:h-12 sm:w-12"
-      >
-        <span className="grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br from-amber-300 via-amber-400 to-amber-500 text-[13px] font-black text-amber-950 ring-1 ring-amber-200/70 sm:h-8 sm:w-8 sm:text-sm">
-          P
+    <div className="rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 p-4 text-white shadow-lg shadow-blue-700/30 ring-1 ring-white/20 dark:from-blue-700 dark:to-indigo-800 dark:shadow-none">
+      {/* ✒️ Кикер — хурд, фишурда, сафед (мисли корти баланс) */}
+      <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-blue-100/90">
+        <Ic icon={Sparkles} size="xs" />
+        Pers Coins
+      </div>
+
+      {/* ✒️ Маблағ — калон, рақамҳои баробар (tabular) */}
+      <div className="mt-1 text-[2rem] sm:text-4xl font-black leading-none tracking-[-0.02em] tabular-nums [text-shadow:0_2px_14px_rgba(15,23,42,0.28)]">
+        {amount.toLocaleString("tj-TJ")}
+        <span className="ml-1.5 text-base sm:text-lg font-semibold text-blue-200 [text-shadow:none]">
+          {t("coinUnit")}
         </span>
       </div>
 
-      <div className="min-w-[132px] flex-1">
-        <div className="text-[13px] font-extrabold leading-tight text-slate-900 sm:text-base dark:text-white">
-          Pers Coins:{" "}
-          <span className="tabular-nums">{amount.toLocaleString("tj-TJ")}</span>
-        </div>
-        <div className="text-[11px] font-medium leading-tight text-slate-500 sm:text-xs dark:text-slate-400">
-          {left > 0 ? t("toSpin").replace("{n}", String(left)) : t("spinReady")}
-        </div>
-
-        {/* 📏 Шкалаи прогресс: тангаҳо → хароҷоти гардиш */}
+      {/* 📏 Прогресс: тангаҳо → хароҷоти гардиш */}
+      <div className="mt-2.5 text-[11px] font-semibold text-blue-100/90">
+        {left > 0 ? t("toSpin").replace("{n}", String(left)) : t("spinReady")}
+      </div>
+      <div
+        role="progressbar"
+        aria-label="Pers Coins"
+        aria-valuemin={0}
+        aria-valuemax={cost}
+        aria-valuenow={Math.min(amount, cost)}
+        className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-white/25"
+      >
         <div
-          role="progressbar"
-          aria-label="Pers Coins"
-          aria-valuemin={0}
-          aria-valuemax={cost}
-          aria-valuenow={Math.min(amount, cost)}
-          className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-300/90 dark:bg-white/10"
-        >
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-blue-500 to-blue-600 transition-[width] duration-500"
-            style={{ width: `${pct}%` }}
-          />
-        </div>
+          className="h-full rounded-full bg-white transition-[width] duration-500"
+          style={{ width: `${pct}%` }}
+        />
       </div>
 
-      {/* 🔵 Тугмаи «Гардондан» → /wheel */}
+      {/* ⬜ Тугмаи «Гардондан» — сафед (мисли «Пур кардан») */}
       <Link
         to="/wheel"
-        className="inline-flex w-full shrink-0 items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-3 sm:w-auto sm:px-3.5 py-2.5 text-[11px] sm:text-xs font-bold text-white shadow-md shadow-blue-600/25 transition hover:bg-blue-700 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
+        className="mt-3.5 inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-white px-3 py-2.5 text-[13px] sm:text-sm font-bold text-blue-700 shadow-md shadow-blue-900/20 transition hover:bg-blue-50 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
       >
-        <Ic icon={Sparkles} size="sm" />
+        <Ic icon={Sparkles} size="sm" className="shrink-0 text-blue-600" />
         {t("gardonan")}
       </Link>
     </div>

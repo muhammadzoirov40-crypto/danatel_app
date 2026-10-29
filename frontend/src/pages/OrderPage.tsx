@@ -22,6 +22,7 @@ import StatusBadge from "../components/StatusBadge";
 import Customers from "../components/Customers";
 import BackButton from "../components/BackButton";
 import { useApp } from "../context/AppContext";
+import { copyText } from "../utils/clipboard";
 import { Ic } from "../components/Icons";
 
 /** Саҳифаи санҷиши статуси фармоиш */
@@ -104,12 +105,9 @@ export default function OrderPage() {
 
   // 📋 Нусхабардории линки пардохт
   const copyLink = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
+    if (await copyText(text)) {
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);
-    } catch {
-      /* иҷозат нест — нодида гирифта мешавад */
     }
   };
 
