@@ -177,56 +177,63 @@ export default function Home() {
 
         {/* ===== 4) РӮЙХАТИ БОЗИҲО ===== */}
         <section id="games" className="mt-8 sm:mt-12 scroll-mt-20">
-          <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-            <h2 className="text-base sm:text-xl font-extrabold tracking-tight inline-flex items-center gap-2">
-              <Ic icon={Gamepad2} size="md" className="text-brand-600" />
-              {query ? t("resultsFor") : t("chooseGame")}
-            </h2>
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5">
-              <button
-                type="button"
-                onClick={() => setFilterTab("all")}
-                aria-pressed={filterTab === "all"}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition active:scale-95 ${
-                  filterTab === "all"
-                    ? "bg-brand-600 text-white shadow-xs"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
-              >
-                <Ic icon={LayoutGrid} size="xs" />
-                <span>{lang === "ru" ? "Все" : lang === "uz" ? "Barchasi" : lang === "en" ? "All" : "Ҳама"}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setFilterTab("popular")}
-                aria-pressed={filterTab === "popular"}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition active:scale-95 ${
-                  filterTab === "popular"
-                    ? "bg-rose-500 text-white shadow-xs"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
-              >
-                <Ic icon={Flame} size="xs" />
-                <span>{lang === "ru" ? "Популярные" : lang === "uz" ? "Ommabop" : lang === "en" ? "Popular" : "Машҳур"}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setFilterTab("favorites")}
-                aria-pressed={filterTab === "favorites"}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition active:scale-95 ${
-                  filterTab === "favorites"
-                    ? "bg-rose-600 text-white shadow-xs"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
-              >
-                <Ic icon={Heart} size="xs" className={favorites.length ? "fill-current" : ""} />
-                <span>{lang === "ru" ? "Избранное" : lang === "uz" ? "Sevimlilar" : lang === "en" ? "Favorites" : "Дӯстдоштаҳо"}</span>
-                {favorites.length > 0 && (
-                  <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] bg-white/20">{favorites.length}</span>
-                )}
-              </button>
-            </div>
-          </div>
+          <div className="flex items-center justify-between mb-3 flex-wrap gap-2.5">
+            {/* 🎮 Сарлавҳа — икона дар badge-и gradient + матни зебо */}
+            <h2 className="text-base sm:text-xl font-extrabold tracking-tight inline-flex items-center gap-2.5">
+              <span className="grid h-8 w-8 sm:h-9 sm:w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-md shadow-brand-500/35">
+                <Ic icon={Gamepad2} size="sm" />
+              </span>
+              <span className="bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent dark:from-white dark:to-slate-400">
+                {query ? t("resultsFor") : t("chooseGame")}
+              </span>
+            </h2>
+
+            {/* 🎚️ Чипҳои филтр — ҳар як ранги худ, фаъол = gradient + соя */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-0.5 -mx-1 px-1">
+              <button
+                type="button"
+                onClick={() => setFilterTab("all")}
+                aria-pressed={filterTab === "all"}
+                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-[13px] font-bold transition active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 ${
+                  filterTab === "all"
+                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/35"
+                    : "bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:ring-white/10 dark:hover:bg-white/10"
+                }`}
+              >
+                <Ic icon={LayoutGrid} size="xs" />
+                <span>{lang === "ru" ? "Все" : lang === "uz" ? "Barchasi" : lang === "en" ? "All" : "Ҳама"}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilterTab("popular")}
+                aria-pressed={filterTab === "popular"}
+                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-[13px] font-bold transition active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 ${
+                  filterTab === "popular"
+                    ? "bg-gradient-to-r from-rose-500 to-orange-500 text-white shadow-md shadow-rose-500/35"
+                    : "bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:ring-white/10 dark:hover:bg-white/10"
+                }`}
+              >
+                <Ic icon={Flame} size="xs" />
+                <span>{lang === "ru" ? "Популярные" : lang === "uz" ? "Ommabop" : lang === "en" ? "Popular" : "Машҳур"}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilterTab("favorites")}
+                aria-pressed={filterTab === "favorites"}
+                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-[13px] font-bold transition active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-400 ${
+                  filterTab === "favorites"
+                    ? "bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-md shadow-pink-500/35"
+                    : "bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:ring-white/10 dark:hover:bg-white/10"
+                }`}
+              >
+                <Ic icon={Heart} size="xs" className={favorites.length ? "fill-current" : ""} />
+                <span>{lang === "ru" ? "Избранное" : lang === "uz" ? "Sevimlilar" : lang === "en" ? "Favorites" : "Дӯстдоштаҳо"}</span>
+                {favorites.length > 0 && (
+                  <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] bg-white/20">{favorites.length}</span>
+                )}
+              </button>
+            </div>
+          </div>
 
           {loading && (
             <div className="grid grid-cols-4 gap-x-3 gap-y-5 sm:grid-cols-6 sm:gap-x-5 lg:grid-cols-9 lg:gap-x-5">
