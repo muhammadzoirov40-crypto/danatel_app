@@ -73,6 +73,16 @@ function sectorPath(a1: number, a2: number) {
   );
 }
 
+/** 🎨 Ранги hex-ро равшан/тарак соз барои градиенти сенечҳо */
+function shade(hex: string, amt: number) {
+  const num = parseInt(hex.replace("#", ""), 16);
+  const clamp = (v: number) => Math.max(0, Math.min(255, v));
+  const r = clamp(((num >> 16) & 0xff) + amt);
+  const g = clamp(((num >> 8) & 0xff) + amt);
+  const b = clamp((num & 0xff) + amt);
+  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`;
+}
+
 export default function Wheel() {
   const { t, lang, user, refreshUser, balance } = useApp();
   const nav = useNavigate();
@@ -478,17 +488,60 @@ export default function Wheel() {
               {segments.length > 0 ? (
                 <svg
                   viewBox={`0 0 ${SIZE} ${SIZE}`}
-                  className="h-full w-full"
+                  className="h-full w-full drop-shadow-[0_10px_20px_rgba(15,23,42,0.25)]"
                   role="img"
                   aria-label={t("wheel")}
                 >
+                  <defs>
+                    {/* 🎨 Градиенти ҳар сенеч (равшан → тарак) */}
+                    {PALETTE.map((c, i) => (
+                      <linearGradient key={i} id={`wg${i}`} x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor={shade(c.bg, 26)} />
+                        <stop offset="55%" stopColor={c.bg} />
+                        <stop offset="100%" stopColor={shade(c.bg, -30)} />
+                      </linearGradient>
+                    ))}
+                    {/* 💿 Рими металлӣ (боло → поён) */}
+                    <linearGradient id="rimMetal" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#f1f5f9" />
+                      <stop offset="35%" stopColor="#cbd5e1" />
+                      <stop offset="65%" stopColor="#94a3b8" />
+                      <stop offset="100%" stopColor="#cbd5e1" />
+                    </linearGradient>
+                    {/* ✨ Глосс/оина дар болои чарҳ */}
+                    <radialGradient id="wheelGloss" cx="34%" cy="26%" r="72%">
+                      <stop offset="0%" stopColor="rgba(255,255,255,0.42)" />
+                      <stop offset="45%" stopColor="rgba(255,255,255,0.08)" />
+                      <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+                    </radialGradient>
+                    {/* 🔲 Сояи дохилӣ барои ҳалқаи дохилӣ */}
+                    <radialGradient id="innerShade" cx="50%" cy="50%" r="50%">
+                      <stop offset="70%" stopColor="rgba(15,23,42,0)" />
+                      <stop offset="100%" stopColor="rgba(15,23,42,0.18)" />
+                    </radialGradient>
+                  </defs>
+
+                  {/* 💿 Рими берунии металлӣ + ҳалқаи сафед */}
                   <circle
                     cx={CENTER}
                     cy={CENTER}
-                    r={RADIUS + 7}
-                    fill="#e2e8f0"
-                    stroke="#cbd5e1"
-                    strokeWidth={2}
+                    r={RADIUS + 11}
+                    fill="url(#rimMetal)"
+                    stroke="rgba(148,163,184,0.9)"
+                    strokeWidth={1}
+                  />
+                  <circle
+                    cx={CENTER}
+                    cy={CENTER}
+                    r={RADIUS + 5}
+                    fill="#0f172a"
+                    opacity={0.12}
+                  />
+                  <circle
+                    cx={CENTER}
+                    cy={CENTER}
+                    r={RADIUS + 2}
+                    fill="#ffffff"
                   />
                   {segments.map((s, i) => {
                     const a1 = i * segAngle;
@@ -499,9 +552,9 @@ export default function Wheel() {
                       <g key={s.coins}>
                         <path
                           d={sectorPath(a1, a1 + segAngle)}
-                          fill={col.bg}
-                          stroke="rgba(255,255,255,0.6)"
-                          strokeWidth={1.5}
+                          fill={`url(#wg${i % PALETTE.length})`}
+                          stroke="rgba(255,255,255,0.7)"
+                          strokeWidth={2}
                         />
                         <g transform={`rotate(${mid} ${CENTER} ${CENTER})`}>
                           <text
@@ -519,8 +572,8 @@ export default function Wheel() {
                             fill={col.fg}
                             stroke={
                               col.fg === "#ffffff"
-                                ? "rgba(15,23,42,0.4)"
-                                : "rgba(255,255,255,0.5)"
+                                ? "rgba(15,23,42,0.45)"
+                                : "rgba(255,255,255,0.55)"
                             }
                             strokeWidth={3}
                             paintOrder="stroke"
@@ -533,6 +586,22 @@ export default function Wheel() {
                       </g>
                     );
                   })}
+
+                  {/* ✨ Глосс/оина + сояи дохилӣ дар болои сенечҳо */}
+                  <circle
+                    cx={CENTER}
+                    cy={CENTER}
+                    r={RADIUS}
+                    fill="url(#innerShade)"
+                    pointerEvents="none"
+                  />
+                  <circle
+                    cx={CENTER}
+                    cy={CENTER}
+                    r={RADIUS}
+                    fill="url(#wheelGloss)"
+                    pointerEvents="none"
+                  />
                 </svg>
               ) : (
                 <div
@@ -542,26 +611,38 @@ export default function Wheel() {
               )}
             </div>
 
-            {/* 🔺 Нӯги болоӣ — ҷои ғолиб */}
+            {/* 🔺 Нӯги болоӣ — ҷои ғолиб (глоссӣ бо соя) */}
             <div
               aria-hidden
-              className="absolute left-1/2 top-0 z-10 -translate-x-1/2 -translate-y-1/2"
+              className="absolute left-1/2 top-0 z-10 -translate-x-1/2 -translate-y-1/2 drop-shadow-[0_4px_6px_rgba(15,23,42,0.35)]"
             >
-              <svg width="38" height="52" viewBox="0 0 38 52" fill="none">
-                <circle cx="19" cy="15" r="13" fill="#1d4ed8" />
-                <circle cx="19" cy="15" r="13" stroke="#ffffff" strokeWidth="3" />
-                <path d="M19 50 L7 24 L31 24 Z" fill="#1d4ed8" />
-                <path d="M19 50 L7 24 L31 24 Z" stroke="#ffffff" strokeWidth="2.5" strokeLinejoin="round" />
+              <svg width="40" height="54" viewBox="0 0 40 54" fill="none">
+                <defs>
+                  <linearGradient id="pinGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#3b82f6" />
+                    <stop offset="100%" stopColor="#1e3a8a" />
+                  </linearGradient>
+                  <linearGradient id="pinTri" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#2563eb" />
+                    <stop offset="100%" stopColor="#1d4ed8" />
+                  </linearGradient>
+                </defs>
+                <path d="M20 50 L7 24 L33 24 Z" fill="url(#pinTri)" stroke="#ffffff" strokeWidth="2.5" strokeLinejoin="round" />
+                <path d="M20 50 L7 24 L14 24 Z" fill="rgba(255,255,255,0.28)" />
+                <circle cx="20" cy="15" r="13.5" fill="url(#pinGrad)" stroke="#ffffff" strokeWidth="3" />
+                <ellipse cx="16" cy="11" rx="5" ry="3.4" fill="rgba(255,255,255,0.5)" />
               </svg>
             </div>
 
-            {/* ⭕ Маркази чарх */}
+            {/* ⭕ Маркази чарх — 3D бо ҳалқаи металлӣ ва дурахшӣ */}
             <div
               aria-hidden
-              className="absolute left-1/2 top-1/2 z-10 grid h-16 w-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-4 border-white bg-gradient-to-br from-blue-600 to-indigo-700 shadow-lg ring-1 ring-blue-200"
+              className="absolute left-1/2 top-1/2 z-10 grid h-[74px] w-[74px] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-[5px] border-white bg-[conic-gradient(from_180deg,#f1f5f9,#cbd5e1,#94a3b8,#cbd5e1)] shadow-[0_6px_16px_rgba(15,23,42,0.35)]"
             >
-              <span className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-amber-300 via-amber-400 to-amber-500 text-base font-black text-amber-950">
-                {pickedGame?.emoji || "P"}
+              <span className="grid h-[54px] w-[54px] place-items-center rounded-full bg-[radial-gradient(circle_at_32%_28%,#60a5fa,#2563eb_55%,#1e40af)] shadow-[inset_0_-3px_8px_rgba(0,0,0,0.35),inset_0_3px_6px_rgba(255,255,255,0.35)]">
+                <span className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-amber-300 via-amber-400 to-amber-500 text-base font-black text-amber-950 shadow-[0_2px_5px_rgba(0,0,0,0.3)]">
+                  {pickedGame?.emoji || "P"}
+                </span>
               </span>
             </div>
           </div>
