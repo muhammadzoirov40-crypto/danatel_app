@@ -21,7 +21,7 @@ import { api, ApiError } from "../api/client";
 import { useApp } from "../context/AppContext";
 import type { CoinsInfo, CoinTx, Game, WheelData, WheelSpin } from "../types";
 import BackButton from "../components/BackButton";
-import { Ic } from "../components/Icons";
+import { GoldCoin, Ic } from "../components/Icons";
 import { copyText } from "../utils/clipboard";
 
 /**
@@ -313,38 +313,22 @@ export default function Wheel() {
   return (
     <div className="profile-soft min-h-[calc(100vh-4rem)]">
       <div className="mx-auto max-w-3xl px-4 py-8 space-y-4">
-        {/* ⬅️ САТРИ БОЛО: Бозгашт (чап) + «Таърих» (рост) — як сатр.
-            ⚠️ 30.10.2026: барои зебоӣ 3 пил дар як сатр пароканда
-            мешуд → ҳоло Бозгашт+Таърих дар як сатр, монета дар сатри
-            алоҳидаи марказӣ (тоза ва мутаносиб). */}
+        {/* ⬅️🪙 САТРИ БОЛО мисли HEADER: Бозгашт (чап) + Монета (рост),
+            ҳама бо iconka. ⚠️ 30.10.2026: «Таърих» аз ин сатр ХОРИҶ шуд
+            (талаби соҳиб: «na tarux»). */}
         <div className="flex items-center justify-between gap-2">
           <BackButton className="mb-0" />
-          {user && (
-            <button
-              type="button"
-              onClick={() => setShowHistory((v) => !v)}
-              aria-expanded={showHistory}
-              className="inline-flex h-8 items-center gap-1 rounded-full border border-slate-200 bg-white/80 px-3 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-white active:scale-95 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
-            >
-              <Ic icon={History} size="xs" />
-              {t("historyShort")}
-            </button>
-          )}
-        </div>
-
-        {/* 🪙 PERS COINS — сатри алоҳидаи марказӣ (зиёда аз экранҳои хурд) */}
-        {mine && (
-          <div className="flex justify-center">
+          {mine && (
             <div
-              className="inline-flex h-8 items-center gap-1.5 rounded-full bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 px-4 text-xs font-extrabold text-white shadow-md shadow-indigo-500/30 ring-1 ring-white/20"
+              className="inline-flex h-8 items-center gap-1.5 rounded-full bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 px-3 text-xs font-extrabold text-white shadow-md shadow-indigo-500/30"
               aria-label={`${mine.coins} танга`}
             >
-              <Ic icon={Coins} size="xs" className="text-amber-300" />
+              <GoldCoin className="w-4 h-4" />
               <span className="tabular-nums">{mine.coins}</span>
               <span className="font-bold opacity-85">танга</span>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* ===== САРЛАВҲА ===== */}
         <header className="flex items-start justify-between gap-3 flex-wrap">
