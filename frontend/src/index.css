@@ -244,6 +244,32 @@ body::before {
 }
 
 /* =====================================================================
+   🪙 ИКОНАҲОИ ТАНГА ДАР HEADER — ФЛИПИ 3D (Y-axis):
+   · Танга мисли тангаи воқеӣ мечархад: ПЕШ → КАНОРА (линияи тунук) → ПАС
+   · rotateY(360deg) + perspective → канора дар 90° тунук мешавад
+   · Танҳо ба ин ду иконаи header татбиқ мешавад (на ба ҳамаи симолҳо)
+   ===================================================================== */
+.coin-spin {
+  display: inline-block;
+  transform-origin: 50% 50%;
+  will-change: transform;
+  animation: coinFlip 2.5s linear infinite;
+}
+@keyframes coinFlip {
+  from {
+    transform: perspective(160px) rotateY(0deg);
+  }
+  to {
+    transform: perspective(160px) rotateY(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .coin-spin {
+    animation: none;
+  }
+}
+
+/* =====================================================================
    🌙 МАВЗУИ ТОРИК (.dark) — ҳамаи қоидаҳо дар як ҷо.
    · Танҳо `.dark` дар <html> гузошта мешавад (localStorage + скрипти
      пешакӣ дар index.html → бе "флеш"-и сафед).

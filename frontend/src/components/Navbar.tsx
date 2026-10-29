@@ -207,16 +207,16 @@ export default function Navbar() {
                      transition active:scale-95 focus-visible:outline-none focus-visible:ring-2
                      focus-visible:ring-white/70"
         >
-          {/* ① ICON */}
-          <GoldCoin className="w-4 h-4 shrink-0" />
+          {/* ① ICON — тангаи тиллоӣ (флипи 3D) */}
+          <GoldCoin className="w-4 h-4 shrink-0 coin-spin" />
           {/* ② BALANS (TJS) */}
           <span>{user ? Number(balance || 0).toLocaleString("tj-TJ") : "0"}</span>
-          {/* ③ COIN (Pers Coins) — агар мавҷуд бошад */}
+          {/* ③ COIN (Pers Coins) — агар мавҷуд бошад (флипи 3D) */}
           {coins !== null && (
             <>
               <span aria-hidden className="opacity-50">·</span>
               <span className="inline-flex items-center gap-1 text-amber-200">
-                <Ic icon={Coins} size="xs" />
+                <Ic icon={Coins} size="xs" className="coin-spin" />
                 <span>{coins}</span>
               </span>
             </>
