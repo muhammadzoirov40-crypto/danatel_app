@@ -313,20 +313,20 @@ export default function Wheel() {
   return (
     <div className="profile-soft min-h-[calc(100vh-4rem)]">
       <div className="mx-auto max-w-3xl px-4 py-8 space-y-4">
-        {/* ⬅️ Тугмаи бозгашт + 📖 «Таърих» — ДАР ЯК САТРИ БОЛО.
-            ⚠️ 29.10.2026 (талаби соҳиб): «Таърих» аз зери сарлавҳа ба
-            боло, ба тарафи рост, дар як сатр бо тугмаи бозгашт кӯчонда шуд. */}
-        <div className="flex items-center justify-between gap-2">
-          <BackButton />
+        {/* ⬅️ Тугмаи бозгашт + 🪙 монета + 📖 «Таърих» — ДАР ЯК САТРИ БОЛО.
+            ⚠️ 29.10.2026 (талаби соҳиб): ҳамаи пилҳо якхела — ҳамон
+            баландӣ (h-8), ҳамон шакл (rounded-full), фазои баробар. */}
+        <div className="mb-1 flex flex-wrap items-center justify-center gap-2">
+          <BackButton className="mb-0" />
           {/* 🪙 PERS COINS — фишурда, дар сатри боло (моҳии header) */}
           {mine && (
             <div
-              className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-3 py-1.5 text-xs font-extrabold text-white shadow-md shadow-blue-500/25"
+              className="inline-flex h-8 items-center gap-1.5 rounded-full bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 px-3 text-xs font-extrabold text-white shadow-md shadow-indigo-500/30 ring-1 ring-white/20"
               aria-label={`${mine.coins} танга`}
             >
-              <Ic icon={Coins} size="xs" />
+              <Ic icon={Coins} size="xs" className="text-amber-300" />
               <span className="tabular-nums">{mine.coins}</span>
-              <span className="opacity-80">танга</span>
+              <span className="font-bold opacity-85">танга</span>
             </div>
           )}
           {user && (
@@ -334,9 +334,9 @@ export default function Wheel() {
               type="button"
               onClick={() => setShowHistory((v) => !v)}
               aria-expanded={showHistory}
-              className="btn-ghost text-sm shrink-0"
+              className="inline-flex h-8 items-center gap-1 rounded-full border border-slate-200 bg-white/80 px-3 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-white active:scale-95 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
             >
-              <Ic icon={History} />
+              <Ic icon={History} size="xs" />
               {t("historyShort")}
             </button>
           )}

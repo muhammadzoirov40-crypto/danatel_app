@@ -72,10 +72,12 @@ export default function Navbar() {
        active ? "bg-white/20 text-white" : "text-white/85 hover:text-white hover:bg-white/15"
      }`;
 
-  /** Тугмаи гардишӣ дар сарлавҳа (меню → SIDEBAR) */
+  /** Тугмаи гардишӣ дар сарлавҳа (меню → SIDEBAR).
+      ⚠️ 29.10.2026: мисли тасвир — ҳамон баландӣ бо таблочаи тиллоӣ,
+      бе ring сахт (тоза ва якхела). */
   const iconBtn =
-    "place-items-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/15 ring-1 ring-white/25 " +
-    "text-white hover:bg-white/25 transition active:scale-95 shrink-0 " +
+    "place-items-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/20 hover:bg-white/30 " +
+    "text-white transition active:scale-95 shrink-0 " +
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70";
 
   return (
@@ -172,15 +174,17 @@ export default function Navbar() {
           <span>TG</span>
         </a>
 
-        {/* 🪙 Баланс — тангаи воқеӣ; клик → /profile (дар мобилӣ ҳам ҳаст) */}
+        {/* 🪙 Баланс — тангаи воқеӣ; клик → /profile (дар мобилӣ ҳам ҳаст).
+            ⚠️ 29.10.2026 (талаби соҳиб): мисли тасвир — таблочаи нарм,
+            нишонаи тиллоӣ + рақам, бе ring сахт. */}
         <Link
           to={user ? "/profile" : "/login"}
-          aria-label={t("balance")}
+          aria-label={`${t("balance")}: ${user ? Number(balance || 0).toLocaleString("tj-TJ") : "0"}`}
           title={t("balance")}
-          className="flex items-center gap-1.5 rounded-full bg-white/15 ring-1 ring-white/25
-                     px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-black hover:bg-white/25
-                     transition tabular-nums shrink-0
-                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+          className="inline-flex h-8 items-center gap-1.5 rounded-full bg-white/20 hover:bg-white/30
+                     px-2.5 sm:px-3 text-xs sm:text-sm font-black text-white tabular-nums shrink-0
+                     transition active:scale-95 focus-visible:outline-none focus-visible:ring-2
+                     focus-visible:ring-white/70"
         >
           <GoldCoin className="w-4 h-4" />
           <span>{user ? Number(balance || 0).toLocaleString("tj-TJ") : "0"}</span>
