@@ -219,6 +219,31 @@ body::before {
 }
 
 /* =====================================================================
+   🎞️ ТАСВИРИ БОЗӢ ДАР БАННЕР — зебоӣ:
+   · Маски нарм → тасвир бо фони рангӣ ҳамвор омезиш меёбад (лакк нест)
+   · Ken-burns: тасвир оҳиста калон мешавад → ҳаётнокӣ, таваҷҷуҳ ҷалб
+   · Ранг/контраст каме баландтар → тасвир равшантар ва зеботар
+   ===================================================================== */
+.banner-img {
+  filter: saturate(1.18) contrast(1.07);
+  will-change: transform;
+  animation: bannerImgZoom 15s ease-in-out infinite alternate;
+}
+@keyframes bannerImgZoom {
+  from {
+    transform: scale(1) translateX(0);
+  }
+  to {
+    transform: scale(1.09) translateX(-2.5%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .banner-img {
+    animation: none;
+  }
+}
+
+/* =====================================================================
    🌙 МАВЗУИ ТОРИК (.dark) — ҳамаи қоидаҳо дар як ҷо.
    · Танҳо `.dark` дар <html> гузошта мешавад (localStorage + скрипти
      пешакӣ дар index.html → бе "флеш"-и сафед).

@@ -73,22 +73,31 @@ export default function PromoCarousel({ games }: { games: Game[] }) {
                 }}
               />
 
-              {/* Тасвири бозӣ — дар рост мебарояд */}
+              {/* Тасвири бозӣ — дар рост мебарояд, маски нарм + ken-burns */}
               {g.image_url && (
                 <img
                   src={g.image_url}
                   alt=""
                   aria-hidden
-                  className="pointer-events-none absolute right-0 top-0 h-full w-[40%] sm:w-[32%] md:w-[28%]
+                  className="banner-img pointer-events-none absolute right-0 top-0 h-full w-[44%] sm:w-[34%] md:w-[30%]
                              object-cover object-right"
                   style={{
                     maskImage:
-                      "linear-gradient(to right,transparent 0%,#000 45%,#000 100%)",
+                      "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.55) 38%,#000 62%,#000 100%)",
                     WebkitMaskImage:
-                      "linear-gradient(to right,transparent 0%,#000 45%,#000 100%)",
+                      "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.55) 38%,#000 62%,#000 100%)",
                   }}
                 />
               )}
+
+              {/* ✨ Офтоби нарм барои чуқурӣ — тасвирро зеботар мекунад */}
+              <div
+                className="pointer-events-none absolute right-0 top-0 h-full w-[50%]"
+                style={{
+                  background:
+                    "radial-gradient(circle at 72% 45%,rgba(255,255,255,0.16),rgba(255,255,255,0.04) 42%,transparent 66%)",
+                }}
+              />
 
               {/* Гардиши торикӣ аз чап — барои хондани матн */}
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/45 via-black/20 to-transparent" />
