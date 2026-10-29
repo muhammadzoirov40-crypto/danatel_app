@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Check,
   CircleHelp,
@@ -257,22 +257,6 @@ export default function Wheel() {
       setErr(e instanceof ApiError ? e.message : t("error"));
     }
   };
-
-  /* 🎰 Авто-ГАРДИШ аз корти асосӣ — «Гардондан» → /wheel?spin=1.
-      ⚠️ Танҳо як маротиба ва танҳо агар омода бошад (бозӣ интихобшуда +
-      танга кофӣ). Барои бехатарӣ URL фавран тоза мешавад. */
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [wantSpin, setWantSpin] = useState(
-    () => searchParams.get("spin") === "1"
-  );
-  useEffect(() => {
-    if (!wantSpin) return;
-    if (!data || waitCoins) return; // ҳанӯз бор нашудааст (data/танга)
-    setWantSpin(false); // як маротиба
-    if (searchParams.get("spin")) setSearchParams({}, { replace: true });
-    if (user && !needGame && !missing && !spinning) void doSpin();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [wantSpin, data, waitCoins, user, needGame, missing, spinning]);
 
   /** 💱 Ивази танга ба баланс (танҳо адади куллӣ аз backend) */
   const doExchange = async () => {
