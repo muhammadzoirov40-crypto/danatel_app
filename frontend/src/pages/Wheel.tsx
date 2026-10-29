@@ -570,9 +570,10 @@ export default function Wheel() {
                             strokeWidth={3}
                             paintOrder="stroke"
                           >
-                            {s.jackpot
-                              ? `${t("jackpot")} ${s.coins}`
-                              : `${s.coins} ${t("coinsUnit")}`}
+                            {/* 📌 ТАНҲО рақам бо «+» (мисли +10, +25) —
+                                «танга»/«смн» ва «Ҷекпот» бардошта шуд
+                                (талаби соҳиб: «tanho raqam + shavad»). */}
+                            {`+${s.coins}`}
                           </text>
                         </g>
                       </g>
