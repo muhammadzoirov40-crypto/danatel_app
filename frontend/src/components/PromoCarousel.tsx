@@ -10,7 +10,8 @@ import { Ic } from "./Icons";
  *   - Тасвири бозӣ дар тарафи рост мебарояд (bleed)
  *   - Chip + рақами калон + зерматн + тугма дар чап
  *   - Ҳар бозӣ ранги худро дорад (мисли MLBB бунафш, FF норанҷӣ...)
- *   - Нуқтаҳо + ҳаракати худкор (8 сония — оҳиста, то дида шавад)
+ *   - Нуқтаҳо + ҳаракати худкор (5 сония)
+ *   - 🛞 Ҳаракати ҳамвори слайд ба чап (2 сония) — то дида шавад
  */
 
 /** Рангҳои баннер аз рӯи slug (мисли persshop) */
@@ -42,99 +43,106 @@ export default function PromoCarousel({ games }: { games: Game[] }) {
 
   useEffect(() => {
     if (n < 2) return;
-    const id = setInterval(() => setI((v) => (v + 1) % n), 8000);
+    const id = setInterval(() => setI((v) => (v + 1) % n), 5000);
     return () => clearInterval(id);
   }, [n]);
 
   if (!n) return null;
-  const g = games[i];
-  const bg = THEMES[g.slug] ?? FALLBACK;
 
   return (
     <section aria-label={t("featured")}>
       <div className="overflow-hidden rounded-3xl shadow-[0_18px_40px_-22px_rgba(37,99,235,0.6)]">
-        <Link
-          to={`/game/${g.slug}`}
-          className="relative block overflow-hidden text-white transition active:scale-[0.995]"
-          style={{ background: bg }}
+        {/* 🛞 Треки уфуқӣ — слайдҳо дар ҷои худ, translateX ба чап (2s ҳамвор) */}
+        <div
+          className="flex transition-transform duration-[2000ms] ease-in-out"
+          style={{ transform: `translateX(-${i * 100}%)` }}
         >
-          {/* Диагоналии нозук (мисли persshop) */}
-          <div
-            className="pointer-events-none absolute inset-0 opacity-[0.12]"
-            style={{
-              backgroundImage:
-                "repeating-linear-gradient(45deg,#fff 0 2px,transparent 2px 14px)",
-            }}
-          />
-
-          {/* Тасвири бозӣ — дар рост мебарояд */}
-          {g.image_url && (
-            <img
-              src={g.image_url}
-              alt=""
-              aria-hidden
-              className="pointer-events-none absolute right-0 top-0 h-full w-[40%] sm:w-[32%] md:w-[28%]
-                         object-cover object-right"
-              style={{
-                maskImage:
-                  "linear-gradient(to right,transparent 0%,#000 45%,#000 100%)",
-                WebkitMaskImage:
-                  "linear-gradient(to right,transparent 0%,#000 45%,#000 100%)",
-              }}
-            />
-          )}
-
-          {/* Гардиши торикӣ аз чап — барои хондани матн */}
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/45 via-black/20 to-transparent" />
-
-          {/* Мундариҷа */}
-          <div className="relative z-10 flex min-h-[210px] sm:min-h-[300px] flex-col justify-center
-                          p-5 sm:p-8 max-w-[72%] sm:max-w-[58%]">
-            {/* Chip */}
-            <span
-              className="inline-flex w-fit items-center gap-1.5 rounded-full bg-black/40
-                         backdrop-blur px-3 py-1 text-[11px] font-extrabold uppercase
-                         tracking-wide ring-1 ring-white/20"
+          {games.map((g) => (
+            <Link
+              key={g.id}
+              to={`/game/${g.slug}`}
+              className="relative block w-full shrink-0 overflow-hidden text-white active:scale-[0.995]"
+              style={{ background: THEMES[g.slug] ?? FALLBACK }}
             >
-              <Ic icon={Gamepad2} size="xs" className="opacity-80" />
-              {g.name}
-            </span>
+              {/* Диагоналии нозук (мисли persshop) */}
+              <div
+                className="pointer-events-none absolute inset-0 opacity-[0.12]"
+                style={{
+                  backgroundImage:
+                    "repeating-linear-gradient(45deg,#fff 0 2px,transparent 2px 14px)",
+                }}
+              />
 
-            {/* Рақами калон — нархи аз */}
-            {g.min_price_tjs != null ? (
-              <h3 className="mt-2 text-2xl sm:text-4xl font-extrabold leading-none tracking-tight">
-                <span className="text-sm sm:text-base font-bold opacity-85 align-middle mr-1.5">
-                  {t("from")}
-                </span>
-                <span className="text-3xl sm:text-5xl font-black">
-                  {Number(g.min_price_tjs).toLocaleString("tj-TJ")}
-                </span>
-                <span className="ml-1.5 text-base sm:text-xl font-bold opacity-90">
-                  {t("currency")}
-                </span>
-              </h3>
-            ) : (
-              <h3 className="mt-2 text-2xl sm:text-4xl font-extrabold leading-none tracking-tight">
-                {g.currency}
-              </h3>
-            )}
+              {/* Тасвири бозӣ — дар рост мебарояд */}
+              {g.image_url && (
+                <img
+                  src={g.image_url}
+                  alt=""
+                  aria-hidden
+                  className="pointer-events-none absolute right-0 top-0 h-full w-[40%] sm:w-[32%] md:w-[28%]
+                             object-cover object-right"
+                  style={{
+                    maskImage:
+                      "linear-gradient(to right,transparent 0%,#000 45%,#000 100%)",
+                    WebkitMaskImage:
+                      "linear-gradient(to right,transparent 0%,#000 45%,#000 100%)",
+                  }}
+                />
+              )}
 
-            {/* Зерматн */}
-            <p className="mt-1 text-xs sm:text-sm font-medium text-white/80">
-              {g.currency || t("tagline")}
-            </p>
+              {/* Гардиши торикӣ аз чап — барои хондани матн */}
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/45 via-black/20 to-transparent" />
 
-            {/* Тугма */}
-            <span
-              className="mt-3.5 inline-flex w-fit items-center gap-2 rounded-full bg-white
-                         px-4 py-2 sm:px-5 sm:py-2 text-xs sm:text-sm font-bold text-slate-900
-                         shadow-md hover:bg-slate-50 transition"
-            >
-              <Ic icon={ArrowRight} size="xs" strokeWidth={2.5} />
-              {t("pay")}
-            </span>
-          </div>
-        </Link>
+              {/* Мундариҷа */}
+              <div className="relative z-10 flex min-h-[210px] sm:min-h-[300px] flex-col justify-center
+                              p-5 sm:p-8 max-w-[72%] sm:max-w-[58%]">
+                {/* Chip */}
+                <span
+                  className="inline-flex w-fit items-center gap-1.5 rounded-full bg-black/40
+                             backdrop-blur px-3 py-1 text-[11px] font-extrabold uppercase
+                             tracking-wide ring-1 ring-white/20"
+                >
+                  <Ic icon={Gamepad2} size="xs" className="opacity-80" />
+                  {g.name}
+                </span>
+
+                {/* Рақами калон — нархи аз */}
+                {g.min_price_tjs != null ? (
+                  <h3 className="mt-2 text-2xl sm:text-4xl font-extrabold leading-none tracking-tight">
+                    <span className="text-sm sm:text-base font-bold opacity-85 align-middle mr-1.5">
+                      {t("from")}
+                    </span>
+                    <span className="text-3xl sm:text-5xl font-black">
+                      {Number(g.min_price_tjs).toLocaleString("tj-TJ")}
+                    </span>
+                    <span className="ml-1.5 text-base sm:text-xl font-bold opacity-90">
+                      {t("currency")}
+                    </span>
+                  </h3>
+                ) : (
+                  <h3 className="mt-2 text-2xl sm:text-4xl font-extrabold leading-none tracking-tight">
+                    {g.currency}
+                  </h3>
+                )}
+
+                {/* Зерматн */}
+                <p className="mt-1 text-xs sm:text-sm font-medium text-white/80">
+                  {g.currency || t("tagline")}
+                </p>
+
+                {/* Тугма */}
+                <span
+                  className="mt-3.5 inline-flex w-fit items-center gap-2 rounded-full bg-white
+                             px-4 py-2 sm:px-5 sm:py-2 text-xs sm:text-sm font-bold text-slate-900
+                             shadow-md hover:bg-slate-50 transition"
+                >
+                  <Ic icon={ArrowRight} size="xs" strokeWidth={2.5} />
+                  {t("pay")}
+                </span>
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
 
       {/* 🔘 Нуқтаҳо */}
