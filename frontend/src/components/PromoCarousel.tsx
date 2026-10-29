@@ -106,9 +106,9 @@ export default function PromoCarousel({ games }: { games: Game[] }) {
                   {g.name}
                 </span>
 
-                {/* Рақами калон — нархи аз */}
+                {/* Рақами калон — нарх + асбоб ДАР ЯК ХАТ */}
                 {g.min_price_tjs != null ? (
-                  <h3 className="mt-2 text-2xl sm:text-4xl font-extrabold leading-none tracking-tight">
+                  <h3 className="mt-2 text-2xl sm:text-4xl font-extrabold leading-none tracking-tight whitespace-nowrap">
                     <span className="text-sm sm:text-base font-bold opacity-85 align-middle mr-1.5">
                       {t("from")}
                     </span>
@@ -118,17 +118,18 @@ export default function PromoCarousel({ games }: { games: Game[] }) {
                     <span className="ml-1.5 text-base sm:text-xl font-bold opacity-90">
                       {t("currency")}
                     </span>
+                    {/* асбоб (масалан «кристалл») — дар ҳамон хат */}
+                    {g.currency && (
+                      <span className="ml-1.5 text-sm sm:text-lg font-semibold opacity-75 align-middle">
+                        {g.currency}
+                      </span>
+                    )}
                   </h3>
                 ) : (
                   <h3 className="mt-2 text-2xl sm:text-4xl font-extrabold leading-none tracking-tight">
                     {g.currency}
                   </h3>
                 )}
-
-                {/* Зерматн */}
-                <p className="mt-1 text-xs sm:text-sm font-medium text-white/80">
-                  {g.currency || t("tagline")}
-                </p>
 
                 {/* Тугма */}
                 <span
