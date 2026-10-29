@@ -558,11 +558,11 @@ export default function Wheel() {
                             y={CENTER - TEXT_R}
                             textAnchor="middle"
                             dominantBaseline="middle"
-                            transform={
-                              flip
-                                ? `rotate(180 ${CENTER} ${CENTER - TEXT_R})`
-                                : undefined
-                            }
+                            /* 📐 Матн РАДИАЛӢ — аз боло ба поён (дарҷои тунҷа).
+                               `rotate(±90)` дар маркази матн → хондан аз
+                               берун ба дарун. `flip` барои нимаи поёнӣ,
+                               то хондан боз «аз боло ба поён» бимонад. */
+                            transform={`rotate(${flip ? -90 : 90} ${CENTER} ${CENTER - TEXT_R})`}
                             fontSize={14}
                             fontWeight={800}
                             fill={col.fg}
