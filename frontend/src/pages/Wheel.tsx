@@ -725,24 +725,24 @@ export default function Wheel() {
           </div>
         </section>
 
-        {/* ===== 💱 ИВАЗ: ба баланс / ба танга ===== */}
+        {/* ===== 💱 ИВАЗ: ба баланс / ба танга (ЗЕБО) ===== */}
         {user && mine && (
-          <section className="card p-4" aria-label={t("exchangeDir")}>
-            {/* Самти иваз — ду тараф */}
+          <section className="card p-4 sm:p-5" aria-label={t("exchangeDir")}>
+            {/* 🔘 Самти иваз — toggle-и сегментӣ (ду нима, баробар) */}
             <div
               role="tablist"
               aria-label={t("exchangeDir")}
-              className="mb-3 flex gap-1.5"
+              className="mb-4 grid grid-cols-2 gap-1 rounded-2xl bg-slate-100 p-1 dark:bg-slate-800/80"
             >
               <button
                 type="button"
                 role="tab"
                 aria-selected={exDir === "toBalance"}
                 onClick={() => setExDir("toBalance")}
-                className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${
+                className={`rounded-xl px-3 py-2 text-xs sm:text-sm font-extrabold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${
                   exDir === "toBalance"
-                    ? "bg-blue-600 text-white shadow"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/10 dark:text-slate-300"
+                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/30"
+                    : "text-slate-600 hover:bg-white/70 dark:text-slate-300 dark:hover:bg-white/10"
                 }`}
               >
                 {t("exchangeCoins")}
@@ -752,10 +752,10 @@ export default function Wheel() {
                 role="tab"
                 aria-selected={exDir === "toCoins"}
                 onClick={() => setExDir("toCoins")}
-                className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${
+                className={`rounded-xl px-3 py-2 text-xs sm:text-sm font-extrabold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${
                   exDir === "toCoins"
-                    ? "bg-blue-600 text-white shadow"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/10 dark:text-slate-300"
+                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/30"
+                    : "text-slate-600 hover:bg-white/70 dark:text-slate-300 dark:hover:bg-white/10"
                 }`}
               >
                 {t("exchangeToCoins")}
@@ -763,24 +763,32 @@ export default function Wheel() {
             </div>
 
             {exDir === "toBalance" ? (
-              /* ---- Танга → Баланс (самти собана) ---- */
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="inline-flex items-center gap-2 text-sm font-extrabold">
-                    <Ic icon={Coins} className="text-amber-600" />
+              /* ---- Танга → Баланс ---- */
+              <div className="space-y-3">
+                <div className="flex items-center gap-2.5">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-[0_3px_8px_rgba(245,158,11,0.4)]">
+                    <Ic icon={Coins} size="sm" className="text-white" />
+                  </span>
+                  <span className="text-sm font-extrabold text-slate-800 dark:text-slate-100">
                     {t("exchangeCoins")}
-                  </div>
-                  <div className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                  </span>
+                </div>
+
+                {/* 📌 Callout-и нарху ҳадд — нарм ва хонда */}
+                <div className="flex items-start gap-2 rounded-xl bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 ring-1 ring-blue-100 dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-500/20">
+                  <Ic icon={CircleHelp} size="xs" className="mt-0.5 shrink-0" />
+                  <span>
                     {t("coinsRate").replace("{n}", String(exchangeRate))} ·{" "}
                     {t("minExchange").replace("{n}", String(minExchange))}
-                  </div>
+                  </span>
                 </div>
+
                 <button
                   type="button"
                   onClick={() => void doExchange()}
                   disabled={busyEx || mine.coins < mine.min_exchange}
                   aria-disabled={busyEx || mine.coins < mine.min_exchange}
-                  className="btn-primary shrink-0 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+                  className="btn-primary w-full justify-center text-sm disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {busyEx ? (
                     <>
@@ -796,49 +804,63 @@ export default function Wheel() {
                 </button>
               </div>
             ) : (
-              /* ---- Баланс → Танга (самти нав: 1 сомонӣ = N танга) ---- */
-              <div className="flex flex-wrap items-end justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  <div className="inline-flex items-center gap-2 text-sm font-extrabold">
-                    <Ic icon={Coins} className="text-amber-600" />
+              /* ---- Баланс → Танга ---- */
+              <div className="space-y-3">
+                <div className="flex items-center gap-2.5">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-sky-400 to-blue-600 shadow-[0_3px_8px_rgba(59,130,246,0.4)]">
+                    <Ic icon={Coins} size="sm" className="text-white" />
+                  </span>
+                  <span className="text-sm font-extrabold text-slate-800 dark:text-slate-100">
                     {t("exchangeToCoins")}
-                  </div>
-                  <div className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                  </span>
+                </div>
+
+                {/* 📌 Callout-и нарху ҳадд */}
+                <div className="flex items-start gap-2 rounded-xl bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 ring-1 ring-blue-100 dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-500/20">
+                  <Ic icon={CircleHelp} size="xs" className="mt-0.5 shrink-0" />
+                  <span>
                     {t("coinsRateTjs").replace("{n}", String(exchangeRate))} ·{" "}
                     {t("minExchangeTjs").replace("{n}", String(minExchangeTjs))}
-                  </div>
-                  <label className="label mt-2" htmlFor="ex-tjs-amount">
+                  </span>
+                </div>
+
+                <div>
+                  <label className="label mb-1" htmlFor="ex-tjs-amount">
                     {t("amount")} ({t("somoni")})
                   </label>
                   <input
                     id="ex-tjs-amount"
-                    className="input !py-2 text-sm"
+                    className="input !py-2.5 text-sm"
                     inputMode="numeric"
                     placeholder="1"
                     value={tjsAmount}
                     onChange={(e) => setTjsAmount(e.target.value)}
                   />
-                  <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                    {t("currentBalance")}: <b>{Number(balance).toFixed(2)}</b>{" "}
-                    {t("somoni")}
+                  {/* 💰 Баланси чорӣ + пешбинӣ — дар як сатри тоза */}
+                  <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+                    <span className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2 py-1 font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                      {t("currentBalance")}:{" "}
+                      <b className="tabular-nums text-slate-900 dark:text-white">
+                        {Number(balance).toFixed(2)}
+                      </b>{" "}
+                      {t("somoni")}
+                    </span>
                     {tjsOk && (
-                      <>
-                        {" → "}
-                        <b className="text-blue-600 dark:text-blue-300">
-                          {(Number(balance) - tjsNum).toFixed(2)}
-                        </b>{" "}
-                        {t("somoni")} · +<b>{tjsNum * exchangeRate}</b>{" "}
+                      <span className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2 py-1 font-semibold text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/20">
+                        → <b className="tabular-nums">{(Number(balance) - tjsNum).toFixed(2)}</b>{" "}
+                        {t("somoni")} · +<b className="tabular-nums">{tjsNum * exchangeRate}</b>{" "}
                         {t("coinUnit")}
-                      </>
+                      </span>
                     )}
                   </div>
                 </div>
+
                 <button
                   type="button"
                   onClick={() => void doExchangeToCoins()}
                   disabled={busyEx2 || !tjsOk}
                   aria-disabled={busyEx2 || !tjsOk}
-                  className="btn-primary shrink-0 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+                  className="btn-primary w-full justify-center text-sm disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {busyEx2 ? (
                     <>
