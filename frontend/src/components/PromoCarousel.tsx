@@ -10,7 +10,7 @@ import { Ic } from "./Icons";
  *   - Тасвири бозӣ дар тарафи рост мебарояд (bleed)
  *   - Chip + рақами калон + зерматн + тугма дар чап
  *   - Ҳар бозӣ ранги худро дорад (мисли MLBB бунафш, FF норанҷӣ...)
- *   - Нуқтаҳо + ҳаракати худкор (5 сония)
+ *   - Нуқтаҳо + ҳаракати худкор (8 сония — оҳиста, то дида шавад)
  */
 
 /** Рангҳои баннер аз рӯи slug (мисли persshop) */
@@ -42,7 +42,7 @@ export default function PromoCarousel({ games }: { games: Game[] }) {
 
   useEffect(() => {
     if (n < 2) return;
-    const id = setInterval(() => setI((v) => (v + 1) % n), 5000);
+    const id = setInterval(() => setI((v) => (v + 1) % n), 8000);
     return () => clearInterval(id);
   }, [n]);
 
