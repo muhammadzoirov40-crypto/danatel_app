@@ -6,7 +6,6 @@ import {
   Coins,
   Copy,
   Gamepad2,
-  Grid,
   History,
   Loader2,
   Percent,
@@ -14,7 +13,6 @@ import {
   ScrollText,
   Sparkles,
   Trophy,
-  List,
   UserPlus,
 } from "lucide-react";
 import { api, ApiError } from "../api/client";
@@ -85,7 +83,6 @@ export default function Wheel() {
   const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState<WheelSpin | null>(null);
   const [showHistory, setShowHistory] = useState(false);
-  const [showGrid, setShowGrid] = useState(true);
   const [rotation, setRotation] = useState(0);
 
   // 💱 Иваз ба баланс
@@ -422,21 +419,16 @@ export default function Wheel() {
             <div className="flex items-center gap-2 mb-3">
               <Ic icon={Gamepad2} size="md" className="text-brand-600" />
               <span className="text-sm font-extrabold">{t("myGame")}</span>
-              {/* ⚙️ Калл тижperi — ҳавони гӯйи истифода (граи лутф) */}
-              <button
-                type="button"
-                onClick={() => setShowGrid((v) => !v)}
-                aria-label={showGrid ? "List view" : "Grid view"}
-                className="ml-2 btn-ghost text-xs p-1 rounded outline-none"
-              >
-                <Ic icon={showGrid ? List : Grid} size="xs" />
-              </button>
             </div>
             <p className="mt-0.5 mb-3 text-xs text-slate-500 dark:text-slate-400">
               {t("myGameHint")}
             </p>
+            {/* 🎮 Бозиҳо — ЯК САТР бо скролли чап-рост (overflow-x).
+                ⚠️ 30.10.2026 (талаби соҳиб): «inro dar 1 row soz bo
+                sclori chapu rost» → ҳамаи чипҳо дар як сатр, скролл
+                уфуқӣ. `shrink-0` → чипҳо насӯзианд. */}
             <div
-              className={showGrid ? "grid grid-cols-2 gap-2" : "flex flex-wrap gap-2"}
+              className="flex gap-2 overflow-x-auto overscroll-x-contain -mx-1 px-1 pb-1 wheel-hscroll"
               role="radiogroup"
               aria-label={t("myGame")}
             >
@@ -451,7 +443,7 @@ export default function Wheel() {
                     aria-label={g.name}
                     onClick={() => void pickGame(g.slug)}
                     disabled={savingGame}
-                    className={`inline-flex items-center gap-1.5 rounded-2xl border px-3 py-2 text-sm font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 disabled:opacity-60 ${
+                    className={`inline-flex shrink-0 items-center gap-1.5 rounded-2xl border px-3 py-2 text-sm font-bold whitespace-nowrap transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 disabled:opacity-60 ${
                       active
                         ? "border-brand-500 bg-brand-600 text-white shadow-md shadow-brand-500/25"
                         : "border-slate-200 bg-slate-50 text-slate-700 hover:border-brand-400 dark:border-white/10 dark:bg-white/5 dark:text-slate-200"

@@ -53,6 +53,28 @@ body {
   display: none;
 }
 
+/* 🎮 Скролли уфуқии бозиҳо дар Чарҳ (як сатр, скролл чап-рост).
+   Scrollbar борик ва ҳамвор — дарак медиҳад, ки скролл кардан мумкин. */
+.wheel-hscroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(99, 102, 241, 0.5) transparent;
+}
+.wheel-hscroll::-webkit-scrollbar {
+  height: 5px;
+}
+.wheel-hscroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.wheel-hscroll::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.45);
+  border-radius: 999px;
+}
+.wheel-hscroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.7);
+}
+
 @layer components {
   /* Тугмаҳо */
   .btn {
