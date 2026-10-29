@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Disc3, Info, LayoutGrid, Menu, Package, Send, Star } from "lucide-react";
+import { Coins, Disc3, Info, LayoutGrid, Menu, Package, Send, Star } from "lucide-react";
 import { api } from "../api/client";
 import { useApp } from "../context/AppContext";
 import { GoldCoin, Ic } from "./Icons";
@@ -32,6 +32,25 @@ export default function Navbar() {
   const nav = useNavigate();
   const { pathname } = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  /** 🪙 Pers Coins (тангаҳо) — барои таблочаи сарлавҳа (3 қисм: icon/balans/coin) */
+  const [coins, setCoins] = useState<number | null>(null);
+  useEffect(() => {
+    if (!user) {
+      setCoins(null);
+      return;
+    }
+    let alive = true;
+    api
+      .myCoins()
+      .then((d) => {
+        if (alive) setCoins(d.coins);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [user, balance]);
 
   /** ⭐ Рейтинги воқеӣ аз ҷадвали тақризҳои тасдиқшуда → /reviews */
   const [sum, setSum] = useState<{ rating_avg: number; reviews_total: number } | null>(null);
@@ -174,20 +193,34 @@ export default function Navbar() {
           <span>TG</span>
         </a>
 
-        {/* 🪙 Баланс — тангаи воқеӣ; клик → /profile (дар мобилӣ ҳам ҳаст).
-            ⚠️ 29.10.2026 (талаби соҳиб): мисли тасвир — таблочаи нарм,
-            нишонаи тиллоӣ + рақам, бе ring сахт. */}
+        {/* 🪙 Баланс — таблочаи 3 қисмӣ (мисли тасвир):
+            ① iconka (тиллоӣ) → ② balans (TJS) → ③ coin (Pers Coins).
+            Клик → /profile. Ҳама дар як сатр, фишурда. */}
         <Link
           to={user ? "/profile" : "/login"}
-          aria-label={`${t("balance")}: ${user ? Number(balance || 0).toLocaleString("tj-TJ") : "0"}`}
+          aria-label={`${t("balance")}: ${user ? Number(balance || 0).toLocaleString("tj-TJ") : "0"}${
+            coins !== null ? `, Pers Coins ${coins}` : ""
+          }`}
           title={t("balance")}
           className="inline-flex h-8 items-center gap-1.5 rounded-full bg-white/20 hover:bg-white/30
-                     px-2.5 sm:px-3 text-xs sm:text-sm font-black text-white tabular-nums shrink-0
+                     px-2 sm:px-2.5 text-xs font-black text-white tabular-nums shrink-0
                      transition active:scale-95 focus-visible:outline-none focus-visible:ring-2
                      focus-visible:ring-white/70"
         >
-          <GoldCoin className="w-4 h-4" />
+          {/* ① ICON */}
+          <GoldCoin className="w-4 h-4 shrink-0" />
+          {/* ② BALANS (TJS) */}
           <span>{user ? Number(balance || 0).toLocaleString("tj-TJ") : "0"}</span>
+          {/* ③ COIN (Pers Coins) — агар мавҷуд бошад */}
+          {coins !== null && (
+            <>
+              <span aria-hidden className="opacity-50">·</span>
+              <span className="inline-flex items-center gap-1 text-amber-200">
+                <Ic icon={Coins} size="xs" />
+                <span>{coins}</span>
+              </span>
+            </>
+          )}
         </Link>
 
         {/* ☰ Меню — ҲАМАИ экранҳо (мобилӣ + десктоп); кушодани SIDEBAR
