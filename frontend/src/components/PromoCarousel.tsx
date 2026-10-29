@@ -11,7 +11,7 @@ import { Ic } from "./Icons";
  *   - Chip + рақами калон + зерматн + тугма дар чап
  *   - Ҳар бозӣ ранги худро дорад (мисли MLBB бунафш, FF норанҷӣ...)
  *   - Нуқтаҳо + ҳаракати худкор (5 сония)
- *   - 🛞 Ҳаракати ҳамвори слайд ба чап (2 сония) — то дида шавад
+ *   - 🛞 Ҳаракати ҳамвори слайд ба чап (3 сония) — то дида шавад
  */
 
 /** Рангҳои баннер аз рӯи slug (мисли persshop) */
@@ -52,9 +52,9 @@ export default function PromoCarousel({ games }: { games: Game[] }) {
   return (
     <section aria-label={t("featured")}>
       <div className="overflow-hidden rounded-3xl shadow-[0_18px_40px_-22px_rgba(37,99,235,0.6)]">
-        {/* 🛞 Треки уфуқӣ — слайдҳо дар ҷои худ, translateX ба чап (2s ҳамвор) */}
+        {/* 🛞 Треки уфуқӣ — слайдҳо дар ҷои худ, translateX ба чап (3s ҳамвор) */}
         <div
-          className="flex transition-transform duration-[2000ms] ease-in-out"
+          className="flex transition-transform duration-[3000ms] ease-in-out"
           style={{ transform: `translateX(-${i * 100}%)` }}
         >
           {games.map((g) => (
