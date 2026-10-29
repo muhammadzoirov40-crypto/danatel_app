@@ -91,9 +91,9 @@ export default function CoinsCard({ data }: { data?: CoinsInfo | null }) {
         />
       </div>
 
-      {/* ⬜ Тугмаи «Гардондан» — сафед (мисли «Пур кардан») */}
+      {/* ⬜ Тугмаи «Гардондан» — сафед → ба Чарҳ ва АВТО-ГАРДИШ (?spin=1) */}
       <Link
-        to="/wheel"
+        to="/wheel?spin=1"
         className="mt-3.5 inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-white px-3 py-2.5 text-[13px] sm:text-sm font-bold text-blue-700 shadow-md shadow-blue-900/20 transition hover:bg-blue-50 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
       >
         <Ic icon={Sparkles} size="sm" className="shrink-0 text-blue-600" />

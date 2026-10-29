@@ -98,6 +98,25 @@ export default function SidebarMenu({
     }
   };
 
+  /** 🎁 «Линки даъват» — ба бахши даъват дар саҳифаи Чарҳ (#invite).
+      Одамон аз меню мебинанд ва баъд клик → рост ба линк меравад.
+      ⚠️ Маълумот (games/coins) баъд аз нав бор мешавад → scroll ду маротиба
+      (баъди 250мс + 900мс), то ҷойи ниҳоии корт дуруст ба назар гирифта шавад. */
+  const goInvite = () => {
+    onClose();
+    const scroll = () => {
+      const el = document.getElementById("invite");
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    };
+    if (pathname !== "/wheel") {
+      nav("/wheel");
+      setTimeout(scroll, 300);
+      setTimeout(scroll, 1000);
+    } else {
+      scroll();
+    }
+  };
+
   /** 🚩 Ростшавии флаг барои забон */
   const Flag = ({ code }: { code: string }) =>
     code === "tj" ? (
@@ -246,6 +265,14 @@ export default function SidebarMenu({
               <Ic icon={Info} className="text-slate-400 shrink-0" />
               {t("navAbout")}
             </button>
+
+            {/* 🎁 Линки даъвати шумо — одамон аз меню мебинанд → ба #invite */}
+            {user && (
+              <button type="button" onClick={goInvite} className={rowCls}>
+                <Ic icon={UserPlus} className="text-emerald-500 shrink-0" />
+                {t("inviteLink")}
+              </button>
+            )}
 
             {/* ✈️ Дастгирӣ дар Telegram — пайванди воқеӣ ба бот (кушода
                 дар таби нав). Қаблан тугмаи шинокунанда дар саҳифа буд;
