@@ -34,18 +34,26 @@ import { copyText } from "../utils/clipboard";
  */
 
 /** Рангҳои сегментҳо (аз ҷоизаи хурд → Ҷекпот) */
+/* 🎨 Рангҳои ҳамвору бодлом — мисли тасвир (сенечҳо бо сарҳади
+   сиёҳи ғафс, ҳар сенеч ранги алоҳидаи бодлом). */
 const PALETTE = [
-  { bg: "#3b82f6", fg: "#ffffff" },
-  { bg: "#2563eb", fg: "#ffffff" },
-  { bg: "#4f46e5", fg: "#ffffff" },
-  { bg: "#6366f1", fg: "#ffffff" },
-  { bg: "#7c3aed", fg: "#ffffff" },
-  { bg: "#8b5cf6", fg: "#ffffff" },
-  { bg: "#a855f7", fg: "#ffffff" },
-  { bg: "#d946ef", fg: "#ffffff" },
-  { bg: "#f59e0b", fg: "#78350f" },
-  { bg: "#facc15", fg: "#713f12" },
+  { bg: "#ef4444", fg: "#ffffff" }, // сурх
+  { bg: "#f97316", fg: "#ffffff" }, // норинҷӣ
+  { bg: "#f59e0b", fg: "#ffffff" }, // кҳӯда/amber
+  { bg: "#22c55e", fg: "#ffffff" }, // сабз
+  { bg: "#14b8a6", fg: "#ffffff" }, // teal
+  { bg: "#06b6d4", fg: "#ffffff" }, // cyan
+  { bg: "#3b82f6", fg: "#ffffff" }, // кабуд
+  { bg: "#6366f1", fg: "#ffffff" }, // indigo
+  { bg: "#8b5cf6", fg: "#ffffff" }, // violet
+  { bg: "#ec4899", fg: "#ffffff" }, // гулобӣ
 ];
+
+/** 🖤 Сарҳади сиёҳи ғафси сенечҳо (мисли тасвир) */
+const SEG_STROKE = "#0f172a";
+const SEG_STROKE_W = 2.5;
+/** ⬛ Рими сиёҳи берунӣ (мисли тасвир) */
+const RIM_DARK = "#111827";
 
 const SIZE = 360; // viewBox
 const CENTER = SIZE / 2;
@@ -501,13 +509,6 @@ export default function Wheel() {
                         <stop offset="100%" stopColor={shade(c.bg, -30)} />
                       </linearGradient>
                     ))}
-                    {/* 💿 Рими металлӣ (боло → поён) */}
-                    <linearGradient id="rimMetal" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#f1f5f9" />
-                      <stop offset="35%" stopColor="#cbd5e1" />
-                      <stop offset="65%" stopColor="#94a3b8" />
-                      <stop offset="100%" stopColor="#cbd5e1" />
-                    </linearGradient>
                     {/* ✨ Глосс/оина дар болои чарҳ */}
                     <radialGradient id="wheelGloss" cx="34%" cy="26%" r="72%">
                       <stop offset="0%" stopColor="rgba(255,255,255,0.42)" />
@@ -521,27 +522,22 @@ export default function Wheel() {
                     </radialGradient>
                   </defs>
 
-                  {/* 💿 Рими берунии металлӣ + ҳалқаи сафед */}
+                  {/* ⬛ Рими берунии СИЁҲ + ҳалқаи сафед (мисли тасвир) */}
                   <circle
                     cx={CENTER}
                     cy={CENTER}
                     r={RADIUS + 11}
-                    fill="url(#rimMetal)"
-                    stroke="rgba(148,163,184,0.9)"
-                    strokeWidth={1}
+                    fill={RIM_DARK}
+                    stroke="#000000"
+                    strokeWidth={2}
                   />
                   <circle
                     cx={CENTER}
                     cy={CENTER}
-                    r={RADIUS + 5}
-                    fill="#0f172a"
-                    opacity={0.12}
-                  />
-                  <circle
-                    cx={CENTER}
-                    cy={CENTER}
-                    r={RADIUS + 2}
+                    r={RADIUS + 4}
                     fill="#ffffff"
+                    stroke={RIM_DARK}
+                    strokeWidth={2.5}
                   />
                   {segments.map((s, i) => {
                     const a1 = i * segAngle;
@@ -553,8 +549,8 @@ export default function Wheel() {
                         <path
                           d={sectorPath(a1, a1 + segAngle)}
                           fill={`url(#wg${i % PALETTE.length})`}
-                          stroke="rgba(255,255,255,0.7)"
-                          strokeWidth={2}
+                          stroke={SEG_STROKE}
+                          strokeWidth={SEG_STROKE_W}
                         />
                         <g transform={`rotate(${mid} ${CENTER} ${CENTER})`}>
                           <text
@@ -570,11 +566,7 @@ export default function Wheel() {
                             fontSize={14}
                             fontWeight={800}
                             fill={col.fg}
-                            stroke={
-                              col.fg === "#ffffff"
-                                ? "rgba(15,23,42,0.45)"
-                                : "rgba(255,255,255,0.55)"
-                            }
+                            stroke="rgba(15,23,42,0.55)"
                             strokeWidth={3}
                             paintOrder="stroke"
                           >
@@ -619,28 +611,28 @@ export default function Wheel() {
               <svg width="40" height="54" viewBox="0 0 40 54" fill="none">
                 <defs>
                   <linearGradient id="pinGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#3b82f6" />
-                    <stop offset="100%" stopColor="#1e3a8a" />
+                    <stop offset="0%" stopColor="#fb923c" />
+                    <stop offset="100%" stopColor="#c2410c" />
                   </linearGradient>
                   <linearGradient id="pinTri" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#2563eb" />
-                    <stop offset="100%" stopColor="#1d4ed8" />
+                    <stop offset="0%" stopColor="#f97316" />
+                    <stop offset="100%" stopColor="#ea580c" />
                   </linearGradient>
                 </defs>
-                <path d="M20 50 L7 24 L33 24 Z" fill="url(#pinTri)" stroke="#ffffff" strokeWidth="2.5" strokeLinejoin="round" />
-                <path d="M20 50 L7 24 L14 24 Z" fill="rgba(255,255,255,0.28)" />
-                <circle cx="20" cy="15" r="13.5" fill="url(#pinGrad)" stroke="#ffffff" strokeWidth="3" />
-                <ellipse cx="16" cy="11" rx="5" ry="3.4" fill="rgba(255,255,255,0.5)" />
+                <path d="M20 50 L7 24 L33 24 Z" fill="url(#pinTri)" stroke="#0f172a" strokeWidth="2.5" strokeLinejoin="round" />
+                <path d="M20 50 L7 24 L14 24 Z" fill="rgba(255,255,255,0.3)" />
+                <circle cx="20" cy="15" r="13.5" fill="url(#pinGrad)" stroke="#0f172a" strokeWidth="3" />
+                <ellipse cx="16" cy="11" rx="5" ry="3.4" fill="rgba(255,255,255,0.55)" />
               </svg>
             </div>
 
-            {/* ⭕ Маркази чарх — 3D бо ҳалқаи металлӣ ва дурахшӣ */}
+            {/* ⭕ Маркази чарх — ТИЛЛОӢ мисли тасвир */}
             <div
               aria-hidden
-              className="absolute left-1/2 top-1/2 z-10 grid h-[74px] w-[74px] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-[5px] border-white bg-[conic-gradient(from_180deg,#f1f5f9,#cbd5e1,#94a3b8,#cbd5e1)] shadow-[0_6px_16px_rgba(15,23,42,0.35)]"
+              className="absolute left-1/2 top-1/2 z-10 grid h-[74px] w-[74px] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-[5px] border-[#0f172a] bg-[conic-gradient(from_180deg,#fde68a,#f59e0b,#d97706,#f59e0b)] shadow-[0_6px_16px_rgba(15,23,42,0.4)]"
             >
-              <span className="grid h-[54px] w-[54px] place-items-center rounded-full bg-[radial-gradient(circle_at_32%_28%,#60a5fa,#2563eb_55%,#1e40af)] shadow-[inset_0_-3px_8px_rgba(0,0,0,0.35),inset_0_3px_6px_rgba(255,255,255,0.35)]">
-                <span className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-amber-300 via-amber-400 to-amber-500 text-base font-black text-amber-950 shadow-[0_2px_5px_rgba(0,0,0,0.3)]">
+              <span className="grid h-[54px] w-[54px] place-items-center rounded-full bg-[radial-gradient(circle_at_32%_28%,#fcd34d,#f59e0b_55%,#d97706)] text-xl font-black text-amber-950 shadow-[inset_0_-3px_8px_rgba(0,0,0,0.3),inset_0_3px_6px_rgba(255,255,255,0.5)]">
+                <span className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-sky-400 via-blue-500 to-blue-700 text-base font-black text-white shadow-[0_2px_5px_rgba(0,0,0,0.35)]">
                   {pickedGame?.emoji || "P"}
                 </span>
               </span>
