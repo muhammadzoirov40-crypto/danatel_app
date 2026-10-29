@@ -313,22 +313,12 @@ export default function Wheel() {
   return (
     <div className="profile-soft min-h-[calc(100vh-4rem)]">
       <div className="mx-auto max-w-3xl px-4 py-8 space-y-4">
-        {/* ⬅️ Тугмаи бозгашт + 🪙 монета + 📖 «Таърих» — ДАР ЯК САТРИ БОЛО.
-            ⚠️ 29.10.2026 (талаби соҳиб): ҳамаи пилҳо якхела — ҳамон
-            баландӣ (h-8), ҳамон шакл (rounded-full), фазои баробар. */}
-        <div className="mb-1 flex flex-wrap items-center justify-center gap-2">
+        {/* ⬅️ САТРИ БОЛО: Бозгашт (чап) + «Таърих» (рост) — як сатр.
+            ⚠️ 30.10.2026: барои зебоӣ 3 пил дар як сатр пароканда
+            мешуд → ҳоло Бозгашт+Таърих дар як сатр, монета дар сатри
+            алоҳидаи марказӣ (тоза ва мутаносиб). */}
+        <div className="flex items-center justify-between gap-2">
           <BackButton className="mb-0" />
-          {/* 🪙 PERS COINS — фишурда, дар сатри боло (моҳии header) */}
-          {mine && (
-            <div
-              className="inline-flex h-8 items-center gap-1.5 rounded-full bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 px-3 text-xs font-extrabold text-white shadow-md shadow-indigo-500/30 ring-1 ring-white/20"
-              aria-label={`${mine.coins} танга`}
-            >
-              <Ic icon={Coins} size="xs" className="text-amber-300" />
-              <span className="tabular-nums">{mine.coins}</span>
-              <span className="font-bold opacity-85">танга</span>
-            </div>
-          )}
           {user && (
             <button
               type="button"
@@ -341,6 +331,20 @@ export default function Wheel() {
             </button>
           )}
         </div>
+
+        {/* 🪙 PERS COINS — сатри алоҳидаи марказӣ (зиёда аз экранҳои хурд) */}
+        {mine && (
+          <div className="flex justify-center">
+            <div
+              className="inline-flex h-8 items-center gap-1.5 rounded-full bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 px-4 text-xs font-extrabold text-white shadow-md shadow-indigo-500/30 ring-1 ring-white/20"
+              aria-label={`${mine.coins} танга`}
+            >
+              <Ic icon={Coins} size="xs" className="text-amber-300" />
+              <span className="tabular-nums">{mine.coins}</span>
+              <span className="font-bold opacity-85">танга</span>
+            </div>
+          </div>
+        )}
 
         {/* ===== САРЛАВҲА ===== */}
         <header className="flex items-start justify-between gap-3 flex-wrap">
