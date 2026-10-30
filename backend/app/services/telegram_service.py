@@ -70,6 +70,34 @@ async def notify_order_delivered(order_id: int, chat_id: str | None) -> None:
     await notify_admin(text)
 
 
+def _bot_polling() -> bool:
+    """Оё боти donatshop ҳоло дар Telegram polling мекунад?"""
+    return os.getenv("DISABLE_TELEGRAM", "0") != "1"
+
+
+def _approve_ui(prefix: str, ref_id: int) -> tuple[str, list[list[dict]]]:
+    """Ҳангоми кори бот — тугмаҳои [Қабул][Рад] (callback).
+
+    Агар боти donatshop ғайрифаъол бошад (пулакаи кӯҳна мувофиқ аст),
+    тугмаҳои callback кор намекунанд → ба ҷои он тугмаи URL ба панели админ.
+    """
+    if _bot_polling():
+        return (
+            "Чекро санҷед ва аз ҳамин ҷо қабул ё рад кунед:",
+            [
+                [
+                    {"text": "✅ Қабул", "callback_data": f"{prefix}:ok:{ref_id}"},
+                    {"text": "❌ Рад", "callback_data": f"{prefix}:no:{ref_id}"},
+                ]
+            ],
+        )
+    url = f"{settings.FRONTEND_URL.rstrip('/')}/admin"
+    buttons = (
+        [[{"text": "📂 Панели админ", "url": url}]] if url.startswith("http") else []
+    )
+    return ("Чекро санҷед ва дар панели админ тасдиқ кунед:", buttons)
+
+
 # =====================================================================
 # 💳 ДАРХОСТИ ПУР КАРДАНИ БАЛАНС — расм + тугмаҳои [Қабул] [Рад]
 # =====================================================================
@@ -89,8 +117,9 @@ async def send_photo_with_buttons(
         "chat_id": str(chat_id),
         "caption": caption,
         "parse_mode": "HTML",
-        "reply_markup": json.dumps({"inline_keyboard": buttons}),
     }
+    if buttons:
+        data["reply_markup"] = json.dumps({"inline_keyboard": buttons})
     try:
         with open(photo_path, "rb") as fh:
             async with httpx.AsyncClient(timeout=30.0) as client:
@@ -110,15 +139,14 @@ async def send_message_with_buttons(
     """📩 Паём бо тугмаҳои inline (фолбэк, агар расм нашавад)."""
     if not settings.TELEGRAM_BOT_TOKEN:
         return False
-    return await _send(
-        "sendMessage",
-        {
-            "chat_id": chat_id,
-            "text": text,
-            "parse_mode": "HTML",
-            "reply_markup": json.dumps({"inline_keyboard": buttons}),
-        },
-    )
+    payload = {
+        "chat_id": chat_id,
+        "text": text,
+        "parse_mode": "HTML",
+    }
+    if buttons:
+        payload["reply_markup"] = json.dumps({"inline_keyboard": buttons})
+    return await _send("sendMessage", payload)
 
 
 async def notify_topup_request(
@@ -135,18 +163,13 @@ async def notify_topup_request(
         )
         return False
 
+    hint, buttons = _approve_ui("topup", request_id)
     caption = (
         f"💳 <b>Дархости пур кардан #{request_id}</b>\n"
         f"👤 {user_label}\n"
         f"💰 {amount:.2f} сомонӣ\n\n"
-        f"Чекро санҷед ва аз ҳамин ҷо қабул ё рад кунед:"
+        f"{hint}"
     )
-    buttons = [
-        [
-            {"text": "✅ Қабул", "callback_data": f"topup:ok:{request_id}"},
-            {"text": "❌ Рад", "callback_data": f"topup:no:{request_id}"},
-        ]
-    ]
     chat_id = settings.TELEGRAM_ADMIN_CHAT_ID
 
     if receipt_file:
@@ -196,20 +219,15 @@ async def notify_order_receipt(
         )
         return False
 
+    hint, buttons = _approve_ui("order", order_id)
     caption = (
         f"🧾 <b>Чеки фармоиш #{order_id}</b>\n"
         f"🎮 Бозӣ: {game}\n"
         f"💎 Маҳсулот: {product}\n"
         f"🆔 ID: <code>{player_id}</code>\n"
         f"💰 Маблағ: {amount:.2f} сомонӣ\n\n"
-        f"Чекро санҷед ва аз ҳамин ҷо қабул ё рад кунед:"
+        f"{hint}"
     )
-    buttons = [
-        [
-            {"text": "✅ Қабул", "callback_data": f"order:ok:{order_id}"},
-            {"text": "❌ Рад", "callback_data": f"order:no:{order_id}"},
-        ]
-    ]
     chat_id = settings.TELEGRAM_ADMIN_CHAT_ID
 
     if receipt_file:
