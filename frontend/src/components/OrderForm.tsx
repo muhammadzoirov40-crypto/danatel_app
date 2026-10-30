@@ -664,72 +664,86 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
 
             <div className="h-px bg-slate-100 my-3.5" />
 
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2.5">
+            <p className="mb-3 flex items-center gap-2.5 text-[11px] font-bold uppercase tracking-[0.08em] text-slate-400">
               {t("choosePayment")}
+              <span aria-hidden className="h-px flex-1 bg-gradient-to-l from-slate-200 to-transparent" />
             </p>
+
             <div className="space-y-2.5 mb-4">
               {/* DC Wallet */}
               <button
                 onClick={() => setMethod("dc")}
                 aria-pressed={method === "dc"}
-                className={`rounded-2xl border-2 p-3.5 text-left transition
+                className={`flex w-full items-center gap-3 rounded-2xl border-2 p-3.5 text-left transition-all
                   ${
                     method === "dc"
-                      ? "border-brand-600 bg-brand-50 shadow-sm"
-                      : "border-slate-200 bg-white hover:border-slate-300"
+                      ? "border-brand-600 bg-brand-50/70 shadow-[0_10px_26px_-16px_rgba(37,99,235,0.9)]"
+                      : "border-slate-200 bg-white hover:border-brand-300 hover:shadow-md"
                   }`}
               >
-                <div className="flex items-center gap-2">
-                  <Ic icon={CreditCard} className="text-brand-600" />
-                  <span className="font-semibold text-sm">{t("dcPayment")}</span>
-                  {/* Радиои ороишӣ — ҳолати воқеӣ дар `aria-pressed`-и кнопка */}
-                  <span
-                    aria-hidden
-                    className={`ml-auto w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                      method === "dc" ? "border-brand-600" : "border-slate-300"
-                    }`}
-                  >
-                    {method === "dc" && <span className="w-2 h-2 rounded-full bg-brand-600" />}
-                  </span>
-                </div>
-                <div className="text-xs text-slate-500 mt-0.5">{t("payWithDC")}</div>
+                <span
+                  aria-hidden
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 text-white shadow-[0_6px_14px_-6px_rgba(37,99,235,0.85)]"
+                >
+                  <Ic icon={CreditCard} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-semibold text-slate-800">{t("dcPayment")}</span>
+                  <span className="mt-0.5 block text-xs text-slate-500">{t("payWithDC")}</span>
+                </span>
+                {/* Радиои ороишӣ — ҳолати воқеӣ дар `aria-pressed`-и кнопка */}
+                <span
+                  aria-hidden
+                  className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors
+                    ${method === "dc" ? "border-brand-600" : "border-slate-300"}`}
+                >
+                  {method === "dc" && (
+                    <span className="h-2.5 w-2.5 rounded-full bg-brand-600 shadow-[0_0_0_2px_rgba(255,255,255,0.7)]" />
+                  )}
+                </span>
               </button>
 
               {/* Баланс */}
               <button
                 onClick={() => setMethod("balance")}
                 aria-pressed={method === "balance"}
-                className={`rounded-2xl border-2 p-3.5 text-left transition
+                className={`flex w-full items-center gap-3 rounded-2xl border-2 p-3.5 text-left transition-all
                   ${
                     method === "balance"
-                      ? "border-emerald-600 bg-emerald-50 shadow-sm"
-                      : "border-slate-200 bg-white hover:border-slate-300"
+                      ? "border-emerald-600 bg-emerald-50/70 shadow-[0_10px_26px_-16px_rgba(16,185,129,0.9)]"
+                      : "border-slate-200 bg-white hover:border-emerald-300 hover:shadow-md"
                   }`}
               >
-                <div className="flex items-center gap-2">
-                  <Ic icon={Wallet} className="text-emerald-600" />
-                  <span className="font-semibold text-sm">{t("balancePayment")}</span>
-                  <span
-                    aria-hidden
-                    className={`ml-auto w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                      method === "balance" ? "border-emerald-600" : "border-slate-300"
-                    }`}
-                  >
-                    {method === "balance" && <span className="w-2 h-2 rounded-full bg-emerald-600" />}
+                <span
+                  aria-hidden
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-[0_6px_14px_-6px_rgba(16,185,129,0.85)]"
+                >
+                  <Ic icon={Wallet} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-semibold text-slate-800">{t("balancePayment")}</span>
+                  <span className="mt-0.5 block text-xs text-slate-500">
+                    {user ? (
+                      <>
+                        {t("currentBalance")}:{" "}
+                        <span className={balance >= price ? "font-semibold text-emerald-600" : "font-semibold text-rose-600"}>
+                          {balance.toLocaleString("tj-TJ")} {t("currency")}
+                        </span>
+                      </>
+                    ) : (
+                      t("loginForBalance")
+                    )}
                   </span>
-                </div>
-                <div className="text-xs text-slate-500 mt-0.5">
-                  {user ? (
-                    <>
-                      {t("currentBalance")}:{" "}
-                      <span className={balance >= price ? "text-emerald-600" : "text-rose-600"}>
-                        {balance.toLocaleString("tj-TJ")} {t("currency")}
-                      </span>
-                    </>
-                  ) : (
-                    t("loginForBalance")
+                </span>
+                <span
+                  aria-hidden
+                  className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors
+                    ${method === "balance" ? "border-emerald-600" : "border-slate-300"}`}
+                >
+                  {method === "balance" && (
+                    <span className="h-2.5 w-2.5 rounded-full bg-emerald-600 shadow-[0_0_0_2px_rgba(255,255,255,0.7)]" />
                   )}
-                </div>
+                </span>
               </button>
             </div>
 
@@ -757,25 +771,32 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
             <button
               onClick={submit}
               disabled={loading || !selected || (method === "balance" && !canUseBalance)}
-              className="btn-primary w-full py-4 text-base rounded-2xl shadow-[0_12px_28px_-12px_rgba(37,99,235,0.9)]"
+              className="btn-primary w-full rounded-2xl py-4 shadow-[0_16px_34px_-14px_rgba(37,99,235,0.95)] transition-transform active:scale-[0.99]"
             >
               {loading ? (
-                <>
+                <span className="inline-flex items-center justify-center gap-2">
                   <Ic icon={Loader2} className="animate-spin" /> {t("loading")}
-                </>
+                </span>
               ) : (
-                <>
-                  <Ic icon={Lock} />
-                  {method === "balance" ? t("payFromBalance") : t("pay")}
-                  {price > 0 ? ` — ${price.toLocaleString("tj-TJ")} ${t("currency")}` : ""}
-                </>
+                <span className="flex flex-col items-center justify-center leading-tight">
+                  <span className="inline-flex items-center gap-2 text-base font-semibold">
+                    <Ic icon={Lock} />
+                    {method === "balance" ? t("payFromBalance") : t("pay")}
+                  </span>
+                  {price > 0 && (
+                    <span className="mt-1.5 inline-flex items-baseline gap-1 rounded-lg bg-white/20 px-2.5 py-0.5 text-lg font-extrabold tabular-nums">
+                      {price.toLocaleString("tj-TJ")}
+                      <span className="text-xs font-bold opacity-90">{t("currency")}</span>
+                    </span>
+                  )}
+                </span>
               )}
             </button>
 
-            <p className="mt-3 text-xs text-slate-500 text-center leading-relaxed inline-flex items-center justify-center gap-1.5 flex-wrap">
-              <Ic icon={Lock} size="xs" className="text-slate-400" />
-              {t("secureNote")}
-            </p>
+            <div className="mx-auto mt-4 flex max-w-md items-start justify-center gap-2 rounded-2xl border border-slate-100 bg-slate-50/80 px-4 py-3 text-center">
+              <Ic icon={Lock} size="xs" className="mt-0.5 shrink-0 text-slate-400" />
+              <p className="text-xs leading-relaxed text-slate-500">{t("secureNote")}</p>
+            </div>
           </div>
         </aside>
       </div>

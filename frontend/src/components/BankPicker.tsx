@@ -58,7 +58,7 @@ export default function BankPicker({ price, loading, onConfirm, onClose }: Props
   const canConfirm = selected.available && !loading;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center">
       {/* Пасманзар */}
       <button
         aria-label={t("close")}
