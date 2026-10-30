@@ -10,14 +10,11 @@ import { Ic } from "./Icons";
  * Навигатсияи поёнӣ (Bottom Navigation Bar) — glassmorphism + градиенти
  * кабуд-фӣолетӣ.
  *
- *  📏 ИСЛОҲИ МАТН (талаби соҳиб, 28.10.2026):
- *   · Масъалаи қаблӣ: `max-w-[84px]` + `justify-between` → матн бурида
- *     мешуд («Пур ка…», «Фармо…»).
- *   · Ҳал: тақсимоти БАРОБАРИ `flex-1` (барои марказ `flex-[1.15]` —
- *     фазои барои «Пур кардан»), бе `max-w` cap, `gap` мувофиқ,
- *     `tracking-tight` → ҳамаи номҳо пурра ҷой мегиранд (310–430px).
- *   · `truncate` ҳамчун ОХИРИН нигоҳдоранда мондааст (агар хеле танг шавад),
- *     аммо дар 310px ҳам матн пурра намоён аст.
+ *  📏 НОМҲО НЕСТ (талаби соҳиб, 31.10.2026):
+ *   · Тугмаҳо танҳо бо иконка — матнҳои зери иконка («Асосӣ», «Каталог»,
+ *     «Пур кардан», «Фармоишҳо», «Профил») нест карда шуданд.
+ *   · `aria-label` барои ҳар итем МОНДАСТ (WCAG) — screen reader номҳоро
+ *     мехонад, қалби тугма 44px+ меборад.
  *
  *  🎨 УСЛУБ: фони нимшиффоф + backdrop-blur (glass), қатти matched border,
  *    итеми фаъол = пилюлаи градиенти кабуд→фӣолетӣ бо сояи нарм,
@@ -98,22 +95,16 @@ export default function BottomNav() {
   };
 
   /** Класси ягона барои итемҳои чап/рост.
-   *  `flex-1 min-w-0` → тақсимоти БАРОБАР (бе `max-w` cap) → матн бурида НАМЕШАВАД;
-   *  `gap` дар контейнер → танаффури зебо;
-   *  `tracking-tight` → фазои бештар барои ҳарфҳо;
-   *  `truncate` танҳо охирин нигоҳдоранда. */
+   *  `flex-1 min-w-0` → тақсимоти БАРОБАР;
+   *  танҳо иконка (бе матн) → `py-3` барои қалби ламс ≥44px. */
   const itemCls = (active: boolean) =>
-    `relative flex-1 min-w-0 flex flex-col items-center justify-center gap-1 rounded-2xl
-     px-0 py-1.5 transition-all active:scale-95
+    `relative flex-1 min-w-0 flex flex-col items-center justify-center rounded-2xl
+     px-0 py-3 transition-all active:scale-95
      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${
        active
          ? "text-white bg-gradient-to-b from-blue-600 via-indigo-600 to-purple-600 shadow-[0_6px_16px_-4px_rgba(79,70,229,0.55)]"
          : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800"
      }`;
-
-  /** Матни зeri иконка — ягона барои ҳама (ҳамеша пурра, охир truncate) */
-  const labelCls =
-    "w-full text-center text-[8.5px] font-semibold tracking-[-0.02em] leading-none truncate";
 
   return (
     <>
@@ -122,8 +113,8 @@ export default function BottomNav() {
       <OrderSearchModal open={orderSearchOpen} onClose={() => setOrderSearchOpen(false)} />
 
       {/* 🧭 Панели навигатсияи поёнӣ — GLASSMORPHISM + градиенти кабуд-фӣолетӣ.
-          `items-stretch gap-1.5` → 5 банди БАРОБАР бо танаффури зебо;
-          `flex-[1.15]` барои марказ → «Пур кардан» пурра ҷой мегирад. */}
+          Танҳо иконкаҳо (бе ном) — 5 банди баробар; номҳо танҳо
+          дар `aria-label` (дастрасӣ). */}
       <nav
         aria-label="Навигатсияи поёнӣ"
         className={`md:hidden fixed bottom-3 inset-x-3 z-50 max-w-md mx-auto
@@ -133,9 +124,8 @@ export default function BottomNav() {
                    rounded-[26px] px-1 py-2 ${hideNav ? "hidden" : "flex"} items-stretch gap-1`}
       >
         {/* 1) Асосӣ */}
-        <Link to="/" onClick={handleHomeClick} aria-label={labels.home} className={itemCls(isHome)}>
+        <Link to="/" onClick={handleHomeClick} aria-label={labels.home} title={labels.home} className={itemCls(isHome)}>
           <Ic icon={House} size="md" strokeWidth={isHome ? 2.4 : 2} />
-          <span className={labelCls}>{labels.home}</span>
         </Link>
 
         {/* 2) Каталог */}
@@ -143,10 +133,10 @@ export default function BottomNav() {
           type="button"
           onClick={handleCatalogClick}
           aria-label={labels.catalog}
+          title={labels.catalog}
           className={itemCls(false)}
         >
           <Ic icon={LayoutGrid} size="md" />
-          <span className={labelCls}>{labels.catalog}</span>
         </button>
 
         {/* 3) Тугмаи калони марказӣ «Пур кардан» — CTA бо градиент + FAB бардошта */}
@@ -154,7 +144,8 @@ export default function BottomNav() {
           type="button"
           onClick={handleTopUpClick}
           aria-label={labels.topup}
-          className="relative flex-[1.15] min-w-0 -mt-6 flex flex-col items-center justify-center group
+          title={labels.topup}
+          className="relative flex-1 min-w-0 -mt-6 flex flex-col items-center justify-center group
                      active:scale-95 transition-transform cursor-pointer rounded-2xl
                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
         >
@@ -165,9 +156,6 @@ export default function BottomNav() {
           >
             <Ic icon={Plus} size="lg" strokeWidth={2.75} />
           </div>
-          <span className="w-full text-center text-[8.5px] font-bold tracking-[-0.02em] text-slate-700 dark:text-slate-200 mt-1 leading-none truncate">
-            {labels.topup}
-          </span>
         </button>
 
         {/* 4) Фармоишҳо (сабад НЕСТ — ин фармоишҳои воқеӣ) */}
@@ -175,20 +163,20 @@ export default function BottomNav() {
           to={user ? "/orders" : "/login"}
           onClick={handleOrdersClick}
           aria-label={labels.orders}
+          title={labels.orders}
           className={itemCls(isOrders && !isHome)}
         >
           <Ic icon={Package} size="md" strokeWidth={isOrders && !isHome ? 2.4 : 2} />
-          <span className={labelCls}>{labels.orders}</span>
         </Link>
 
         {/* 5) Профил */}
         <Link
           to={user ? "/profile" : "/login"}
           aria-label={labels.profile}
+          title={labels.profile}
           className={itemCls((isProfile || isLogin) && !isHome)}
         >
           <Ic icon={User} size="md" strokeWidth={(isProfile || isLogin) && !isHome ? 2.4 : 2} />
-          <span className={labelCls}>{labels.profile}</span>
         </Link>
       </nav>
     </>
