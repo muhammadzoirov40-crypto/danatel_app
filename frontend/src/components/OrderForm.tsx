@@ -480,7 +480,7 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                         aria-pressed={active}
                         aria-label={p.name}
                         title={p.name}
-                        className={`relative flex min-w-0 flex-col gap-2 rounded-2xl border-2 px-3 py-3 text-left transition-all
+                        className={`relative flex min-w-0 flex-col items-center gap-2 rounded-2xl border-2 px-3 py-3 text-center transition-all
                           ${
                             active
                               ? "border-brand-600 bg-brand-50 shadow-[0_8px_20px_-10px_rgba(37,99,235,0.7)] scale-[1.02]"
