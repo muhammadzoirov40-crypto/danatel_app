@@ -156,16 +156,8 @@ export default function BankPicker({ price, loading, onConfirm, onClose }: Props
           <p className="px-1 text-xs leading-relaxed text-slate-500">{t("bankHint")}</p>
         </div>
 
-        {/* Тугмаҳо — ҳамеша дар поён */}
+        {/* Тугмаҳо — ҳамеша дар поён (танҳо «Идома») */}
         <div className="shrink-0 px-5 py-4 border-t border-slate-100 bg-slate-50/70 flex items-center gap-2.5">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={loading}
-            className="shrink-0 px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-600 hover:bg-slate-100 transition disabled:opacity-50"
-          >
-            {t("back")}
-          </button>
           <button
             type="button"
             onClick={onConfirm}
