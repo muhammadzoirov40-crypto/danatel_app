@@ -34,10 +34,10 @@ LANGS: dict[str, str] = {}  # chat_id -> lang
 # =====================================================================
 T = {
     "welcome": {
-        "tj": "👋 Хуш омадед!\n\nБозиро барои донат интихоб кунед:",
-        "ru": "👋 Добро пожаловать!\n\nВыберите игру для пополнения:",
-        "en": "👋 Welcome!\n\nChoose a game to top up:",
-        "uz": "👋 Xush kelibsiz!\n\nTo'ldirish uchun o'yinni tanlang:",
+        "tj": "👋 Хуш омадед!",
+        "ru": "👋 Добро пожаловать!",
+        "en": "👋 Welcome!",
+        "uz": "👋 Xush kelibsiz!",
     },
     "enter_id": {
         "tj": "📱 <b>{label}</b> -ро нависед:",
@@ -178,7 +178,7 @@ async def cmd_start(message: Message):
             db.add(user)
             db.commit()
 
-    await message.answer(t("welcome", lang), reply_markup=games_keyboard(lang))
+    await message.answer(t("welcome", lang))
 
 
 @router.callback_query(F.data.startswith("lang:"))
@@ -186,14 +186,14 @@ async def cb_lang(call: CallbackQuery):
     lang = (call.data or "").split(":")[1]
     LANGS[str(call.message.chat.id)] = lang
     await call.answer("✅")
-    await call.message.edit_text(t("welcome", lang), reply_markup=games_keyboard(lang))
+    await call.message.edit_text(t("welcome", lang))
 
 
 @router.callback_query(F.data == "home")
 async def cb_home(call: CallbackQuery):
     lang = get_lang(call.message.chat.id)
     await call.answer()
-    await call.message.edit_text(t("welcome", lang), reply_markup=games_keyboard(lang))
+    await call.message.edit_text(t("welcome", lang))
 
 
 @router.callback_query(F.data.startswith("game:"))
@@ -238,7 +238,7 @@ async def on_text(message: Message):
         )
         return
 
-    await message.answer(t("welcome", lang), reply_markup=games_keyboard(lang))
+    await message.answer(t("welcome", lang))
 
 
 @router.callback_query(F.data.startswith("prod:"))
