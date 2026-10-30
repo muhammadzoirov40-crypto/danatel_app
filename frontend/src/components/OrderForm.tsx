@@ -153,6 +153,11 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
   // 🏦 Кушодани интихоби банк (марҳилаи 2-юм пардохти DC)
   const [showBank, setShowBank] = useState(false);
 
+  // 🌍 Худкор-интихоби минтақа: вақте backend аз рӯи ID минтақаи ҳақиқиро
+  //    бармегарронад → dropdown худор иваз мешавад. Ин ref ба effectҳо мегӯяд,
+  //    ки ин ТАҒЙИРИ АВТОматист (натиҷаи санҷиш тоза аст, набӯяд).
+  const autoRegionRef = useRef(false);
+
   // 🌍 Филтри минтақа: бастаҳои минтақаи интихобшуда (+ бе минтақа = барои ҳама)
   const products = (game.products ?? []).filter((p) => !p.region || p.region === region);
   const price = selected ? Number(selected.price_tjs) : 0;
@@ -191,6 +196,19 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
       if (res.found && res.nickname && !nickname) {
         setNickname(res.nickname);
       }
+      // 🌍 Худкор-интихоби минтақа аз ID: агар backend минтақаи ҳақиқии
+      //    бозигарро баргардонад ва он аз интихоби ҷорӣ фарқ кунад →
+      //    dropdown худор ба он мегузарад → бастаҳо аз он минтақа меафтанд.
+      const detected = (res.region || "").trim();
+      if (
+        res.found &&
+        detected &&
+        detected !== region &&
+        (game.regions ?? []).some((r) => r === detected)
+      ) {
+        autoRegionRef.current = true;
+        setRegion(detected);
+      }
     } catch {
       setNickLookup({ found: false, uid, game: game.slug, nickname: "", region: "", message: "" });
     } finally {
@@ -203,6 +221,10 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
   useEffect(() => {
     const uid = uidValue;
     if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    // 🌍 Минтақа аз ID худор иваз шуд → натиҷаи санҷиш аллакай тоза аст,
+    //    дубора дархост накӯшем (дархости такрорӣ). Ref-ро clear-effect мегирад.
+    if (autoRegionRef.current) return;
 
     // Zone-бозиҳо (MLBB): мин 7 рақам; боқия: мин 8 (ҳамон backend)
     const minDigits = game.needs_zone ? 7 : 8;
@@ -223,7 +245,13 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
   useEffect(() => {
     setInnerSelected(null);
     onSelected?.(null);
-    setNickLookup(null);
+    if (autoRegionRef.current) {
+      // Минтақа аз ID худор иваз шуд → натиҷаи санҷиш (нику минтақа)
+      //    тоза аст — нигаҳ дор; танҳо интихоби баста пок мешавад.
+      autoRegionRef.current = false;
+    } else {
+      setNickLookup(null);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [region]);
 

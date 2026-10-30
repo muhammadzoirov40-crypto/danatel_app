@@ -9,6 +9,7 @@
 """
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 
@@ -521,6 +522,116 @@ async def _lookup_wzapi(uid: str, slug: str) -> PlayerLookupResponse:
 
 
 # =====================================================================
+# 🌍 МУАЙЯНКУНИИ МИНТАҚАИ ҲАҚИҚӢ — provider-и пуррӣ (мананди FireLoot)
+# =====================================================================
+# Ҳамон серверҳои бот барои Free Fire.
+_DETECT_SERVERS = ("ind", "sg", "br", "us", "id", "ru")
+# Таймаути кӯтоҳ: ҳангоми хомӯшӣ тез бармегардад → безарар ба суръат.
+_DETECT_TIMEOUT = httpx.Timeout(4.0, connect=2.5)
+# ⏱️ Агар сарчашма ноком шуд →60 сония дубора накӯшем (бе таъхири ҳар lookup).
+_DETECT_FAIL_COOLDOWN = 60.0
+_DETECT_LAST_FAIL = 0.0
+
+# 🗺️ Коди минтақаи Garena (ё сервер) → номи минтақаи FireLoot (dropdown).
+#    Агар код номаълум бошад → "" (фаъолсозӣ → ҷавоби FireLoot мемонад).
+_FF_REGION_ALIAS: dict[str, str] = {
+    "CIS": "CIS", "RU": "CIS", "RUSSIA": "CIS",
+    "BD": "BANGLADESH", "BANGLADESH": "BANGLADESH",
+    "BR": "BRAZIL", "BRAZIL": "BRAZIL",
+    "EU": "EU", "EUROPE": "EU",
+    "ID": "INDONESIA", "INDONESIA": "INDONESIA",
+    "LATAM": "LATAM", "SAC": "LATAM",
+    "ME": "MENA", "MENA": "MENA", "MIDDLEEAST": "MENA",
+    "PK": "PAKISTAN", "PAKISTAN": "PAKISTAN",
+    "SG": "SG", "SINGAPORE": "SG",
+    "TW": "TAIWAN", "TAIWAN": "TAIWAN",
+    "VN": "VIETNAM", "VIETNAM": "VIETNAM",
+}
+
+
+def _map_ff_region(raw: str) -> str:
+    """Коди муайяншуда → номи минтақаи FireLoot; агар номаълум → ""."""
+    if not raw:
+        return ""
+    key = raw.strip().upper().replace(" ", "")
+    if key in _FF_REGION_ALIAS:
+        return _FF_REGION_ALIAS[key]
+    # агар худи номи пурра (масалан «INDONESIA») омада бошад
+    if key in set(_FF_REGION_ALIAS.values()):
+        return key
+    return ""
+
+
+async def _probe_region_source(
+    client: httpx.AsyncClient, uid: str, server: str
+) -> tuple[str, str] | None:
+    """Як сервер: epep → wzapi. Бармегардонад (region, nickname) ё None."""
+    # --- epep-api (ҳамон бот) ---
+    try:
+        r = await client.get(
+            "https://epep-api.vercel.app/api/freefire/player/profile",
+            params={"server": server, "uid": uid,
+                    "need_gallery_info": "false", "call_sign_src": "7"},
+        )
+        if r.status_code == 200:
+            data = r.json()
+            if isinstance(data, dict) and data.get("status") != "error":
+                nick = await _extract_nickname(data)
+                if nick:
+                    return (await _extract_region(data) or server.upper(), nick)
+    except Exception:  # noqa: BLE001
+        pass
+    # --- wzapiinfo ---
+    try:
+        r = await client.get(
+            "https://wzapiinfo.vercel.app/get",
+            params={"uid": uid, "region": server},
+        )
+        if r.status_code == 200:
+            data = r.json()
+            if isinstance(data, dict) and not data.get("error"):
+                nick = await _extract_nickname(data)
+                if nick:
+                    return (await _extract_region(data) or server.upper(), nick)
+    except Exception:  # noqa: BLE001
+        pass
+    return None
+
+
+async def _detect_ff_region(uid: str) -> tuple[str, str]:
+    """
+    🌍 Минтақаи ҲАҚИҚӢи бозигари Free Fire.
+
+    Ҳамаи серверҳоро parallel санҷида, аввалин ҷое, ки ник ёфт шуд,
+    ҳамон минтақаи воқеӣ аст. Бармегардонад: (region, nickname) ё ("", "").
+    Ҳангоми хомӯшӣ тез (бо таймаут) бармегардад → безарар.
+    """
+    global _DETECT_LAST_FAIL
+    # ⏱️ Сарчашма ноком аст → то60 сония дубора накӯшем (lookup тез мемонад)
+    if time.time() - _DETECT_LAST_FAIL < _DETECT_FAIL_COOLDOWN:
+        return ("", "")
+
+    async with httpx.AsyncClient(
+        timeout=_DETECT_TIMEOUT,
+        headers={"User-Agent": _LOOKUP_UA, "Accept": "application/json"},
+    ) as client:
+        try:
+            results = await asyncio.gather(
+                *(_probe_region_source(client, uid, s) for s in _DETECT_SERVERS),
+                return_exceptions=True,
+            )
+        except Exception:  # noqa: BLE001
+            _DETECT_LAST_FAIL = time.time()
+            return ("", "")
+    for res in results:
+        if isinstance(res, tuple) and res[0] and res[1]:
+            return res  # (region, nickname)
+    # Ҳеҷ сарчашма ҷавоб надод → нокомӣ (cooldown)
+    _DETECT_LAST_FAIL = time.time()
+    return ("", "")
+
+
+# =====================================================================
 # 📡 ЭНДПОИНТ
 # =====================================================================
 @router.get("/{slug}/lookup", response_model=PlayerLookupResponse)
@@ -546,7 +657,47 @@ async def lookup_player(
             message=f"ID нодуруст (фақат рақам, мин {min_len} рақам)",
         )
 
-    # 1️⃣ FireLoot — манбаи асосӣ
+    # 1️⃣ FireLoot (ник + echo-и минтақа) + 🌍 детект минтақаи ҳақиқӣ
+    #    Ҳар ду parallel → суръат нопадид намешавад.
+    if slug == "free-fire":
+        results = await asyncio.gather(
+            _lookup_fireloot(slug, uid, region=region),
+            _detect_ff_region(uid),
+            return_exceptions=True,
+        )
+        fireloot_result = results[0] if not isinstance(results[0], BaseException) else None
+        if isinstance(results[0], BaseException):
+            logger.warning("FireLoot lookup хато uid=%s: %s", uid, results[0])
+        detected = results[1] if isinstance(results[1], tuple) else ("", "")
+        detected_region, detected_nick = detected
+        # Коди воқеӣ → номи минтақаи FireLoot; агар номаълум → "" (бе тағйир)
+        true_region = _map_ff_region(detected_region)
+
+        if fireloot_result is not None and fireloot_result.found:
+            # ✅ Минтақаи ҳақиқӣ бар echo-и FireLoot (dropdown худор иваз мешавад)
+            if true_region and true_region != fireloot_result.region:
+                return fireloot_result.model_copy(update={"region": true_region})
+            return fireloot_result
+
+        if fireloot_result is not None and not fireloot_result.found:
+            # FireLoot «ёфт нашуд» (масалан минтақаи нодуруст) →
+            # агар дар ҷои дигар ёфт шудааст, ҳамон минтақаи ҳақиқиро бигар
+            if true_region and detected_nick:
+                return PlayerLookupResponse(
+                    found=True, uid=uid, game=GAME_LABEL.get(slug, slug),
+                    nickname=detected_nick, region=true_region,
+                )
+            return fireloot_result
+
+        # FireLoot = None (нодуруст/маҳдудият) → фолбэкҳо + детект
+        if true_region and detected_nick:
+            return PlayerLookupResponse(
+                found=True, uid=uid, game=GAME_LABEL.get(slug, slug),
+                nickname=detected_nick, region=true_region,
+            )
+        return await _lookup_free_fire(uid)
+
+    # 1️⃣ FireLoot — манбаи асосӣ (бозиҳои ғайри-FF)
     try:
         result = await _lookup_fireloot(slug, uid, region=region)
     except Exception as exc:  # noqa: BLE001
@@ -556,6 +707,4 @@ async def lookup_player(
         return result
 
     # 2️⃣ Фолбэкҳо
-    if slug == "free-fire":
-        return await _lookup_free_fire(uid)
     return await _lookup_wzapi(uid, slug)
