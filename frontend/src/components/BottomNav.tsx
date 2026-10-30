@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { House, LayoutGrid, Package, Plus, Settings, User } from "lucide-react";
+import { House, LayoutGrid, Package, Plus, User } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import TopUpModal from "./TopUpModal";
 import OrderSearchModal from "./OrderSearchModal";
@@ -34,25 +34,7 @@ import { Ic } from "./Icons";
 export default function BottomNav() {
   const { pathname } = useLocation();
   const nav = useNavigate();
-  const { user, lang, t, isAdmin, authReady } = useApp();
-
-  /** 🦶 Вақте футер дар экран аст (саҳифаи асосӣ), тугмаҳои шинокунанда
-   *  пинҳон мешаванд — то логотипи футерро пӯшида накунанд. */
-  const [footerOnScreen, setFooterOnScreen] = useState(false);
-
-  useEffect(() => {
-    const el = document.querySelector("footer");
-    if (!el || typeof IntersectionObserver === "undefined") {
-      setFooterOnScreen(false);
-      return;
-    }
-    const io = new IntersectionObserver(
-      (entries) => setFooterOnScreen(entries.some((e) => e.isIntersecting)),
-      { threshold: 0 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [pathname]);
+  const { user, lang, t } = useApp();
 
   const [topUpOpen, setTopUpOpen] = useState(false);
   const [orderSearchOpen, setOrderSearchOpen] = useState(false);
@@ -61,6 +43,8 @@ export default function BottomNav() {
   const isProfile = pathname === "/profile";
   const isOrders = pathname === "/orders";
   const isLogin = pathname === "/login";
+  /** Дар саҳифаи фармоиш (/order/:id) навигатор пинҳон — то аз болои мазмун набарояд. */
+  const hideNav = pathname.startsWith("/order/");
 
   const labels = {
     home: lang === "ru" ? "Главная" : lang === "uz" ? "Asosiy" : lang === "en" ? "Home" : "Асосӣ",
@@ -137,33 +121,16 @@ export default function BottomNav() {
       <TopUpModal open={topUpOpen} onClose={() => setTopUpOpen(false)} />
       <OrderSearchModal open={orderSearchOpen} onClose={() => setOrderSearchOpen(false)} />
 
-      {/* ⚙️ Тугмаи шинокунандаи «Панели идора» — ТАНҲО барои админ, ТАНҲО иконка. */}
-      {isAdmin && authReady && !footerOnScreen && (
-        <Link
-          to="/admin"
-          aria-label={t("adminPanel")}
-          title={t("adminPanel")}
-          className="fixed left-4 bottom-[8.75rem] z-40 md:left-6 md:bottom-6
-                     w-12 h-12 rounded-full bg-gradient-to-tr from-slate-600 to-slate-800
-                     text-white ring-1 ring-white/20
-                     shadow-[0_8px_24px_-6px_rgba(15,23,42,0.55)]
-                     grid place-items-center hover:scale-105 active:scale-95 transition-transform
-                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
-        >
-          <Ic icon={Settings} size="lg" />
-        </Link>
-      )}
-
       {/* 🧭 Панели навигатсияи поёнӣ — GLASSMORPHISM + градиенти кабуд-фӣолетӣ.
           `items-stretch gap-1.5` → 5 банди БАРОБАР бо танаффури зебо;
           `flex-[1.15]` барои марказ → «Пур кардан» пурра ҷой мегирад. */}
       <nav
         aria-label="Навигатсияи поёнӣ"
-        className="md:hidden fixed bottom-3 inset-x-3 z-50 max-w-md mx-auto
+        className={`md:hidden fixed bottom-3 inset-x-3 z-50 max-w-md mx-auto
                    bg-white/80 dark:bg-slate-900/70 backdrop-blur-xl
                    border border-white/60 dark:border-slate-700/60
                    shadow-[0_12px_40px_-8px_rgba(31,38,135,0.28)]
-                   rounded-[26px] px-1 py-2 flex items-stretch gap-1"
+                   rounded-[26px] px-1 py-2 ${hideNav ? "hidden" : "flex"} items-stretch gap-1`}
       >
         {/* 1) Асосӣ */}
         <Link to="/" onClick={handleHomeClick} aria-label={labels.home} className={itemCls(isHome)}>
