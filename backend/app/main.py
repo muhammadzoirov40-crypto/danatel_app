@@ -134,6 +134,13 @@ async def on_startup() -> None:
         except Exception:  # noqa: BLE001
             logger.warning("🔄 Ҳамоҳангсозии каталог ноком шуд", exc_info=True)
 
+    # 🎮 Иҷрои худкори фармоишҳои пардохтшуда (FireLoot) + сикли санҷиш.
+    #    Агар FIRELOOT_API_KEY набошад — poller худаш хомӯш мемонад.
+    if os.getenv("DISABLE_DELIVERY", "0") != "1":
+        from app.services import delivery
+
+        asyncio.create_task(delivery.poller_loop())
+
     # Оғози Telegram Bot дар ҳолати алоҳида
     if os.getenv("DISABLE_TELEGRAM", "0") != "1":
         from app.bot.bot import run_bot

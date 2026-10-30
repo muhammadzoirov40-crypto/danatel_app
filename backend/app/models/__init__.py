@@ -353,6 +353,13 @@ class Order(Base):
     # Истинодҳои Telegram
     telegram_chat_id: Mapped[str | None] = mapped_column(String(32))
 
+    # 🎮 Иҷрои худкори FireLoot (services/delivery.py):
+    #    '' → танҳо пардохт шудааст (омодаи иҷро), 'WIP' → иҷро ҷараён дорад,
+    #    'ref:<id>' → дар кори FireLoot, 'ERR:<code>' → ноком (бе кӯшиши дубра)
+    fl_ref: Mapped[str] = mapped_column(
+        String(64), default="", server_default=text("''")
+    )
+
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now(), onupdate=func.now()
