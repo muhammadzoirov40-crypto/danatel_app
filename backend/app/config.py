@@ -14,7 +14,11 @@ class Settings(BaseSettings):
     #    app/security.py ба `HS256` маҳкам шудааст ва аз .env ҚАБУЛ НАМЕШАВАД
     #    (то касе алгоритми `none` ё дигарро ҷорӣ карда натавонад).
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
+    # ⏳ Токени дастрасӣ: 15 рӯз (21600 дақиқа) → корбар дар 1 моҳ тақрибан
+    #    2 бор ба вуруд меравад (талаби соҳиб, 31.10.2026).
+    #    Токен дар localStorage нигоҳ дошта мешавад → баромад аз браузер
+    #    ҳисобро хориҷ намекунад; танҳо баъди 15 рӯз вуруди нав лозим аст.
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 21600
 
     # DC WALLET
     DC_MERCHANT_ID: str = ""
