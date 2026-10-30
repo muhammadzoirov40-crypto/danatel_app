@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Check,
-  ChevronRight,
   CircleCheck,
   ClipboardList,
   Coins,
@@ -78,70 +77,6 @@ function DiamondArt({ className = "" }: { className?: string }) {
       {/* Дурахши сафед */}
       <path d="M16.5 8 H23 L21 11.5 H18 Z" fill="#ffffff" opacity="0.8" />
     </svg>
-  );
-}
-
-/** Сатри маблағҳо — ба тарафи пеш мелавад; нишонаи «→» ҳангами ҷои боқӣ. */
-function AmountRow({
-  items,
-  selected,
-  onSelect,
-}: {
-  items: Product[];
-  selected?: Product | null;
-  onSelect: (p: Product) => void;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [more, setMore] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const upd = () => setMore(el.scrollWidth - el.clientWidth - el.scrollLeft > 8);
-    upd();
-    el.addEventListener("scroll", upd, { passive: true });
-    window.addEventListener("resize", upd);
-    return () => {
-      el.removeEventListener("scroll", upd);
-      window.removeEventListener("resize", upd);
-    };
-  }, []);
-  return (
-    <div className="relative mb-3">
-      <div ref={ref} className="-mx-1 overflow-x-auto pb-1">
-        <div className="flex w-max gap-2 px-1">
-          {items.map((p) => {
-            const chipActive = selected?.id === p.id;
-            const amt = Number(p.amount || 0);
-            const chipLabel = amt > 0 ? amt.toLocaleString("tj-TJ") : p.name;
-            return (
-              <button
-                key={p.id}
-                onClick={() => onSelect(p)}
-                aria-pressed={chipActive}
-                aria-label={p.name}
-                title={p.name}
-                className={`shrink-0 whitespace-nowrap rounded-xl border px-3 py-1.5 text-sm font-bold tabular-nums transition-colors
-                  ${
-                    chipActive
-                      ? "border-brand-600 bg-brand-600 text-white shadow-[0_6px_16px_-8px_rgba(37,99,235,0.9)]"
-                      : "border-slate-200 bg-white text-slate-600 hover:border-brand-300 hover:text-brand-700"
-                  }`}
-              >
-                {chipLabel}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-      {more && (
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-y-0 right-0 flex items-center rounded-r-xl bg-gradient-to-l from-white via-white/85 to-transparent pl-7"
-        >
-          <Ic icon={ChevronRight} size="sm" className="text-slate-400" />
-        </span>
-      )}
-    </div>
   );
 }
 
@@ -571,9 +506,6 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                     </p>
                   </div>
                 </div>
-
-                {/* 🔢 Сатри маблағҳо — ба тарафи пеш мелавад + нишонаи «→» */}
-                <AmountRow items={items} selected={selected} onSelect={setSelected} />
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-2 sm:gap-2.5 mb-6">
                   {items.map((p) => {
