@@ -205,7 +205,7 @@ export default function OrderPage() {
                   </div>
                 )}
 
-                <div className="flex gap-2 pt-1">
+                <div className="flex flex-col gap-2 pt-1 sm:flex-row">
                   <a
                     href={order.payment_link || order.dc_payment_url || "#"}
                     target="_blank"
@@ -219,7 +219,7 @@ export default function OrderPage() {
                     type="button"
                     onClick={() => copyLink(order.payment_link || order.dc_payment_url || "")}
                     aria-label={t("copy")}
-                    className={`shrink-0 rounded-xl border-2 px-4 py-3 transition inline-flex items-center gap-2 font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 ${
+                    className={`sm:w-auto w-full rounded-xl border-2 px-4 py-3 transition inline-flex items-center justify-center gap-2 font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 ${
                       copied
                         ? "border-emerald-300 bg-emerald-50 text-emerald-600"
                         : "border-slate-200 bg-white hover:border-brand-300 text-slate-600"
@@ -235,63 +235,59 @@ export default function OrderPage() {
 
         {/* 🧾 Формаи фиристодани чек (барои пардохти DC) */}
         {order.status === "pending" && order.payment_method === "dc_wallet" && (
-          <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4 text-left">
-            <div className="font-semibold text-sm text-slate-800 mb-1 inline-flex items-center gap-2">
-              <Ic icon={ReceiptText} className="text-brand-600" />
+          <div className="mt-5 rounded-2xl border border-slate-200 bg-white overflow-hidden text-left shadow-sm">
+            <div className="px-4 py-3 bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-100 text-sm font-bold text-amber-800 inline-flex items-center gap-2.5">
+              <span
+                aria-hidden
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-[0_4px_10px_-4px_rgba(249,115,22,0.85)]"
+              >
+                <Ic icon={ReceiptText} size="xs" />
+              </span>
               {t("receiptTitle")}
             </div>
-            <p className="text-xs text-slate-500 mb-3">{t("receiptNote")}</p>
 
-            <label className="block text-xs font-medium text-slate-600 mb-1">
-              {t("receiptPhoto")}
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setReceiptFile(e.target.files?.[0] ?? null)}
-              className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:text-brand-700 file:font-semibold hover:file:bg-brand-100"
-            />
+            <div className="p-4">
+              <p className="text-xs text-slate-500 mb-3">{t("receiptNote")}</p>
 
-            <label className="block text-xs font-medium text-slate-600 mt-3 mb-1">
-              {t("receiptText")}
-            </label>
-            <input
-              type="text"
-              maxLength={512}
-              className="input"
-              placeholder={t("receiptText")}
-              value={receiptText}
-              onChange={(e) => setReceiptText(e.target.value)}
-            />
+              <label className="block text-[11px] font-bold uppercase tracking-[0.06em] text-slate-400 mb-1">
+                {t("receiptPhoto")}
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setReceiptFile(e.target.files?.[0] ?? null)}
+                className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:text-brand-700 file:font-semibold hover:file:bg-brand-100"
+              />
 
-            {sendErr && (
-              <div className="mt-3 rounded-xl bg-rose-50 border border-rose-200 px-3 py-2 text-xs text-rose-700">
-                {sendErr}
-              </div>
-            )}
-            {sentOk && !sendErr && (
-              <div className="mt-3 rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-2 text-xs text-emerald-700 inline-flex items-center gap-2">
-                <Ic icon={CircleCheck} size="xs" />
-                {t("receiptSent")}
-              </div>
-            )}
-
-            <button
-              onClick={sendReceipt}
-              disabled={sending || (!receiptFile && !receiptText.trim())}
-              className="btn-primary w-full mt-3 py-3"
-            >
-              {sending ? (
-                <>
-                  <Ic icon={Loader2} className="animate-spin" /> {t("loading")}
-                </>
-              ) : (
-                <>
-                  <Ic icon={Upload} />
-                  {t("sendReceipt")}
-                </>
+              {sendErr && (
+                <div className="mt-3 rounded-xl bg-rose-50 border border-rose-200 px-3 py-2 text-xs text-rose-700">
+                  {sendErr}
+                </div>
               )}
-            </button>
+              {sentOk && !sendErr && (
+                <div className="mt-3 rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-2 text-xs text-emerald-700 inline-flex items-center gap-2">
+                  <Ic icon={CircleCheck} size="xs" />
+                  {t("receiptSent")}
+                </div>
+              )}
+
+              <button
+                onClick={sendReceipt}
+                disabled={sending || (!receiptFile && !receiptText.trim())}
+                className="btn-primary w-full mt-4 py-3"
+              >
+                {sending ? (
+                  <>
+                    <Ic icon={Loader2} className="animate-spin" /> {t("loading")}
+                  </>
+                ) : (
+                  <>
+                    <Ic icon={Upload} />
+                    {t("sendReceipt")}
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         )}
 
