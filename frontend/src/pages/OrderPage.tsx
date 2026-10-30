@@ -291,25 +291,28 @@ export default function OrderPage() {
           </div>
         )}
 
-        {/* 🧾 Чеки фиристода — интизори тасдиқи админ */}
+        {/* ✅ Чек қабул шуд — пардохт қабул шуд, интизори тасдиқи админ */}
         {order.status === "checking" && (
-          <div className="mt-5 rounded-2xl border border-indigo-200 bg-indigo-50 p-4 text-left">
-            <div className="text-sm font-semibold text-indigo-800 mb-1 inline-flex items-center gap-2">
-              <Ic icon={ReceiptText} />
-              {t("receiptReview")}
+          <div className="mt-5 rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white overflow-hidden text-left shadow-sm">
+            <div className="px-4 py-3 bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-emerald-100 text-sm font-bold text-emerald-700 inline-flex items-center gap-2.5">
+              <span
+                aria-hidden
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-[0_4px_10px_-4px_rgba(16,185,129,0.85)]"
+              >
+                <Ic icon={CircleCheck} size="xs" />
+              </span>
+              {t("receiptSent")}
             </div>
-            {order.receipt_text && (
-              <div className="text-xs text-indigo-700 break-words">
-                {order.receipt_text}
-              </div>
-            )}
-            {order.receipt_file && (
-              <img
-                src={order.receipt_file}
-                alt="receipt"
-                className="mt-2 rounded-xl max-h-44 border border-indigo-100"
-              />
-            )}
+            <div className="p-4">
+              <p className="text-xs text-emerald-700 font-medium">
+                {t("receiptReview")}
+              </p>
+              {order.receipt_text && (
+                <div className="mt-2 text-xs text-emerald-700 break-words">
+                  {order.receipt_text}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
