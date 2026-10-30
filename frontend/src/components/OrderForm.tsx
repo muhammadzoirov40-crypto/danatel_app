@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Check,
+  ChevronRight,
   CircleCheck,
   ClipboardList,
   Coins,
@@ -44,11 +45,111 @@ interface Props {
  *    «110 UC» нишон дод, дар ҳоле ки асъори FF алмос аст.
  * Номи ПУРРА дар `title`/`aria-label` мемонад (скринридер + муштарӣ).
  */
+/** 💎 Тасвири алмос — барои бастаҳои Алмос (мувоиқи тасвири корбар).
+ *    Танҳо барои бастаҳои алмос; бастаҳои дигар (UC/Gold/Pass) иконкаи худро доранд. */
+function DiamondArt({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 48 48" className={className} aria-hidden="true">
+      <defs>
+        <linearGradient id="dmt" x1="12" y1="6" x2="36" y2="12" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#e0f2fe" />
+          <stop offset="1" stopColor="#93c5fd" />
+        </linearGradient>
+        <linearGradient id="dmp" x1="24" y1="17" x2="24" y2="42" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#60a5fa" />
+          <stop offset="1" stopColor="#1d4ed8" />
+        </linearGradient>
+      </defs>
+      {/* Кунҷи болоӣ (crown) */}
+      <path d="M4 17 L12 6 H36 L44 17 Z" fill="#3b82f6" />
+      <path d="M12 6 H36 L33 12 H15 Z" fill="url(#dmt)" />
+      <path d="M4 17 L15 12 L15 17 Z" fill="#60a5fa" />
+      <path d="M44 17 L33 12 L33 17 Z" fill="#1e40af" />
+      {/* Павillon (поён — нӯги алмос) */}
+      <path d="M4 17 L44 17 L24 42 Z" fill="url(#dmp)" />
+      <path d="M4 17 L16 17 L24 42 Z" fill="#2563eb" />
+      <path d="M44 17 L32 17 L24 42 Z" fill="#1e3a8a" />
+      {/* Кунҷҳо / edges */}
+      <g stroke="#eff6ff" strokeWidth="1" strokeLinejoin="round" fill="none" opacity="0.85">
+        <path d="M4 17 L12 6 H36 L44 17 L24 42 Z" />
+        <path d="M4 17 H44" />
+        <path d="M15 17 L24 42 M33 17 L24 42 M12 6 L15 17 M36 6 L33 17" />
+      </g>
+      {/* Дурахши сафед */}
+      <path d="M16.5 8 H23 L21 11.5 H18 Z" fill="#ffffff" opacity="0.8" />
+    </svg>
+  );
+}
+
+/** Сатри маблағҳо — ба тарафи пеш мелавад; нишонаи «→» ҳангами ҷои боқӣ. */
+function AmountRow({
+  items,
+  selected,
+  onSelect,
+}: {
+  items: Product[];
+  selected?: Product | null;
+  onSelect: (p: Product) => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [more, setMore] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const upd = () => setMore(el.scrollWidth - el.clientWidth - el.scrollLeft > 8);
+    upd();
+    el.addEventListener("scroll", upd, { passive: true });
+    window.addEventListener("resize", upd);
+    return () => {
+      el.removeEventListener("scroll", upd);
+      window.removeEventListener("resize", upd);
+    };
+  }, []);
+  return (
+    <div className="relative mb-3">
+      <div ref={ref} className="-mx-1 overflow-x-auto pb-1">
+        <div className="flex w-max gap-2 px-1">
+          {items.map((p) => {
+            const chipActive = selected?.id === p.id;
+            const amt = Number(p.amount || 0);
+            const chipLabel = amt > 0 ? amt.toLocaleString("tj-TJ") : p.name;
+            return (
+              <button
+                key={p.id}
+                onClick={() => onSelect(p)}
+                aria-pressed={chipActive}
+                aria-label={p.name}
+                title={p.name}
+                className={`shrink-0 whitespace-nowrap rounded-xl border px-3 py-1.5 text-sm font-bold tabular-nums transition-colors
+                  ${
+                    chipActive
+                      ? "border-brand-600 bg-brand-600 text-white shadow-[0_6px_16px_-8px_rgba(37,99,235,0.9)]"
+                      : "border-slate-200 bg-white text-slate-600 hover:border-brand-300 hover:text-brand-700"
+                  }`}
+              >
+                {chipLabel}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      {more && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 right-0 flex items-center rounded-r-xl bg-gradient-to-l from-white via-white/85 to-transparent pl-7"
+        >
+          <Ic icon={ChevronRight} size="sm" className="text-slate-400" />
+        </span>
+      )}
+    </div>
+  );
+}
+
 function packView(
   p: Product,
   game: Game,
   t: (key: string) => string,
-): { icon: LucideIcon; text: string; sub?: string } {
+): { icon: LucideIcon; text: string; sub?: string; diamond?: boolean } {
   const amount = Number(p.amount || 0);
   // 1️⃣ Бастаи рақамдор: рақам + асъор аз НОМИ воқеӣ (Diamonds/UC/Gold/Bonds/Tokens/Lattice)
   if (amount > 0) {
@@ -62,6 +163,7 @@ function packView(
         : 0;
     return {
       icon: isDiamond ? Gem : Coins,
+      diamond: isDiamond || undefined,
       text: `${amount.toLocaleString("tj-TJ")}${
         bonusN ? ` + ${bonusN.toLocaleString("tj-TJ")}` : ""
       }${unit ? ` ${isDiamond ? t("unitDiamonds") : unit}` : ""}`,
@@ -469,7 +571,11 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                     </p>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-2 sm:gap-2.5 mb-6">
+
+                {/* 🔢 Сатри маблағҳо — ба тарафи пеш мелавад + нишонаи «→» */}
+                <AmountRow items={items} selected={selected} onSelect={setSelected} />
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-2 sm:gap-2.5 mb-6">
                   {items.map((p) => {
                     const active = selected?.id === p.id;
                     const view = packView(p, game, t);
@@ -480,7 +586,7 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                         aria-pressed={active}
                         aria-label={p.name}
                         title={p.name}
-                        className={`relative flex min-w-0 flex-col items-center gap-2 rounded-2xl border-2 px-3 py-3 text-center transition-all
+                        className={`relative flex min-w-0 flex-row items-center gap-3 rounded-2xl border-2 px-3 py-3 text-left transition-all
                           ${
                             active
                               ? "border-brand-600 bg-brand-50 shadow-[0_8px_20px_-10px_rgba(37,99,235,0.7)] scale-[1.02]"
@@ -505,16 +611,21 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                                 : "border-brand-100 bg-gradient-to-br from-brand-50 to-blue-50"
                             }`}
                         >
-                          <Ic
-                            icon={view.icon}
-                            size="sm"
-                            className={active ? "text-brand-700" : "text-brand-600"}
-                          />
+                          {view.diamond ? (
+                            /* 💎 Алмос → тасвири воқеии алмос (танҳо барои алмосҳо) */
+                            <DiamondArt className="h-5 w-5" />
+                          ) : (
+                            <Ic
+                              icon={view.icon}
+                              size="sm"
+                              className={active ? "text-brand-700" : "text-brand-600"}
+                            />
+                          )}
                         </span>
 
                         {/* Ном/рақам — ҳеҷ гоҳ берун намебарояд */}
                         <span
-                          className={`line-clamp-1 w-full min-w-0 text-xs sm:text-sm font-bold leading-tight ${
+                          className={`line-clamp-1 min-w-0 flex-1 text-xs sm:text-sm font-bold leading-tight ${
                             active ? "text-brand-700" : "text-slate-700"
                           }`}
                         >
@@ -526,7 +637,7 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
 
                         {/* Нарх — доимо бо асъор, набурда */}
                         <span
-                          className={`flex min-w-0 items-baseline gap-1 ${
+                          className={`flex min-w-0 shrink-0 items-baseline gap-1 ${
                             active ? "text-brand-700" : "text-brand-600"
                           }`}
                         >
