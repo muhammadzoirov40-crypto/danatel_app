@@ -170,26 +170,36 @@ export default function OrderPage() {
         {order.status === "pending" &&
           order.payment_method === "dc_wallet" &&
           (order.payment_link || order.dc_payment_url) && (
-            <div className="mt-5 rounded-2xl border border-slate-200 bg-white text-left overflow-hidden">
-              <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 text-sm font-semibold text-slate-700 inline-flex items-center gap-2">
-                <Ic icon={CreditCard} className="text-brand-600" />
+            <div className="mt-5 rounded-2xl border border-slate-200 bg-white text-left overflow-hidden shadow-sm">
+              <div className="px-4 py-3 bg-gradient-to-r from-brand-50 to-blue-50 border-b border-brand-100 text-sm font-bold text-brand-700 inline-flex items-center gap-2.5">
+                <span
+                  aria-hidden
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-brand-500 to-brand-600 text-white shadow-[0_4px_10px_-4px_rgba(37,99,235,0.85)]"
+                >
+                  <Ic icon={CreditCard} size="xs" />
+                </span>
                 {t("payLink")}
               </div>
               <div className="p-4 space-y-3">
                 {order.payment_card && (
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="text-sm text-slate-500">{t("cardNumber")}</span>
-                    <span className="font-mono font-bold text-slate-800">
+                  <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white px-4 py-3">
+                    <div className="text-[11px] font-bold uppercase tracking-[0.06em] text-slate-400">
+                      {t("cardNumber")}
+                    </div>
+                    <div className="mt-1 font-mono font-extrabold text-base text-slate-800 tabular-nums break-words">
                       {order.payment_card}
-                    </span>
+                    </div>
                   </div>
                 )}
                 {order.payment_phone && (
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="text-sm text-slate-500 inline-flex items-center justify-end">
-                      <Ic icon={Smartphone} className="text-slate-400" />
+                  <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white px-4 py-3">
+                    <span
+                      aria-hidden
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500"
+                    >
+                      <Ic icon={Smartphone} size="sm" />
                     </span>
-                    <span className="font-mono font-semibold text-slate-800">
+                    <span className="font-mono font-bold text-slate-800 tabular-nums">
                       {order.payment_phone}
                     </span>
                   </div>
@@ -200,7 +210,7 @@ export default function OrderPage() {
                     href={order.payment_link || order.dc_payment_url || "#"}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex-1 text-center rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold py-2.5 transition inline-flex items-center justify-center gap-2"
+                    className="flex-1 min-w-0 text-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white text-sm font-bold py-3 transition inline-flex items-center justify-center gap-2 shadow-[0_8px_20px_-10px_rgba(37,99,235,0.9)] active:scale-[0.98]"
                   >
                     <Ic icon={ExternalLink} />
                     {t("openPayLink")}
@@ -209,9 +219,13 @@ export default function OrderPage() {
                     type="button"
                     onClick={() => copyLink(order.payment_link || order.dc_payment_url || "")}
                     aria-label={t("copy")}
-                    className="shrink-0 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-sm font-semibold text-slate-600 px-4 py-2.5 transition inline-flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
+                    className={`shrink-0 rounded-xl border-2 px-4 py-3 transition inline-flex items-center gap-2 font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 ${
+                      copied
+                        ? "border-emerald-300 bg-emerald-50 text-emerald-600"
+                        : "border-slate-200 bg-white hover:border-brand-300 text-slate-600"
+                    }`}
                   >
-                    <Ic icon={copied ? Check : Copy} className={copied ? "text-emerald-600" : ""} />
+                    <Ic icon={copied ? Check : Copy} />
                     {t(copied ? "copied" : "copy")}
                   </button>
                 </div>
