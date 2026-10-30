@@ -19,8 +19,6 @@ import {
 import { api } from "../api/client";
 import type { Order } from "../types";
 import StatusBadge from "../components/StatusBadge";
-import Customers from "../components/Customers";
-import BackButton from "../components/BackButton";
 import { useApp } from "../context/AppContext";
 import { copyText } from "../utils/clipboard";
 import { Ic } from "../components/Icons";
@@ -139,8 +137,6 @@ export default function OrderPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 sm:py-12">
-      {/* ⬅️ Тугмаи бозгашт (услуби якхела дар ҳамаи саҳифаҳо) */}
-      <BackButton />
       <div className="card p-5 sm:p-8 text-center">
         <div className="flex justify-center mb-4">
           <Ic
@@ -344,9 +340,6 @@ export default function OrderPage() {
           <p className="mt-5 text-xs text-slate-500">{t("statusChecking")}</p>
         )}
       </div>
-
-      {/* 👥 Муштариёни воқеӣ — аз фармоишҳои иҷрочуда */}
-      <Customers />
 
     </div>
   );
