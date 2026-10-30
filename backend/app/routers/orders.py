@@ -542,14 +542,15 @@ async def submit_receipt(
 
     logger.info("🧾 Чеки фармоиш #%s қабул шуд", order.id)
 
-    # Огоҳинома ба Telegram (админ)
+    # Огоҳинома ба Telegram (админ): расми чек + тугмаҳои [Қабул] [Рад]
     try:
-        await telegram_service.notify_new_order(
+        await telegram_service.notify_order_receipt(
             order_id=order.id,
             game=order.game.get_name("tj"),
             product=order.product.get_name("tj"),
-            player_id=order.player_id,
+            player_id=order.player_id or "",
             amount=float(order.amount_tjs),
+            receipt_file=order.receipt_file,
         )
     except Exception:  # noqa: BLE001
         logger.exception("Огоҳиномаи Telegram ноком шуд")

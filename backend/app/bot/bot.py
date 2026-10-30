@@ -2,31 +2,22 @@
 from __future__ import annotations
 
 import logging
+import os
+import tempfile
 from typing import Any
 
 from aiogram import Bot, Dispatcher, F, Router
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.filters import Command, CommandStart
-from aiogram.types import (
-    CallbackQuery,
-    Message,
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-)
+from aiogram.types import (CallbackQuery,Message,InlineKeyboardButton,InlineKeyboardMarkup,)
 from sqlalchemy import select
-
 from app.config import settings
 from app.database import SessionLocal
-from app.models import Game, Order, OrderStatus, Product
+from app.models import AuditLog, Game, Order, OrderStatus, Product
 from app.services import dc_service, telegram_service
 
 logger = logging.getLogger("bot")
-
-
-
-
-
 
 bot = Bot(
     token=settings.TELEGRAM_BOT_TOKEN,
@@ -391,6 +382,73 @@ async def cb_topup(call: CallbackQuery):
     await call.answer(result)
 
 
+@router.callback_query(F.data.startswith("order:"))
+async def cb_order(call: CallbackQuery):
+    """✅ Қабул / ❌ Рад — танҳо барои админ.
+
+    Қабул → фармоиш `paid` (пардохт тасдиқ шуд).
+    Рад   → фармоиш `failed`.
+    """
+    if call.message is None or not _admin_chat(call.message.chat.id):
+        await call.answer("⛔ Ин амал танҳо барои админ аст", show_alert=True)
+        return
+
+    parts = (call.data or "").split(":")
+    if len(parts) != 3:
+        await call.answer()
+        return
+    _, action, raw_id = parts
+    try:
+        order_id = int(raw_id)
+    except ValueError:
+        await call.answer()
+        return
+
+    db = SessionLocal()
+    try:
+        order = db.get(Order, order_id)
+        if order is None:
+            await call.answer("Фармоиш ёфт нашуд", show_alert=True)
+            return
+
+        if action == "ok":
+            order.status = OrderStatus.PAID
+            result = "✅ Қабул шуд — пардохт тасдиқ шуд"
+        else:
+            order.status = OrderStatus.FAILED
+            result = "❌ Рад шуд"
+
+        db.add(
+            AuditLog(
+                action="order_status_change",
+                entity="order",
+                entity_id=str(order.id),
+                details=f"status -> {order.status} (telegram)",
+            )
+        )
+        db.commit()
+    except Exception as exc:  # noqa: BLE001 — ҷавоб ба админ
+        logger.warning("Фармоиши #%s ҳал нашуд: %s", raw_id, exc)
+        await call.answer(str(exc), show_alert=True)
+        return
+    finally:
+        db.close()
+
+    # Ҳамон паёмро навсозӣ: +натиҷа
+    try:
+        if call.message.photo:
+            await call.message.edit_caption(
+                caption=f"{call.message.caption or ''}\n\n{result}",
+            )
+        else:
+            await call.message.edit_text(
+                text=f"{call.message.text or ''}\n\n{result}",
+            )
+    except Exception:  # noqa: BLE001 — паём навсозӣ нашуд, муҳим не
+        pass
+    await call.answer(result)
+
+
 async def on_startup() -> None:
     """Санҷиши кори бот ҳангоми оғоз."""
     if not settings.TELEGRAM_BOT_TOKEN or settings.TELEGRAM_BOT_TOKEN.startswith("123456"):
@@ -404,12 +462,32 @@ async def on_startup() -> None:
 
 
 async def run_bot() -> None:
-    """Оғози бот дар ҳолати polling."""
+    """Оғози бот дар ҳолати polling.
+
+    🔒 Танҳо ЯК worker метавонад polling кунад — вагарна Telegram
+    ``TelegramConflictError`` медиҳад (ду кас ``getUpdates`` мегиранд).
+    """
     if not settings.TELEGRAM_BOT_TOKEN or settings.TELEGRAM_BOT_TOKEN.startswith("123456"):
         logger.warning("Бот хомӯш: TELEGRAM_BOT_TOKEN танзим нашудааст")
         return
+
+    # 🔒 Файли қулф — танҳо як процесс polling мекунад (fcntl = Linux/Unix)
+    import fcntl
+
+    lock_path = os.path.join(tempfile.gettempdir(), "danatel_bot_polling.lock")
+    lock_fh = open(lock_path, "w")
+    try:
+        fcntl.flock(lock_fh, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        logger.info(
+            "Бот аллакай дар worker-и дигар polling мекунад — ин worker ботро оғоз накард"
+        )
+        lock_fh.close()
+        return
+
     await on_startup()
     try:
         await dp.start_polling(bot)
     finally:
         await bot.session.close()
+        lock_fh.close()

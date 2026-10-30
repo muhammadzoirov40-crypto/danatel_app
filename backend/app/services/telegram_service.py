@@ -163,3 +163,60 @@ async def notify_topup_request(
             return True
 
     return await send_message_with_buttons(chat_id, caption, buttons)
+
+
+# =====================================================================
+# 🧾 ЧЕКИ ФАРМОИШ — расм + тугмаҳои [Қабул] [Рад] барои админ
+# =====================================================================
+
+
+def _receipt_local(receipt_file: str) -> str:
+    """/uploads/receipts/x.png → backend/uploads/receipts/x.png"""
+    return os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+        "uploads",
+        "receipts",
+        os.path.basename(receipt_file),
+    )
+
+
+async def notify_order_receipt(
+    order_id: int,
+    game: str = "",
+    product: str = "",
+    player_id: str = "",
+    amount: float = 0.0,
+    receipt_file: str | None = None,
+) -> bool:
+    """🧾 Чеки фармоиш → админ: расми чек + [Қабул] [Рад]."""
+    if not settings.TELEGRAM_ADMIN_CHAT_ID:
+        logger.warning(
+            "TELEGRAM_ADMIN_CHAT_ID холӣ — чеки фармоиш #%s ба Telegram намеравад",
+            order_id,
+        )
+        return False
+
+    caption = (
+        f"🧾 <b>Чеки фармоиш #{order_id}</b>\n"
+        f"🎮 Бозӣ: {game}\n"
+        f"💎 Маҳсулот: {product}\n"
+        f"🆔 ID: <code>{player_id}</code>\n"
+        f"💰 Маблағ: {amount:.2f} сомонӣ\n\n"
+        f"Чекро санҷед ва аз ҳамин ҷо қабул ё рад кунед:"
+    )
+    buttons = [
+        [
+            {"text": "✅ Қабул", "callback_data": f"order:ok:{order_id}"},
+            {"text": "❌ Рад", "callback_data": f"order:no:{order_id}"},
+        ]
+    ]
+    chat_id = settings.TELEGRAM_ADMIN_CHAT_ID
+
+    if receipt_file:
+        local = _receipt_local(receipt_file)
+        if os.path.isfile(local) and await send_photo_with_buttons(
+            chat_id, local, caption, buttons
+        ):
+            return True
+
+    return await send_message_with_buttons(chat_id, caption, buttons)
