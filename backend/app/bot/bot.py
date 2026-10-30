@@ -39,6 +39,29 @@ T = {
         "en": "👋 Welcome!",
         "uz": "👋 Xush kelibsiz!",
     },
+    # 🚀 Саҳифаи оғоз барои клиент: ду роҳ — боти Telegram ё веб-сайт
+    "start_card": {
+        "tj": (
+            "👋 <b>Хуш омадед ба donatshop!</b>\n"
+            "🔥 Донат ва бозиҳо дар як ҷо\n\n"
+            "👇 Интихоб кунед — бот ё веб-сайт:"
+        ),
+        "ru": (
+            "👋 <b>Добро пожаловать в donatshop!</b>\n"
+            "🔥 Донат и игры в одном месте\n\n"
+            "👇 Выбирайте — бот или сайт:"
+        ),
+        "en": (
+            "👋 <b>Welcome to donatshop!</b>\n"
+            "🔥 Donations & games in one place\n\n"
+            "👇 Choose — bot or website:"
+        ),
+        "uz": (
+            "👋 <b>donatshop'ga xush kelibsiz!</b>\n"
+            "🔥 Donat va o'yinlar bir joyda\n\n"
+            "👇 Tanlang — bot yoki sayt:"
+        ),
+    },
     "enter_id": {
         "tj": "📱 <b>{label}</b> -ро нависед:",
         "ru": "📱 Введите <b>{label}</b>:",
@@ -154,6 +177,17 @@ def pay_keyboard(order_id: int, url: str, lang: str) -> InlineKeyboardMarkup:
     )
 
 
+def start_links_kb() -> InlineKeyboardMarkup:
+    """🚀 Ду силкаи оғоз барои клиент: 1) боти Telegram  2) веб-сайт."""
+    site = (settings.FRONTEND_URL or "").rstrip("/")
+    rows = [
+        [InlineKeyboardButton(text="🤖 Telegram бот", url="https://t.me/ONLAYN_ALMAZ_TJ_bot")],
+    ]
+    if site.startswith("http"):
+        rows.append([InlineKeyboardButton(text="🌐 Веб-сайт", url=site)])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
 # Ҳолати сӯҳбат: chat_id -> {game, player_id}
 SLOTS: dict[str, dict] = {}
 
@@ -178,7 +212,7 @@ async def cmd_start(message: Message):
             db.add(user)
             db.commit()
 
-    await message.answer(t("welcome", lang))
+    await message.answer(t("start_card", lang), reply_markup=start_links_kb())
 
 
 @router.callback_query(F.data.startswith("lang:"))
@@ -186,14 +220,14 @@ async def cb_lang(call: CallbackQuery):
     lang = (call.data or "").split(":")[1]
     LANGS[str(call.message.chat.id)] = lang
     await call.answer("✅")
-    await call.message.edit_text(t("welcome", lang))
+    await call.message.edit_text(t("start_card", lang), reply_markup=start_links_kb())
 
 
 @router.callback_query(F.data == "home")
 async def cb_home(call: CallbackQuery):
     lang = get_lang(call.message.chat.id)
     await call.answer()
-    await call.message.edit_text(t("welcome", lang))
+    await call.message.edit_text(t("start_card", lang), reply_markup=start_links_kb())
 
 
 @router.callback_query(F.data.startswith("game:"))
@@ -238,7 +272,7 @@ async def on_text(message: Message):
         )
         return
 
-    await message.answer(t("welcome", lang))
+    await message.answer(t("start_card", lang), reply_markup=start_links_kb())
 
 
 @router.callback_query(F.data.startswith("prod:"))
