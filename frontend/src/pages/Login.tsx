@@ -96,11 +96,13 @@ export default function Login() {
   };
 
   return (
-    <div className="mx-auto max-w-md px-4 py-10">
-      {/* ⬅️ «Бозгашт» дар login/register НЕСТ — талаби соҳиб (31.10.2026) */}
+    <div className="mx-auto max-w-md px-4 py-6 -mb-20 md:mb-0">
+      {/* ⬅️ «Бозгашт» дар login/register НЕСТ — талаби соҳиб (31.10.2026).
+          `-mb-20 md:mb-0` → padding-и `pb-20`-и main (ҷои navbar-и поёнӣ, ки
+          дар ин саҳифа пинҳон аст) бекор мешавад → қайд бе скролл дар 320×700. */}
       <div className="card p-6 sm:p-8">
-        <div className="text-center mb-6">
-          <div className="flex justify-center mb-3">
+        <div className="text-center mb-4">
+          <div className="flex justify-center mb-2">
             <Logo size={46} />
           </div>
           <h1 className="text-xl font-bold">
@@ -111,7 +113,7 @@ export default function Login() {
           </p>
         </div>
 
-        <form onSubmit={submit} className="space-y-4">
+        <form onSubmit={submit} className="space-y-3">
           <div>
             <label className="label">{t("phone")} *</label>
             <input
