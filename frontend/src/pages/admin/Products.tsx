@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { CircleCheck, Gamepad2, Gem, Loader2, Plus, Save, Trash2 } from "lucide-react";
+import { CircleCheck, Gamepad2, Gem, Loader2, Percent, Plus, Save, Trash2 } from "lucide-react";
 import { api } from "../../api/client";
 import type { Game, Product } from "../../types";
 import { useApp } from "../../context/AppContext";
@@ -68,6 +68,24 @@ export default function Products() {
     setTimeout(() => setMsg(""), 3000);
   };
 
+  /** 💱 Як рақам (%) → ҳамаи нархҳои ҳамаи маҳсулотҳо иваз мешаванд */
+  const [pct, setPct] = useState("");
+  const [pctBusy, setPctBusy] = useState(false);
+  const applyPercent = async () => {
+    const v = parseFloat(pct.replace(",", "."));
+    if (!Number.isFinite(v) || v < -95 || v > 1000 || pctBusy) return;
+    setPctBusy(true);
+    try {
+      const r = await api.adjustPrices(v);
+      flash(t("priceBulkDone").replace("{n}", String(r.updated)));
+      await loadDetail();
+    } catch (e) {
+      setErr((e as Error)?.message ?? t("error"));
+    } finally {
+      setPctBusy(false);
+    }
+  };
+
   if (loading)
     return <div className="card h-40 animate-pulse bg-slate-100" />;
 
@@ -80,6 +98,44 @@ export default function Products() {
           {msg}
         </div>
       )}
+
+      {/* 💱 Як рақам (%) → ҳамаи нархҳои ҳамаи маҳсулотҳо иваз мешаванд */}
+      <div className="card p-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm font-semibold text-slate-700 inline-flex items-center gap-2">
+            <Ic icon={Percent} className="text-brand-600" />
+            {t("priceBulkLabel")}
+          </span>
+          <input
+            type="number"
+            inputMode="decimal"
+            step="0.1"
+            min={-95}
+            max={1000}
+            value={pct}
+            onChange={(e) => setPct(e.target.value)}
+            placeholder="%"
+            aria-label={t("priceBulkLabel")}
+            className="input !w-24 !py-2 text-sm font-semibold"
+          />
+          <button
+            type="button"
+            onClick={() => void applyPercent()}
+            disabled={pct === "" || pctBusy}
+            className="btn text-xs bg-brand-600 text-white disabled:opacity-50"
+          >
+            {pctBusy ? (
+              <Loader2 className="w-4 h-4 animate-spin" aria-hidden />
+            ) : (
+              <Ic icon={Percent} size="xs" />
+            )}
+            {t("priceBulkApply")}
+          </button>
+          <span className="text-xs text-slate-500 basis-full sm:basis-auto">
+            {t("priceBulkHint")}
+          </span>
+        </div>
+      </div>
 
       {/* Интихоби бозӣ */}
       <div className="flex gap-2 overflow-x-auto pb-1">

@@ -404,6 +404,12 @@ export const api = {
     }),
   deleteProduct: (id: number) =>
     request<{ ok: boolean }>(`/admin/products/${id}`, { method: "DELETE" }),
+  /** 💱 Як рақам (%): ҳамаи нархҳои маҳсулотҳо × (1 + percent/100) */
+  adjustPrices: (percent: number) =>
+    request<{ updated: number; percent: number }>("/admin/products/adjust-prices", {
+      method: "POST",
+      body: JSON.stringify({ percent }),
+    }),
   // 🔥 FireLoot — баланс, каталоги воқеӣ, ҳамоҳангсозӣ (танҳо админ)
   flBalance: () => request<FirelootBalance>("/admin/fireloot/balance"),
   flCatalog: () => request<FirelootCatalog>("/admin/fireloot/catalog"),
