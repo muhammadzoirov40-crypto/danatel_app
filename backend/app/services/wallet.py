@@ -169,6 +169,62 @@ def credit_balance(
 
 
 # =====================================================================
+# 🔄 БАРГАРДОНИДАН (фармоиши ноком → баланси мизоҷ)
+# =====================================================================
+def refund_balance(
+    db: Session,
+    *,
+    user_id: int,
+    amount,
+    reason: str | None,
+    order_id: int | None = None,
+) -> tuple[User, BalanceTransaction]:
+    """
+    Баргардонидани пули фармоиши ноком (ҳам аз ҷониби ХУДКОРО — деливери,
+    ҳам дастӣ). Дар ЯК transaction (ҳамон тарзи `credit_balance`):
+      1. Қулфи сатри User
+      2. Баланс + маблағ
+      3. Сабти таърих бо `kind=refund` + ишора ба фармоиш
+         (`admin_id=None` → аз ҷониби система)
+
+    ⚠️ Баргардонии дубра аз ҷониби худи корбар: пештар сатри `refund`
+    барои ин фармоиш мавҷудаст ё не — дар `delivery._refund_order`
+    (идемпотент) санҷида мешавад.
+    """
+    value = _validate_positive(amount)
+
+    try:
+        user = _load_user_for_update(db, user_id)
+        old = _to_decimal(user.balance or 0)
+        user.balance = old + value
+
+        entry = _write_entry(
+            db,
+            user=user,
+            kind=BalanceTransactionKind.REFUND,
+            amount=value,                     # + баргардон
+            reason=reason or "Баргардони фармоиши ноком",
+            admin_id=None,                    # система, на админ
+            order_id=order_id,
+        )
+        db.commit()
+        db.refresh(user)
+        logger.info(
+            "🔄 Баргардон %s → %s (user=%s, order=%s)",
+            value, user.balance, user_id, order_id,
+        )
+        return user, entry
+
+    except WalletError:
+        db.rollback()
+        raise
+    except Exception:
+        db.rollback()
+        logger.exception("Хатогии баргардон (user=%s)", user_id)
+        raise
+
+
+# =====================================================================
 # ➖ БУРИШ (донат аз баланс)
 # =====================================================================
 def debit_balance(

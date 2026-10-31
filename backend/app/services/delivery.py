@@ -8,7 +8,8 @@
       · completed  → paid → delivered (CAS) + cashback + Telegram «расид»
       · processing → fl_ref='ref:<id>' → дар давраҳои баъдӣ GET /order/{ref}
             · completed → delivered
-            · failed/refunded → status=failed + AuditLog + хабар ба админ
+            · failed/refunded → status=failed + БАРГАРДОНИИ ПУЛ ба баланси
+              мизоҷ (пули ноком гум намешавад) + AuditLog + хабар ба админ
       · хато       → мувофиқи код: гузаришӣ (network/429/5xx) → дубра таҳо
                      3 дақиқа; корӣ (invalid_uid, insufficient_balance, …)
                      → fl_ref='ERR:<code>' — бе кӯшиши дубра, дар лог + админ
@@ -19,13 +20,16 @@
   · танҳо фармоишҳои ТОЗА (updated_at ≤ 24 соат) ба кор мераванд — фармоишҳои
     кӯҳнаи paid (админ дастӣ иҷро карда буд, вале статусро нодида гирифтааст)
     АЗ ДАСТ ДОРЕ НАМЕРОВАНД → хатогии дубра-фурӯш нест;
-  · cashback худаш идемпотент аст (coins.grant_order_cashback).
+  · cashback худаш идемпотент аст (coins.grant_order_cashback);
+  · баргардони пул ҳам бо CAS (`status='paid'`), ҳам бо сатри
+    `refund`-и ягона барои ҳар фармоиш → ҳеҷ гоҳ баргардонии дубра нест.
 """
 from __future__ import annotations
 
 import asyncio
 import logging
 from datetime import datetime, timedelta
+from decimal import Decimal
 
 import httpx
 from sqlalchemy import or_, select, true, update
@@ -33,8 +37,15 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.database import SessionLocal
-from app.models import AuditLog, Order, OrderStatus, Product
-from app.services import coins, telegram_service
+from app.models import (
+    AuditLog,
+    BalanceTransaction,
+    BalanceTransactionKind,
+    Order,
+    OrderStatus,
+    Product,
+)
+from app.services import coins, telegram_service, wallet
 
 logger = logging.getLogger("delivery")
 
@@ -94,11 +105,18 @@ def _cas(db: Session, order_id: int, where_extra, **values) -> int:
     return int(res.rowcount or 0)
 
 
-async def _notify_failed(order_id: int, code: str) -> None:
+async def _notify_failed(
+    order_id: int, code: str, refunded: Decimal | None = None
+) -> None:
+    extra = (
+        f"\n💰 Пул ба баланси мизоҷ баргардонда шуд: +{refunded} TJS"
+        if refunded
+        else ""
+    )
     try:
         await telegram_service.notify_admin(
             f"❌ Фармоиш #{order_id} ба бозигар расонда нашуд: <code>{code}</code>\n"
-            f"Аз панели админ дастӣ ҷо кунед."
+            f"Аз панели админ дастӣ ҷо кунед.{extra}"
         )
     except Exception:  # noqa: BLE001
         logger.warning("delivery: notify_admin ноком (#%s)", order_id, exc_info=True)
@@ -134,21 +152,92 @@ async def _finish(db: Session, order_id: int, ref: str) -> bool:
     return True
 
 
-async def _fail(db: Session, order_id: int, code: str) -> None:
-    """paid → failed: бе кӯшиши дубра — дар лог + AuditLog + Telegram ба админ.
-    Барқарор: админ дастӣ иҷро карда, дар панел ба `delivered` мегузорад."""
-    _cas(db, order_id, true(), status=OrderStatus.FAILED, fl_ref=f"{_ERR_PFX}{code}"[:64])
+def _refund_order(db: Session, order: Order, code: str) -> Decimal:
+    """💰 Пули пардохтшудаи фармоиши ноком → баланси мизоҷ.
+
+    Идемпотент: танҳо як сатри `refund` барои як фармоиш — баргардонии
+    дубра ғайриимкон аст. Ҳамаи намудҳои пардохт (balance / dc_wallet)
+    → балансҳои дохилии сайт: мол расонда нашуд → пул бояд баргардад."""
+    if order.user_id is None:
+        return Decimal("0.00")
+    try:
+        amount = Decimal(str(order.amount_tjs or 0))
+    except Exception:  # noqa: BLE001
+        logger.warning("delivery: маблағи нодуруст (#%s): %r", order.id, order.amount_tjs)
+        return Decimal("0.00")
+    if amount <= 0:
+        return Decimal("0.00")
+
+    exists = db.scalar(
+        select(BalanceTransaction.id)
+        .where(
+            BalanceTransaction.order_id == order.id,
+            BalanceTransaction.kind == BalanceTransactionKind.REFUND,
+        )
+        .limit(1)
+    )
+    if exists is not None:
+        return Decimal("0.00")
+
+    # AuditLog ПЕШ аз пул: дар як commit бо баланс мемонад
+    # (агар баргардон ноком шавад → rollback ҳардуро пок мекунад).
+    db.add(
+        AuditLog(
+            action="order_refunded",
+            entity="order",
+            entity_id=str(order.id),
+            details=f"+{amount} TJS → user {order.user_id} ({code})",
+        )
+    )
+    try:
+        wallet.refund_balance(
+            db,
+            user_id=order.user_id,
+            amount=amount,
+            reason=f"Баргардон: фармоиши ноком №{order.id} ({code})",
+            order_id=order.id,
+        )
+    except Exception:  # noqa: BLE001
+        logger.exception("delivery: баргардон ноком (#%s)", order.id)
+        return Decimal("0.00")
+    return amount
+
+
+async def _fail(db: Session, order_id: int, code: str) -> bool:
+    """paid → failed (CAS — танҳо як бор) + БАРГАРДОНИИ ПУЛ + AuditLog + Telegram.
+
+    Мол расонда нашод → пул фавран ба баланси мизоҷ бармегардад
+    (пули фармоиши ноком беҷуброн гум намешавад).
+    Ҳифз аз дубра: CAS (`status='paid'`) + сатри `refund`-и ягона.
+    Барқарори дастӣ: админ ба `delivered` мегузорад — баргардонро дар он
+    ҳолат аз баланс бурдан лозим (панели админ → баланс)."""
+    if (
+        _cas(
+            db,
+            order_id,
+            true(),
+            status=OrderStatus.FAILED,
+            fl_ref=f"{_ERR_PFX}{code}"[:64],
+        )
+        != 1
+    ):
+        return False  # каси дигар пештар ноком кард — такрор манъ
+
+    order = db.get(Order, order_id)
+    refunded = _refund_order(db, order, code) if order is not None else Decimal("0.00")
     db.add(
         AuditLog(
             action="order_delivery_failed",
             entity="order",
             entity_id=str(order_id),
-            details=f"fireloot: {code}",
+            details=f"fireloot: {code}"
+            + (f" | баргардон: +{refunded} TJS" if refunded else ""),
         )
     )
     db.commit()
     logger.error("🎮 Фармоиш #%s иҷро ноком: %s", order_id, code)
-    await _notify_failed(order_id, code)
+    await _notify_failed(order_id, code, refunded)
+    return True
 
 
 async def _deliver(db: Session, order: Order) -> None:
