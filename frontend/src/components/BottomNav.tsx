@@ -40,8 +40,13 @@ export default function BottomNav() {
   const isProfile = pathname === "/profile";
   const isOrders = pathname === "/orders";
   const isLogin = pathname === "/login";
-  /** Дар саҳифаи фармоиш (/order/:id) навигатор пинҳон — то аз болои мазмун набарояд. */
-  const hideNav = pathname.startsWith("/order/");
+  /**
+   * Пинҳон кардани навигатор:
+   *   · /order/:id — то аз болои мазмун набарояд;
+   *   · /login (вуруд/қайд) — талаби соҳиб (31.10.2026): navbar-и поёнӣ
+   *     дар login/register даркор нест.
+   */
+  const hideNav = pathname.startsWith("/order/") || isLogin;
 
   const labels = {
     home: lang === "ru" ? "Главная" : lang === "uz" ? "Asosiy" : lang === "en" ? "Home" : "Асосӣ",
