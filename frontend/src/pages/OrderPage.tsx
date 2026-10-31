@@ -136,7 +136,10 @@ export default function OrderPage() {
   const paid = ["paid", "delivered"].includes(order.status);
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8 sm:py-12">
+    <div className="mx-auto max-w-2xl px-4 py-8 sm:py-12 -mb-20 md:mb-0">
+      {/* 📱 `-mb-20 md:mb-0` → padding-и `pb-20`-и main (ҷои navbar-и поёнӣ,
+          ки дар /order/:id пинҳон аст) бекор → «Фармоиш сохта шуд» бе скролл
+          дар HONOR 400 LITE 320×700 (талаби соҳиб, 31.10.2026). */}
       <div className="card p-5 sm:p-8 text-center">
         <div className="flex justify-center mb-4">
           <Ic
