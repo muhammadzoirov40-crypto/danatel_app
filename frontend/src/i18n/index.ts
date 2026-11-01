@@ -30,7 +30,6 @@ const tj: Dict = {
   // ⭐ Тақризҳо (таърифҳо) — танҳо забони тоҷикӣ, бе воридоти русӣ
   reviewsTitle: "Тақризҳои муштариён",
   reviewsCount: "тақриз",
-  reviewsEmpty: "Ҳанӯз тақриз нест",
   reviewsNoYet: "Ҳанӯз ягон тақриз нест. Аввалин шавед!",
   writeReview: "Тақриз навиштан",
   ratedPeople: "нафар хол дод",
@@ -419,7 +418,6 @@ const ru: Dict = {
   // ⭐ Отзывы
   reviewsTitle: "Отзывы клиентов",
   reviewsCount: "отзыв",
-  reviewsEmpty: "Отзывов пока нет",
   reviewsNoYet: "Отзывов пока нет. Будьте первым!",
   ratedPeople: "человек оценили",
   writeReview: "Написать отзыв",
@@ -807,7 +805,6 @@ const en: Dict = {
   // ⭐ Reviews
   reviewsTitle: "Customer reviews",
   reviewsCount: "reviews",
-  reviewsEmpty: "No reviews yet",
   reviewsNoYet: "No reviews yet. Be the first!",
   ratedPeople: "people rated",
   writeReview: "Write a review",
@@ -1195,7 +1192,6 @@ const uz: Dict = {
   // ⭐ Sharhlar
   reviewsTitle: "Mijozlar sharhlari",
   reviewsCount: "sharh",
-  reviewsEmpty: "Hozircha sharh yo'q",
   reviewsNoYet: "Hozircha birorta sharh yo'q. Birinchi bo'ling!",
   ratedPeople: "kishi baholadi",
   writeReview: "Sharh yozish",

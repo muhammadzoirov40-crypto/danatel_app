@@ -124,7 +124,10 @@ export default function ReviewsPage() {
       </section>
 
       {/* ===== Мундариҷаи таби интихобшуда ===== */}
-      <div className="mx-auto max-w-6xl px-4 pb-16">
+      {/* `pb-4 md:pb-16` — дар мобилӣ pb-20-и main (80px, ҷои BottomNav)
+          кофист; pb-16-и иловаӣ боиси скролли беҷо дар 320×700 мешуд
+          (docH 728 > 700). Дар десктоп ҳамон фосила мемонад. */}
+      <div className="mx-auto max-w-6xl px-4 pb-4 md:pb-16">
         <div
           role="tabpanel"
           id={`panel-${tab}`}

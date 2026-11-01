@@ -75,26 +75,31 @@ export default function Reviews({ hideTitle = false }: { hideTitle?: boolean }) 
 
   const avg = sum?.rating_avg ?? 0;
   const total = sum?.reviews_total ?? 0;
+  const canWrite = Boolean(sum?.can_review && !sum.my_review_id);
 
   return (
     <section
       id="reviews"
       className={`${hideTitle ? "mt-4 sm:mt-6" : "mt-10 sm:mt-14"} scroll-mt-20`}
     >
-      <div
-        className={`flex items-center gap-3 mb-4 flex-wrap ${
-          hideTitle ? "justify-start" : "justify-between"
-        }`}
-      >
-        {!hideTitle && (
-          <h2 className="text-xl sm:text-2xl font-bold inline-flex items-center gap-2">
-            <Ic icon={Star} size="md" className="text-amber-400 fill-current" />
-            {t("reviewsTitle")}
-          </h2>
-        )}
+      {/* Сарлавҳа: танҳо вақте ки чизе дорад (рейтинг/тугмаи навиштан).
+          Матни холӣ «Ҳанӯз тақриз нест» дар ин ҷо НАМЕНОВИСЕМ — картҳои
+          поёнӣ (reviewsNoYet + «Вуруд») ягона манбаи холии воқеӣ аст,
+          то матн ду маротиба такрор нашавад. */}
+      {!(hideTitle && total === 0 && !canWrite) && (
+        <div
+          className={`flex items-center gap-3 mb-4 flex-wrap ${
+            hideTitle ? "justify-start" : "justify-between"
+          }`}
+        >
+          {!hideTitle && (
+            <h2 className="text-xl sm:text-2xl font-bold inline-flex items-center gap-2">
+              <Ic icon={Star} size="md" className="text-amber-400 fill-current" />
+              {t("reviewsTitle")}
+            </h2>
+          )}
 
-        <div className="flex items-center gap-3">
-          {total > 0 ? (
+          {total > 0 && (
             <span className="flex items-center gap-2 text-sm font-bold text-slate-700">
               <Stars value={avg} />
               {avg.toFixed(1)}
@@ -102,18 +107,16 @@ export default function Reviews({ hideTitle = false }: { hideTitle?: boolean }) 
                 ({total} {t("reviewsCount")})
               </span>
             </span>
-          ) : (
-            <span className="text-sm text-slate-500">{t("reviewsEmpty")}</span>
           )}
 
-          {sum?.can_review && !sum.my_review_id && (
+          {canWrite && (
             <button onClick={() => setOpen((v) => !v)} className="btn text-sm">
               <Ic icon={PenLine} />
               {t("writeReview")}
             </button>
           )}
         </div>
-      </div>
+      )}
 
       {/* ✍️ Шакли навиштан — танҳо барои муштарии фармоиши иҷрочуда */}
       {open && (
