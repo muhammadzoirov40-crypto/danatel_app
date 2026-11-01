@@ -65,20 +65,26 @@ export default function Admin() {
   ];
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6">
-      <div className="flex items-center justify-between gap-3 mb-5 flex-wrap">
-        <h1 className="text-xl font-bold text-white inline-flex items-center gap-2">
-          <Ic icon={Settings} size="md" />
+    /* 📱 `-mb-20 md:mb-0` → padding-и `pb-20`-и main (ҷои navbar-и поёнӣ,
+       ки дар /admin ПИНҲОН аст) — барқарории 80px дар мобилӣ. */
+    <div className="mx-auto max-w-6xl px-4 py-6 -mb-20 md:mb-0">
+      {/* 🔧 Сарлавҳа + Баромад — ДАР ЯК сатр (мобилӣ 320px):
+          қаблан матни калон (text-xl) + тугма дар 320px ҷой накард →
+          «Баромад» ба қатори дуюм мепечид (3 қатор ≈130px). Ҳоло матни
+          хурд (text-base) + justify-between → як сатр, Баромад намепечад. */}
+      <div className="flex items-center justify-between gap-2 mb-3">
+        <h1 className="text-base sm:text-xl font-bold text-white inline-flex items-center gap-2 min-w-0">
+          <Ic icon={Settings} size="md" className="shrink-0" />
           {t("adminPanel")}
         </h1>
-        <button onClick={logout} className="btn-ghost text-sm">
+        <button onClick={logout} className="btn-ghost text-sm shrink-0">
           <Ic icon={LogOut} />
           {t("logout")}
         </button>
       </div>
 
-      {/* Табҳо — мобилӣ: уфуқӣ, мезанад */}
-      <div className="flex gap-2 overflow-x-auto pb-1 mb-5">
+      {/* Табҳо — қатори пурра, уфуқӣ мезанад (дар мобилӣ) */}
+      <div className="flex gap-2 overflow-x-auto pb-1 mb-4">
         {tabs.map((x) => (
           <button
             key={x.id}

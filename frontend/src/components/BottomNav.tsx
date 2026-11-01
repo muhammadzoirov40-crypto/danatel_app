@@ -45,8 +45,10 @@ export default function BottomNav() {
    *   · /order/:id — то аз болои мазмун набарояд;
    *   · /login (вуруд/қайд) — талаби соҳиб (31.10.2026): navbar-и поёнӣ
    *     дар login/register даркор нест.
+   *   · /admin — панели идора табҳои худашро дорад; navbar-и поёнии муштариён
+   *     дар он ҷо лозим нест ва ҷои контентро мегирад (талаби соҳиб 01.11.2026).
    */
-  const hideNav = pathname.startsWith("/order/") || isLogin;
+  const hideNav = pathname.startsWith("/order/") || isLogin || pathname === "/admin";
 
   const labels = {
     home: lang === "ru" ? "Главная" : lang === "uz" ? "Asosiy" : lang === "en" ? "Home" : "Асосӣ",
