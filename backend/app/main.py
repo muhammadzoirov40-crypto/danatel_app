@@ -24,6 +24,7 @@ from app.routers import (
     reviews,
     topups,
     webhook,
+    ws,
 )
 from app.security import require_admin
 
@@ -89,6 +90,7 @@ app.include_router(pricing.router)
 app.include_router(reviews.router)
 app.include_router(coins.router)
 app.include_router(topups.router)
+app.include_router(ws.router)
 
 
 # ========================== Роутҳои умумӣ ==========================
@@ -158,6 +160,19 @@ async def on_startup() -> None:
         from app.bot.bot import run_bot
 
         asyncio.create_task(run_bot())
+
+    # 📡 Realtime (WebSocket + PG NOTIFY): thread-и LISTEN барои
+    #    огоҳиномаи зиндаи мизоҷ (SQLite/тест → худаш хомӯш мемонад)
+    from app.services import realtime
+
+    realtime.start_listener()
+
+
+@app.on_event("shutdown")
+async def on_shutdown() -> None:
+    from app.services import realtime
+
+    realtime.stop_listener()
 
 
 # ========================== SPA fallback (React Router) ==========================

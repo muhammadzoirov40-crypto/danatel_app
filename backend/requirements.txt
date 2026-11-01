@@ -4,11 +4,16 @@
 # Framework
 fastapi>=0.115.0
 uvicorn>=0.32.0
+# 🔌 WebSocket-ҳои uvicorn (realtime) — бе ин китобхона handshake
+#    худкор бо 404 рад мешавад («pip install uvicorn[standard]» ҳамин аст)
+websockets>=10.0
 
 # Database
 SQLAlchemy>=2.0.36
-# Агар PostgreSQL лозим бошад (тахминан):
-psycopg2-binary>=2.9.10 ; python_version < "3.14"
+# PostgreSQL — драйвери асосӣ (server .env: postgresql+psycopg)
+psycopg[binary]>=3.2.0
+# 📡 Realtime (LISTEN/NOTIFY) — аз 2.9.13 wheel-и Python 3.14 ҳаст
+psycopg2-binary>=2.9.13
 
 # Validation
 pydantic>=2.10.0

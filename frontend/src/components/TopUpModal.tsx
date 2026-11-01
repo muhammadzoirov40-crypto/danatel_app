@@ -11,6 +11,7 @@ import {
   X,
 } from "lucide-react";
 import { api } from "../api/client";
+import { openRealtime } from "../api/realtime";
 import { useApp } from "../context/AppContext";
 import type { Topup, TopupPrepare } from "../types";
 import { GoldCoin, Ic } from "./Icons";
@@ -52,7 +53,7 @@ const STATUS_CLS: Record<Topup["status"], string> = {
  * 3️⃣ админ қабул мекунад → баланс худкор зиёд мешавад
  */
 export default function TopUpModal({ open, onClose }: Props) {
-  const { user, balance, lang, t } = useApp();
+  const { user, balance, lang, t, refreshUser } = useApp();
   // маблағ
   const [amount, setAmount] = useState<number>(50);
   const [custom, setCustom] = useState<string>("50");
@@ -105,6 +106,21 @@ export default function TopUpModal({ open, onClose }: Props) {
     void loadRequests();
     return () => document.removeEventListener("keydown", onKey);
   }, [open, onClose, loadRequests]);
+
+  // 📡 Зиндаи обновит (WebSocket): админ тасдиқ/рад/бозгирӣ кард →
+  //    фавран рӯйхат + баланси нав, БЕ ягон refresh ё калидаи дастӣ.
+  //    Танҳо ЯК пайваст барои мӯҳлати кушодани модал: тағйири объектҳои
+  //    user/loadRequests боиси reconnect намешавад (гум шудани event).
+  const rtHandler = useRef<() => void>(() => {});
+  rtHandler.current = () => {
+    void loadRequests();
+    void refreshUser();
+  };
+  const hasUser = !!user;
+  useEffect(() => {
+    if (!open || !hasUser) return;
+    return openRealtime(() => rtHandler.current());
+  }, [open, hasUser]);
 
   // ⏱ Шумораи воз барои чек: 1 сония = 1 тик
   useEffect(() => {

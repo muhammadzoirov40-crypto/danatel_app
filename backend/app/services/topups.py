@@ -21,7 +21,7 @@ from app.models import (
     BalanceRequestStatus,
     User,
 )
-from app.services import wallet
+from app.services import realtime, wallet
 
 logger = logging.getLogger("topups")
 
@@ -147,6 +147,15 @@ def approve_topup(
     )
 
     # 📧 Email-и огоҳинома (агар SMTP танзим бошад) — ҳеҷ гоҳ хатогӣ نакунад
+    # 📡 Зиндаи обновит: мизоҷ (модал/таби дигар) фавран рӯйхат +
+    #    баланси навро бе refresh мегирад (баъди commit ✓)
+    realtime.publish(
+        db,
+        user_id=req.user_id,
+        event="topup_updated",
+        data={"request_id": req.id, "status": req.status},
+    )
+
     if user.email:
         try:
             from app.services.email_service import send_balance_topup_email
@@ -201,6 +210,13 @@ def reject_topup(
     )
     db.commit()
     db.refresh(req)
+    # 📡 Зиндаи обновит барои мизоҷи дар модали «Пур кардани баланс»
+    realtime.publish(
+        db,
+        user_id=req.user_id,
+        event="topup_updated",
+        data={"request_id": req.id, "status": req.status},
+    )
     logger.info("💳 Дархости #%s рад шуд (%s)", req.id, via)
     return req
 
@@ -255,6 +271,14 @@ def revert_topup(
         reason=f"Боз гирифти дархости пур кардан #{req.id} ({via})",
         admin_id=admin_id,
         allow_negative=True,   # возвратка ҳамеша иҷро мешавад
+    )
+
+    # 📡 Зиндаи обновит: ҳолат + баланси хурдаи боз гирифташуда
+    realtime.publish(
+        db,
+        user_id=req.user_id,
+        event="topup_updated",
+        data={"request_id": req.id, "status": req.status},
     )
 
     logger.info(
