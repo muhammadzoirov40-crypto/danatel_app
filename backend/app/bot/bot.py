@@ -158,7 +158,7 @@ def products_keyboard(slug: str, lang: str) -> InlineKeyboardMarkup:
     rows = [
         [
             InlineKeyboardButton(
-                text=f"{p.get_name(lang)} — {float(p.price_tjs):.0f} сомонӣ",
+                text=f"{p.get_name(lang)} — {float(p.price_tjs):.2f} сомонӣ",
                 callback_data=f"prod:{slug}:{p.id}",
             )
         ]
@@ -323,7 +323,7 @@ async def cb_product(call: CallbackQuery):
 
     await call.answer()
     await call.message.edit_text(
-        t("order_created", lang, id=order_id, amount=f"{amount:.0f}"),
+        t("order_created", lang, id=order_id, amount=f"{amount:.2f}"),
         reply_markup=pay_keyboard(order_id, inv.get("payment_url", ""), lang),
     )
     SLOTS.pop(str(call.message.chat.id), None)
