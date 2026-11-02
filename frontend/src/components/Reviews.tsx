@@ -1,10 +1,11 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loader2, MessageSquare, PenLine, Send, Star } from "lucide-react";
+import { MessageSquare, PenLine, Star } from "lucide-react";
 import { api } from "../api/client";
 import { useApp } from "../context/AppContext";
 import type { Review, ReviewSummary } from "../types";
 import { Ic } from "./Icons";
+import ReviewForm from "./ReviewForm";
 
 /** Рейтинги 5-ситорагӣ бо иконкаҳои касбӣ (Lucide Star) */
 function Stars({ value, size = "md" }: { value: number; size?: "sm" | "md" }) {
@@ -42,11 +43,6 @@ export default function Reviews({ hideTitle = false }: { hideTitle?: boolean }) 
   const [items, setItems] = useState<Review[]>([]);
   const [sum, setSum] = useState<ReviewSummary | null>(null);
   const [open, setOpen] = useState(false);
-  const [rating, setRating] = useState(5);
-  const [text, setText] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState("");
-  const [err, setErr] = useState("");
 
   const load = () => {
     api.reviews(12).then(setItems).catch(() => setItems([]));
@@ -54,24 +50,6 @@ export default function Reviews({ hideTitle = false }: { hideTitle?: boolean }) 
   };
 
   useEffect(load, []);
-
-  async function submit(e: FormEvent) {
-    e.preventDefault();
-    setErr("");
-    setMsg("");
-    setBusy(true);
-    try {
-      await api.createReview({ rating, text: text.trim() });
-      setMsg(t("reviewSent"));
-      setText("");
-      setOpen(false);
-      load();
-    } catch (e2) {
-      setErr((e2 as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  }
 
   const avg = sum?.rating_avg ?? 0;
   const total = sum?.reviews_total ?? 0;
@@ -118,65 +96,11 @@ export default function Reviews({ hideTitle = false }: { hideTitle?: boolean }) 
         </div>
       )}
 
-      {/* ✍️ Шакли навиштан — танҳо барои муштарии фармоиши иҷрочуда */}
+      {/* ✍️ Шакли навиштан — танҳо барои муштарии фармоиши иҷрочуда.
+          Ягона компоненти ReviewForm (ҳамон чиз дар саҳифаи фармоиш). */}
       {open && (
-        <form
-          onSubmit={submit}
-          className="card p-4 sm:p-5 mb-4 border border-brand-200 space-y-3"
-        >
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-bold">{t("yourRating")}</span>
-            <div className="flex gap-1.5">
-              {[1, 2, 3, 4, 5].map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() => setRating(n)}
-                  className="rounded-lg p-1 transition hover:scale-110 active:scale-95
-                             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
-                  aria-label={`${n}`}
-                  aria-pressed={rating === n}
-                >
-                  <Ic
-                    icon={Star}
-                    size="lg"
-                    strokeWidth={1.5}
-                    className={
-                      n <= rating ? "text-amber-400 fill-current" : "text-slate-300"
-                    }
-                  />
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <textarea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            rows={3}
-            maxLength={600}
-            required
-            placeholder={t("reviewPlaceholder")}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm
-                       outline-none focus:ring-2 focus:ring-brand-400"
-          />
-
-          {err && <div className="text-sm text-rose-600">{err}</div>}
-
-          <div className="flex items-center gap-2">
-            <button type="submit" disabled={busy || text.trim().length < 5} className="btn">
-              <Ic icon={busy ? Loader2 : Send} className={busy ? "animate-spin" : ""} />
-              {t("send")}
-            </button>
-            <button type="button" onClick={() => setOpen(false)} className="btn-ghost">
-              {t("cancel")}
-            </button>
-            <span className="ml-auto text-xs text-slate-400">{t("reviewModerated")}</span>
-          </div>
-        </form>
+        <ReviewForm onSubmitted={load} onCancel={() => setOpen(false)} />
       )}
-
-      {msg && <div className="mb-3 text-sm text-emerald-600">{msg}</div>}
 
       {/* 📋 Рӯйхати отзывҳои тасдиқшуда */}
       {items.length > 0 ? (

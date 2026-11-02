@@ -17,8 +17,9 @@ import {
   Upload,
 } from "lucide-react";
 import { api } from "../api/client";
-import type { Order } from "../types";
+import type { Order, ReviewSummary } from "../types";
 import StatusBadge from "../components/StatusBadge";
+import ReviewForm from "../components/ReviewForm";
 import { useApp } from "../context/AppContext";
 import { copyText } from "../utils/clipboard";
 import { Ic } from "../components/Icons";
@@ -79,6 +80,26 @@ export default function OrderPage() {
 
     return () => clearInterval(timer);
   }, [order, orderId, load]);
+
+  // ⭐ Тақриз — худкор: танҳо вақте ки фармоиш иҷро шуд (delivered).
+  //    Агар муштарӣ ҳанӯз тақриз навишта бошад (my_review_id) — шакл пинҳон.
+  const [sum, setSum] = useState<ReviewSummary | null>(null);
+
+  useEffect(() => {
+    if (order?.status !== "delivered") return;
+    let alive = true;
+    api
+      .reviewSummary()
+      .then((d) => {
+        if (alive) setSum(d);
+      })
+      .catch(() => {
+        /* хатогӣ → шакл пинҳон мемонад */
+      });
+    return () => {
+      alive = false;
+    };
+  }, [order?.status]);
 
   // 🧾 Фиристодани чеки пардохт (расм ё матн)
   const sendReceipt = async () => {
@@ -316,6 +337,15 @@ export default function OrderPage() {
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {/* ⭐ Тақриз дар бораи ин фармоиш — пас аз иҷро ХУДКОР пайдо мешавад.
+            Танҳо барои муштариёни бо фармоиши иҷрочуда (can_review) ва ҳанӯз
+            бе тақриз (my_review_id = null). Мебарад: ҳамон фармоиш (order_id). */}
+        {order.status === "delivered" && sum?.can_review && !sum.my_review_id && (
+          <div className="mt-5">
+            <ReviewForm orderId={orderId} />
           </div>
         )}
 
