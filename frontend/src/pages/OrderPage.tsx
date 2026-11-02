@@ -59,16 +59,19 @@ export default function OrderPage() {
     load();
   }, [load]);
 
-  // Санҷиши худкори статус ҳар 5 сония (то paid/delivered)
+  // Санҷиши худкори статус ҳар 5 сония — то он даме, ки маҳсулот расид.
+  //  ⚠️ БОЯД то `delivered` идома ёбад (НА то `paid`): вагарна лаҳзаи
+  //     «delivered» ҳангоми кушода будани саҳифа гум мешуд ва шакли тақриз
+  //     бе «Навсоозӣ кардан» пайдо намешуд — харидор бояд ҲОЗИР бубинад.
   useEffect(() => {
     if (!order) return;
-    if (["paid", "delivered", "failed", "refunded"].includes(order.status)) return;
+    if (["delivered", "failed", "refunded"].includes(order.status)) return;
 
     const timer = setInterval(async () => {
       setChecking(true);
       try {
         const s = await api.orderStatus(orderId);
-        if (["paid", "delivered", "failed"].includes(s.status)) {
+        if (["paid", "delivered", "failed", "refunded"].includes(s.status)) {
           await load();
         }
       } catch {

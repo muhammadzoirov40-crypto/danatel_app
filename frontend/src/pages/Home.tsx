@@ -22,8 +22,10 @@ export default function Home() {
   const { t, lang, search: query, setSearch: setQuery } = useApp();
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  /** ⭐ Рейтинги воқеӣ аз ҷадвали отзывҳо (админ тасдиқкардаҳо) */
+  const [error, setError] = useState("");
+  /** 📊 Омори воқеӣ аз база (танҳо рақамҳо — ҷаълӣ нест) */
+  const [stats, setStats] = useState({ orders_delivered: 0, users_total: 0 });
+  /** ⭐ Рейтинги воқеӣ аз ҷадвали отзывҳо (админ тасдиқкардаҳо) */
   const [reviewSum, setReviewSum] = useState<{
     rating_avg: number;
     reviews_total: number;
@@ -57,9 +59,13 @@ export default function Home() {
       .games(lang)
       .then((d) => alive && setGames(d))
       .catch((e) => alive && setError(e?.message ?? t("error")))
-      .finally(() => alive && setLoading(false));
-    api
-      .reviewSummary()
+      .finally(() => alive && setLoading(false));
+    api
+      .publicStats()
+      .then((d) => alive && setStats(d))
+      .catch(() => {});
+    api
+      .reviewSummary()
       .then((d) => alive && setReviewSum(d))
       .catch(() => {});
     return () => {
@@ -98,23 +104,40 @@ export default function Home() {
     [games],
   );
 
-  /** Бейҷаи чап: рейтинги миёна + ЧАНД нафар хол додаанд.
-   *  Ҳама аз ҷадвали отзывҳои тасдиқшуда — рақами воқеӣ.
-   *  Иконкаи касбӣ (Lucide Star), на emoji; ҳатто рейтинг 0 бошад ҳам нишон дода мешавад. */
-  const ratingBadge = useMemo(() => {
-    const avg = reviewSum?.rating_avg ?? 0;
-    const n = reviewSum?.reviews_total ?? 0;
-    return (
-      <>
-        <Ic icon={Star} size="xs" className="text-amber-300 fill-current" />
-        <span className="tabular-nums">
-          {avg.toFixed(1)} ({n} {t("ratedPeople")})
-        </span>
-      </>
-    );
-  }, [reviewSum, t]);
+  /** Бейҷаи чап — мисли тикери persshop: «⭐ 4,9 1360 тақриз»
+   *  Ҳама аз ҷадвали отзывҳои тасдиқшуда — рақами воқеӣ.
+   *  Иконкаи касбӣ (Lucide Star), на emoji; ҳатто рейтинг 0 бошад ҳам нишон дода мешавад. */
+  const ratingBadge = useMemo(() => {
+    const avg = reviewSum?.rating_avg ?? 0;
+    const n = reviewSum?.reviews_total ?? 0;
+    return (
+      <>
+        <Ic icon={Star} size="xs" className="text-amber-300 fill-current" />
+        <span className="tabular-nums">
+          {avg.toFixed(1).replace(".", ",")} {n} {t("reviewsCount")}
+        </span>
+      </>
+    );
+  }, [reviewSum, t]);
+
+  /** Тикери далелҳо — воқеӣ, на ҷаълӣ (рақамҳо танҳо пас аз боргирӣ аз API).
+   *  `trustFast` («Дар сонияҳо») гирифта нашуд — даъвои суръти тулӯъ нест. */
+  const tickerItems = useMemo(() => {
+    const items = [
+      { icon: "🆔", text: t("trustId") },
+      { icon: "🇹🇯", text: t("trustSomoni") },
+      { icon: "💳", text: "DC Wallet" },
+    ];
+    if (totalProducts > 0)
+      items.push({ icon: "💎", text: `${totalProducts} ${t("statProducts")}` });
+    if (stats.orders_delivered > 0)
+      items.push({ icon: "✅", text: `${stats.orders_delivered} ${t("statDelivered")}` });
+    if (stats.users_total > 0)
+      items.push({ icon: "👥", text: `${stats.users_total} ${t("statCustomers")}` });
+    return items;
+  }, [t, totalProducts, stats]);
 
-  /** 🎚️ Тикер танҳо бейҷаи ⭐ рейтингро нишон медиҳад — матнҳо бардошта шуданд */
+  /** 🎚️ Тикер мисли persshop: бейҷаи ⭐ рейтинг │ диагонал │ далелҳои воқеӣ */
   return (
     <div>
       {/* ===== 1) САРЛАВҲАИ КАБУД — бо Navbar мепайвандад ===== */}
@@ -157,8 +180,8 @@ export default function Home() {
             )}
           </div>
 
-          {/* ⭐️ Сатри далелҳо — мисли takrizhoi persshop (бо рейтингҳои воқеӣ) */}
-          <TrustTicker badge={ratingBadge} />
+          {/* ⭐️ Сатри далелҳо — мисли тикери takrixi persshop: бейҷа │ далелҳо */}
+          <TrustTicker items={tickerItems} badge={ratingBadge} />
         </div>
       </section>
 

@@ -41,6 +41,11 @@ export default function TrustTicker({
         </span>
       )}
 
+      {/* Диагонал мисли persshop — танҳо байни бейҷа ва матни ҳаракаткунанда */}
+      {badge && items.length > 0 && (
+        <span className="h-[18px] w-px shrink-0 bg-white/35" aria-hidden />
+      )}
+
       {/* Ҳаракаткунанда — танҳо агар матнҳо бошанд */}
       {items.length > 0 && (
         <div className="ticker flex-1 min-w-0" aria-hidden>
