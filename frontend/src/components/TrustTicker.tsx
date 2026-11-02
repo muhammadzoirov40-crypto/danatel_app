@@ -2,10 +2,10 @@ import type { ReactNode } from "react";
 
 /**
  * Тикери ҳаракаткунанда — мисли строчканяи takrixi persshop:
- *   [ бейҷаи рейтинг ] │ далелҳои воқеӣ, ки ҳаракат мекунанд
+ *   [ бейҷаи рейтинг ] │ НОМИ харидорони отзивдор (★★★★★ Ном), ки ҳаракат мекунанд
  *
- * Танҳо далелҳои воқеӣ (бозӣ, маҳсулот, TJS, DC Wallet) —
- * такризи ҷаълӣ ё рейтинги сохта НЕСТ.
+ * Танҳо тақризҳои воқеии тасдиқшудаи админ — номи шахсӣ аз `author_name`.
+ * 0 тақриз → тарафи рост холӣ мемонад (ҷаълӣ НЕСТ).
  *
  * Дастрасӣ: `aria-hidden` танҳо рахи ҳаракаткунанда дорад,
  * бейҷаи рейтинг барои screen reader дастрас мемонад.
@@ -13,6 +13,8 @@ import type { ReactNode } from "react";
 interface Item {
   icon: ReactNode;
   text: string;
+  /** Ранги иконка (масалан: ситораҳои тиллоӣ) */
+  iconClass?: string;
 }
 
 export default function TrustTicker({
@@ -41,7 +43,7 @@ export default function TrustTicker({
         </span>
       )}
 
-      {/* Диагонал мисли persshop — танҳо байни бейҷа ва матни ҳаракаткунанда */}
+      {/* Диагонал мисли persshop — танҳо байни бейҷа ва номи харидорон */}
       {badge && items.length > 0 && (
         <span className="h-[18px] w-px shrink-0 bg-white/35" aria-hidden />
       )}
@@ -55,7 +57,7 @@ export default function TrustTicker({
                 key={i}
                 className="inline-flex items-center gap-1.5 text-[12px] sm:text-[13px] font-semibold text-white/90"
               >
-                <span className="text-white/75">{it.icon}</span>
+                <span className={it.iconClass || "text-white/75"}>{it.icon}</span>
                 {it.text}
                 <span className="text-white/30 ml-1.5">•</span>
               </span>

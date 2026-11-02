@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Flame, Gamepad2, Heart, LayoutGrid, Search, SearchX, ShieldAlert, Star, TriangleAlert, X } from "lucide-react";
 import { api } from "../api/client";
-import type { Game } from "../types";
+import type { Game, Review } from "../types";
 import GameCard from "../components/GameCard";
 import CoinsCard from "../components/CoinsCard";
 import PromoCarousel from "../components/PromoCarousel";
@@ -12,7 +12,7 @@ import { Ic, CreditCard3D, Diamond3D, Gamepad3D, GiftBox3D, IdBadge3D, TajikFlag
 
 /**
  * Саҳифаи асосӣ — тарҳи мисли persshop.com:
- *   1) Сарлавҳаи кабуд: ҷустуҷӯ + тикери далелҳо (бо Navbar мепайвандад)
+ *   1) Сарлавҳаи кабуд: ҷустуҷӯ + тикери тақризҳо (бо Navbar мепайвандад)
  *   2) Баннери промо (карусел)
  *   3) Рӯйхати бозиҳо (бо ҷустуҷӯи зинда)
  *   4) Плиткаҳои рақамҳо
@@ -23,8 +23,8 @@ export default function Home() {
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  /** 📊 Омори воқеӣ аз база (танҳо рақамҳо — ҷаълӣ нест) */
-  const [stats, setStats] = useState({ orders_delivered: 0, users_total: 0 });
+  /** ⭐ Тақризҳои тасдиқшуда — НОМИ харидорони отзивдор барои тикер */
+  const [revList, setRevList] = useState<Review[]>([]);
   /** ⭐ Рейтинги воқеӣ аз ҷадвали отзывҳо (админ тасдиқкардаҳо) */
   const [reviewSum, setReviewSum] = useState<{
     rating_avg: number;
@@ -61,8 +61,8 @@ export default function Home() {
       .catch((e) => alive && setError(e?.message ?? t("error")))
       .finally(() => alive && setLoading(false));
     api
-      .publicStats()
-      .then((d) => alive && setStats(d))
+      .reviews(12)
+      .then((d) => alive && setRevList(d))
       .catch(() => {});
     api
       .reviewSummary()
@@ -120,24 +120,20 @@ export default function Home() {
     );
   }, [reviewSum, t]);
 
-  /** Тикери далелҳо — воқеӣ, на ҷаълӣ (рақамҳо танҳо пас аз боргирӣ аз API).
-   *  `trustFast` («Дар сонияҳо») гирифта нашуд — даъвои суръти тулӯъ нест. */
-  const tickerItems = useMemo(() => {
-    const items = [
-      { icon: "🆔", text: t("trustId") },
-      { icon: "🇹🇯", text: t("trustSomoni") },
-      { icon: "💳", text: "DC Wallet" },
-    ];
-    if (totalProducts > 0)
-      items.push({ icon: "💎", text: `${totalProducts} ${t("statProducts")}` });
-    if (stats.orders_delivered > 0)
-      items.push({ icon: "✅", text: `${stats.orders_delivered} ${t("statDelivered")}` });
-    if (stats.users_total > 0)
-      items.push({ icon: "👥", text: `${stats.users_total} ${t("statCustomers")}` });
-    return items;
-  }, [t, totalProducts, stats]);
+  /** 🎚️ Тикери тақризҳо: НОМИ ҳар харидоре, ки отзив гузоштааст
+   *  (мисли «★★★★★ AZAM» дар persshop). Танҳо тақризҳои тасдиқшудаи
+   *  админ аз `GET /reviews` — ҷаълӣ нест; 0 тақриз → тарафи рост холӣ. */
+  const tickerItems = useMemo(
+    () =>
+      revList.map((r) => ({
+        icon: "\u2605".repeat(r.rating) + "\u2606".repeat(Math.max(0, 5 - r.rating)),
+        text: r.author_name,
+        iconClass: "text-amber-300",
+      })),
+    [revList],
+  );
 
-  /** 🎚️ Тикер мисли persshop: бейҷаи ⭐ рейтинг │ диагонал │ далелҳои воқеӣ */
+  /** 🎚️ Тикери тақризҳо — НОМИ харидорони отзивдор (мисли persshop) */
   return (
     <div>
       {/* ===== 1) САРЛАВҲАИ КАБУД — бо Navbar мепайвандад ===== */}
@@ -180,7 +176,7 @@ export default function Home() {
             )}
           </div>
 
-          {/* ⭐️ Сатри далелҳо — мисли тикери takrixi persshop: бейҷа │ далелҳо */}
+          {/* ⭐️ Тикери тақризҳо — бейҷа │ НОМИ харидорони отзивдор (мисли persshop) */}
           <TrustTicker items={tickerItems} badge={ratingBadge} />
         </div>
       </section>
