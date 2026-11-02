@@ -1,6 +1,7 @@
 """Фиристодани пасхатҳои Telegram (бот + admin)."""
 from __future__ import annotations
 
+import html
 import json
 import logging
 import os
@@ -42,11 +43,45 @@ async def notify_admin(text: str) -> None:
         await send_message(settings.TELEGRAM_ADMIN_CHAT_ID, text)
 
 
+def user_label(user) -> str | None:
+    """Ҳузвати харидор барои эълони админ: `Ном · @username · 📞 рақам`.
+
+    Танҳо ҷузъҳои мавҷудбуда нишон дода мешаванд (ҳатто ягонҷузъ
+    набуд → `#id`). Агар user холӣ бошад → None (сатр илова намешавад).
+
+    Duck-typing — `app.models` намеорад, то хидмат аз моделҳо вобаста набошад.
+    HTML-escape: номи корбар истифодабаранда аст → `<` набояд паёмро халал расонад.
+    """
+    if user is None:
+        return None
+    parts: list[str] = []
+    name = str(getattr(user, "full_name", None) or "").strip()
+    uname = str(getattr(user, "username", None) or "").strip().lstrip("@")
+    phone = str(getattr(user, "phone", None) or "").strip()
+    uid = getattr(user, "id", None)
+    if name:
+        parts.append(html.escape(name))
+    if uname:
+        parts.append("@" + html.escape(uname))
+    if phone:
+        parts.append("📞 " + html.escape(phone))
+    if not parts and uid is not None:
+        parts.append(f"#{uid}")
+    return " · ".join(parts) if parts else None
+
+
 async def notify_new_order(order_id: int, game: str, product: str,
-                           player_id: str, amount: float) -> None:
-    """Огоҳинома дар бораи фармоиши нав."""
+                           player_id: str, amount: float,
+                           buyer: str | None = None) -> None:
+    """Огоҳинома дар бораи фармоиши нав.
+
+    `buyer` — ҳузвати харидор аз `user_label()` (ном · @username · рақам);
+    мизоҷи бе ҳисоб → None → сатр илова намешавад.
+    """
+    buyer_line = f"👤 Харидор: {buyer}\n" if buyer else ""
     await notify_admin(
         f"🆕 <b>Фармоиши нав #{order_id}</b>\n"
+        f"{buyer_line}"
         f"🎮 Бозӣ: {game}\n"
         f"💎 Маҳсулот: {product}\n"
         f"🆔 ID: <code>{player_id}</code>\n"
@@ -210,8 +245,12 @@ async def notify_order_receipt(
     player_id: str = "",
     amount: float = 0.0,
     receipt_file: str | None = None,
+    buyer: str | None = None,
 ) -> bool:
-    """🧾 Чеки фармоиш → админ: расми чек + [Қабул] [Рад]."""
+    """🧾 Чеки фармоиш → админ: расми чек + [Қабул] [Рад].
+
+    `buyer` — ҳузвати харидор (ном · @username · рақам), агар мавҷуд бошад.
+    """
     if not settings.TELEGRAM_ADMIN_CHAT_ID:
         logger.warning(
             "TELEGRAM_ADMIN_CHAT_ID холӣ — чеки фармоиш #%s ба Telegram намеравад",
@@ -220,8 +259,10 @@ async def notify_order_receipt(
         return False
 
     hint, buttons = _approve_ui("order", order_id)
+    buyer_line = f"👤 Харидор: {buyer}\n" if buyer else ""
     caption = (
         f"🧾 <b>Чеки фармоиш #{order_id}</b>\n"
+        f"{buyer_line}"
         f"🎮 Бозӣ: {game}\n"
         f"💎 Маҳсулот: {product}\n"
         f"🆔 ID: <code>{player_id}</code>\n"

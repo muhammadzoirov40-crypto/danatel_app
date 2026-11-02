@@ -285,6 +285,7 @@ async def create_order(
             product=product.get_name("tj"),
             player_id=player_id,
             amount=float(price),
+            buyer=telegram_service.user_label(user),
         )
     except Exception:  # noqa: BLE001
         logger.exception("Огоҳиномаи Telegram ноком шуд")
@@ -395,6 +396,7 @@ async def _pay_from_balance(
             product=product.get_name("tj"),
             player_id=player_id,
             amount=float(price),
+            buyer=telegram_service.user_label(user),
         )
     except Exception:  # noqa: BLE001
         logger.exception("Огоҳиномаи Telegram ноком шуд")
@@ -551,6 +553,7 @@ async def submit_receipt(
             player_id=order.player_id or "",
             amount=float(order.amount_tjs),
             receipt_file=order.receipt_file,
+            buyer=telegram_service.user_label(order.user),
         )
     except Exception:  # noqa: BLE001
         logger.exception("Огоҳиномаи Telegram ноком шуд")

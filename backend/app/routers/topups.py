@@ -209,7 +209,8 @@ async def upload_topup_receipt(
 
     # 📩 Ба Telegram-и админ: расми чек + тугмаҳои [Қабул] [Рад]
     try:
-        label = user.full_name or user.username or user.phone or f"#{user.id}"
+        # Ҳузвати пурра: Ном · @username · 📞 рақам (танҳо мавҷудбудаҳо)
+        label = telegram_service.user_label(user) or f"#{user.id}"
         await telegram_service.notify_topup_request(
             request_id=req.id,
             user_label=label,
