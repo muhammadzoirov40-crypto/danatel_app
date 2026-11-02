@@ -6,7 +6,11 @@
 """
 from types import SimpleNamespace
 
+from fastapi.testclient import TestClient
+
 from app.services.telegram_service import user_label
+from test_auth import auth, make_order, must_register
+from test_topups import admin_token
 
 
 def _user(**kw):
@@ -54,3 +58,35 @@ def test_html_escaped():
     assert label is not None
     assert "<b>" not in label
     assert "&lt;b&gt;" in label
+
+
+# =====================================================================
+# 🔌 Endpoint: GET /api/orders/buyer-labels (барои кортҳои админ)
+# =====================================================================
+def test_buyer_labels_requires_admin(client: TestClient):
+    """Бе токен ё корбари оддӣ → 401/403 (PII: ном + рақам)."""
+    r = client.get("/api/orders/buyer-labels?ids=1")
+    assert r.status_code in (401, 403)
+
+
+def test_buyer_labels_empty_inputs(client: TestClient):
+    """`ids` холӣ / нодуруст → объекти холӣ, 500 нест."""
+    adm = admin_token(client)
+    h = auth(adm)
+    assert client.get("/api/orders/buyer-labels", headers=h).json() == {}
+    assert client.get("/api/orders/buyer-labels?ids=abc,--,", headers=h).json() == {}
+
+
+def test_buyer_labels_returns_registered_phone(client: TestClient):
+    """Фармоиши корбари қайдшуда → лейбл бо 📞 рақам (ҳеҷ фабрика нест)."""
+    _, tok = must_register(client)
+    order = make_order(client, tok)
+    oid = order["order_id"]
+    adm = admin_token(client)
+    r = client.get(f"/api/orders/buyer-labels?ids={oid}", headers=auth(adm))
+    assert r.status_code == 200, r.text
+    labels = r.json()
+    assert str(oid) in labels
+    assert "📞" in labels[str(oid)]
+    # Номаҷбурӣ: танҳо IDҳои додашуда бармегарданд
+    assert set(labels) <= {str(oid)}

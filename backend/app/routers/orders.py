@@ -17,7 +17,7 @@ from app.config import settings
 from app.database import get_db
 from app.models import Game, Order, OrderStatus, PaymentMethod, Product, User
 from app.schemas import OrderCreate, OrderOut, PaymentInitOut
-from app.security import get_current_user, get_current_user_optional
+from app.security import get_current_user, get_current_user_optional, require_admin
 from app.services import dc_service, telegram_service, wallet
 
 logger = logging.getLogger("orders")
@@ -426,6 +426,30 @@ def my_orders(
         .order_by(Order.id.desc())
     ).all()
     return [_order_out(o, lang) for o in orders]
+
+
+@router.get("/buyer-labels")
+def buyer_labels(
+    ids: str = "",
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    """Ҳузвати харидорон барои рӯйхати админ: `{order_id: label}`.
+
+    Барои сатри «харидор» дар кортҳои фармоиш (мобил):
+    `label = «Ном · @username · 📞 рақам»` (танҳо мавҷудбудаҳо).
+    Танҳо админ; `ids` — рӯйхати ID аз вергул (ҳадди 200).
+    """
+    id_list = [int(x) for x in ids.split(",") if x.strip().isdigit()][:200]
+    if not id_list:
+        return {}
+    rows = db.scalars(select(Order).where(Order.id.in_(id_list))).all()
+    out: dict[str, str] = {}
+    for o in rows:
+        label = telegram_service.user_label(o.user)
+        if label:
+            out[str(o.id)] = label
+    return out
 
 
 @router.get("/{order_id}", response_model=OrderOut)

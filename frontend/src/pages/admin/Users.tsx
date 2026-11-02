@@ -110,7 +110,7 @@ export default function Users() {
       </div>
 
       <div className="card overflow-hidden">
-        <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 font-semibold text-sm flex items-center justify-between">
+        <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 font-semibold text-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
           <span className="inline-flex items-center gap-2">
             <Ic icon={UsersIcon} className="text-brand-600" />
             {t("users")}
@@ -158,18 +158,18 @@ export default function Users() {
                     </div>
                   </div>
 
-                  <div className="flex gap-1.5 ml-auto">
+                  <div className="flex flex-col sm:flex-row gap-1.5 w-full sm:w-auto sm:ml-auto">
                     <button
                       onClick={() => setOpenId(openId === u.id ? null : u.id)}
                       aria-expanded={openId === u.id}
-                      className="btn-primary text-xs px-3 py-1.5"
+                      className="btn-primary text-xs px-3 py-1.5 justify-center w-full sm:w-auto whitespace-nowrap"
                     >
                       <Ic icon={Wallet} size="xs" />
                       {t("manageBalance")}
                     </button>
                     <button
                       onClick={() => void openHistory(u)}
-                      className="btn-ghost text-xs px-3 py-1.5"
+                      className="btn-ghost text-xs px-3 py-1.5 justify-center w-full sm:w-auto whitespace-nowrap"
                     >
                       <Ic icon={History} size="xs" />
                       {t("history")}

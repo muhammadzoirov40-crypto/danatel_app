@@ -7,6 +7,7 @@ import {
   Inbox,
   Layers,
   ReceiptText,
+  UserRound,
 } from "lucide-react";
 import { api } from "../../api/client";
 import type { Order, OrderStatus } from "../../types";
@@ -31,6 +32,8 @@ export default function Orders() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState<number | null>(null);
+  /** Ҳузвати харидорон: {id: "Ном · @user · 📞 рақам"} — бе онҳам кор мекунад */
+  const [labels, setLabels] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -38,6 +41,11 @@ export default function Orders() {
       const d = await api.adminOrders(filter === "all" ? undefined : filter);
       setOrders(d);
       setErr("");
+      // Сатри харидор дар корт (хатогӣ → сатр пинҳон мемонад)
+      api
+        .buyerLabels(d.map((o) => o.id))
+        .then(setLabels)
+        .catch(() => {});
     } catch (e) {
       setErr((e as Error)?.message ?? t("error"));
     } finally {
@@ -189,13 +197,34 @@ export default function Orders() {
                   <div className="font-semibold text-brand-700">
                     {Number(o.amount_tjs).toLocaleString("tj-TJ")} {t("currency")}
                   </div>
+                  {labels[o.id] && (
+                    <div className="flex items-center gap-1.5 text-xs text-slate-600">
+                      <Ic
+                        icon={UserRound}
+                        size="xs"
+                        className="shrink-0 text-slate-400"
+                      />
+                      <span className="truncate" title={labels[o.id]}>
+                        {labels[o.id]}
+                      </span>
+                    </div>
+                  )}
                 </div>
-                <div className="mt-2">
-                  <ReceiptCell order={o} t={t} />
-                </div>
-                <div className="mt-3">
-                  <RowActions order={o} busy={busy === o.id} onSet={setStatus} t={t} />
-                </div>
+                {(o.receipt_file || o.receipt_text) && (
+                  <div className="mt-2">
+                    <ReceiptCell order={o} t={t} />
+                  </div>
+                )}
+                {o.status !== "delivered" && (
+                  <div className="mt-3">
+                    <RowActions
+                      order={o}
+                      busy={busy === o.id}
+                      onSet={setStatus}
+                      t={t}
+                    />
+                  </div>
+                )}
               </div>
             ))}
           </div>

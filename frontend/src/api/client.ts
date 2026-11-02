@@ -372,6 +372,13 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify({ status }),
     }),
+  /** Ҳузвати харидорон барои кортҳои фармоиш: {id: "Ном · @user · 📞 рақам"} */
+  buyerLabels: (ids: number[]) =>
+    ids.length
+      ? request<Record<string, string>>(
+          `/orders/buyer-labels?ids=${ids.join(",")}`,
+        )
+      : Promise.resolve({}),
 
   // 👥 Корбарон + баланс
   adminUsers: () => request<AdminUser[]>("/admin/users"),
