@@ -151,10 +151,10 @@ export default function GameDetail() {
 
         {/* Мазмуни сарпӯш */}
         <div className="relative p-5 sm:p-8 text-white">
-          {/* ⬅️ «Бозгашт» ДАР ДОХИЛИ САРПӯШ, дар болои мазмун — танҳо саҳифаи бозӣ
-              (талаби соҳиб 03.11.2026: тугма бояд ДАР БОЛОИ БОЗӢ бошад). */}
+          {/* ⬅️ «Бозгашт» ДАР ДОХИЛИ САРПӯШ, дар болои мазмун — танҳо саҳифаи бозӣ;
+              03.11.2026: ТАНҲО ИКОНКА (←), бе матн — aria-label нигоҳ дошта шуд. */}
           <div className="mb-3">
-            <BackButton />
+            <BackButton iconOnly />
           </div>
           <div className="flex items-center gap-4 sm:gap-6">
             <div className="shrink-0">

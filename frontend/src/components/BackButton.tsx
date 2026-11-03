@@ -12,7 +12,14 @@ import { Ic } from "./Icons";
  *   · `aria-label` + матни «Бозгашт» (тарҷума: tj/ru/us/uz);
  *   · Калиди keyboard + `focus-visible` ring барои дастрастӣ (a11y).
  */
-export default function BackButton({ className = "" }: { className?: string }) {
+export default function BackButton({
+  className = "",
+  iconOnly = false,
+}: {
+  className?: string;
+  /** Танҳо иконкаи ← (бе матн) — `aria-label` нигоҳ дошта мешавад (талаби соҳиб). */
+  iconOnly?: boolean;
+}) {
   const nav = useNavigate();
   const { t } = useApp();
 
@@ -28,7 +35,7 @@ export default function BackButton({ className = "" }: { className?: string }) {
                   focus-visible:ring-white/70 ${className}`}
     >
       <Ic icon={ArrowLeft} size="xs" />
-      {t("back")}
+      {!iconOnly && t("back")}
     </button>
   );
 }
