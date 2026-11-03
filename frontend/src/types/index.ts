@@ -150,9 +150,8 @@ export interface CoinsInfo {
   coins_per_tjs: number;
   exchange_rate: number;
   min_exchange: number;
-  /** 💱 Ҳадди ақал барои ивази баланс → танга (дар сомонӣ) */
-  min_exchange_tjs: number;
-  spin_cost: number;
+  /** 🎡 Нархи гардиш дар сомонӣ (аз баланс) — аз backend */
+  spin_cost_tjs: string;
   referral_code: string;
   referred_count: number;
   /** 🔗 Ҳар 2 даъватшуда = N танга (аз backend) */
@@ -168,14 +167,6 @@ export interface CoinsExchange {
   balance: number;
   credited_tjs: number;
   spent_coins: number;
-}
-
-/** 🪙 Натиҷаи ивази БАЛАНС ба танга (самти нав: 1 сомонӣ = N танга) */
-export interface CoinsExchangeTjs {
-  coins: number;
-  balance: number;
-  gained_coins: number;
-  spent_tjs: number;
 }
 
 /** 🎡 Як сегменти чарх — эҳтимолиёт аз вазнҳои сервер */
@@ -196,7 +187,8 @@ export interface WheelRecentWin {
 
 /** 🎡 Маълумоти чарх (оммавӣ, бе маълумоти шахсӣ) */
 export interface WheelData {
-  cost: number;
+  /** Нархи гардиш дар сомонӣ (аз баланс) — аз backend */
+  cost_tjs: string;
   exchange_rate: number;
   min_exchange: number;
   total_spins: number;
@@ -208,7 +200,8 @@ export interface WheelData {
 export interface WheelSpin {
   prize: number;
   jackpot: boolean;
-  cost: number;
+  /** Нархи гардиш дар сомонӣ (аз баланс) */
+  cost_tjs: string;
   coins_after: number;
 }
 

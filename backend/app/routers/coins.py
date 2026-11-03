@@ -2,9 +2,11 @@
 🪙 Роутери PERS COINS — тангаҳои дохилӣ.
 
   GET  /api/coins/me       → тангаҳо, қоидаҳо, коди даъват, таърих
-  POST /api/coins/exchange → ивази танга ба баланс (100 танга = 1 сомонӣ)
+  POST /api/coins/exchange → ивази танга ба баланс (5 танга = 1 сомонӣ)
   GET  /api/coins/wheel    → чарх: сегментҳо + эҳтимолиётҳо + бурди охирин
-  POST /api/coins/spin     → як гардиш (SPIN_COST_COINS танга)
+  POST /api/coins/spin     → як гардиш (нархи гардиш АЗ БАЛАНС, ҷоиза дар танга)
+
+  ⛔ /api/coins/exchange-to-coins бардошта шуд: коинро танҳо чарх медиҳад.
 
 Ҳамаи рақамҳо аз `.env` меоянд — фронт ҲЕҶ ГОҲ маблағ намегӯяд.
 """
@@ -20,8 +22,6 @@ from app.database import get_db
 from app.models import CoinTransaction, Game, User
 from app.schemas import (
     CoinsExchangeOut,
-    CoinsExchangeTjsIn,
-    CoinsExchangeTjsOut,
     CoinsMeOut,
     CoinsMyGameIn,
     CoinsMyGameOut,
@@ -32,7 +32,7 @@ from app.schemas import (
     WheelSpinOut,
 )
 from app.security import get_current_user
-from app.services import coins, wheel
+from app.services import coins, wallet, wheel
 
 router = APIRouter(prefix="/api/coins", tags=["coins"])
 
@@ -78,8 +78,7 @@ def my_coins(
         coins_per_tjs=max(0, _safe_int(settings.COINS_PER_TJS)),
         exchange_rate=max(1, _safe_int(settings.COINS_TO_TJS)),
         min_exchange=max(0, _safe_int(settings.COINS_MIN_EXCHANGE)),
-        min_exchange_tjs=max(1, _safe_int(settings.TJS_TO_COINS_MIN)),
-        spin_cost=max(0, _safe_int(settings.SPIN_COST_COINS)),
+        spin_cost_tjs=wheel.spin_price_tjs(),
         referral_code=code,
         referred_count=coins.count_referred(db, user.id),
         referral_pair_coins=max(0, _safe_int(settings.REFERRAL_PAIR_COINS)),
@@ -145,38 +144,6 @@ def exchange(
 
 
 # =====================================================================
-# 💱 ИВАЗИ БАЛАНС БА ТАНГА (самти нав: 1 сомонӣ = N танга)
-# =====================================================================
-@router.post("/exchange-to-coins", response_model=CoinsExchangeTjsOut)
-def exchange_to_coins_endpoint(
-    payload: CoinsExchangeTjsIn,
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Баланс (сомонӣ) → танга: 1 сомонӣ = COINS_TO_TJS танга.
-
-    Танҳо адади куллӣ: масалан 10 сомонӣ → 50 танга.
-    Ҳадди ақал TJS_TO_COINS_MIN сомонӣ; баланси нокифоя → 422.
-    """
-    try:
-        updated, spent_tjs, gained = coins.exchange_to_coins(
-            db, user_id=user.id, amount_tjs=payload.amount_tjs
-        )
-    except (coins.InsufficientCoins, coins.InvalidCoins) as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
-    except coins.CoinsError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
-
-    return CoinsExchangeTjsOut(
-        coins=_safe_int(updated.coins),
-        balance=updated.balance,
-        gained_coins=gained,
-        spent_tjs=spent_tjs,
-    )
-
-
-# =====================================================================
 # 🎡 ЧАРХ — МАЪЛУМОТИ ОММАВӢ
 # =====================================================================
 @router.get("/wheel", response_model=WheelOut)
@@ -189,7 +156,7 @@ def wheel_info(db: Session = Depends(get_db)):
     """
     wins, total = wheel.recent_wins(db)
     return WheelOut(
-        cost=_safe_int(settings.SPIN_COST_COINS),
+        cost_tjs=wheel.spin_price_tjs(),
         exchange_rate=max(1, _safe_int(settings.COINS_TO_TJS)),
         min_exchange=max(0, _safe_int(settings.COINS_MIN_EXCHANGE)),
         total_spins=total,
@@ -208,8 +175,9 @@ def spin(
     db: Session = Depends(get_db),
 ):
     """
-    Як гардиши чарх: `SPIN_COST_COINS` танга ҳазм мешавад ва ҷоиза
-    фавран ба тангаҳо меафтомад. Ҳар ду дар як transaction.
+    Як гардиш: нархи гардиш (SPIN_COST_COINS/COINS_TO_TJS сомонӣ) аз
+    БАЛАНС ҳазм мешавад, ҷоиза фавран дар ТАНГА меафтомад.
+    Ҳар се дар як transaction.
 
     Ҷоиза дар backend ҳисоб мешавад — фронт онро танҳо нишон медиҳад.
     """
@@ -219,6 +187,8 @@ def spin(
 
     try:
         updated, prize, price = wheel.spin(db, user_id=user.id)
+    except wallet.InsufficientBalance as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     except coins.InsufficientCoins as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     except coins.CoinsError as exc:
@@ -227,6 +197,6 @@ def spin(
     return WheelSpinOut(
         prize=prize,
         jackpot=prize == wheel.JACKPOT_COINS,
-        cost=price,
+        cost_tjs=price,
         coins_after=_safe_int(updated.coins),
     )

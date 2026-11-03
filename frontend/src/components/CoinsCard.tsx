@@ -7,7 +7,7 @@ import type { CoinsInfo } from "../types";
 import { Ic } from "./Icons";
 
 /**
- * 🪙 КОРТИ PERS COINS — «Pers Coins: N» + «То гардиш — N танга»
+ * 🪙 КОРТИ PERS COINS — «Pers Coins: N» + «То гардиш — N сомонӣ»
  * + шкалаи прогресс + тугмаи кабуди «Гардондан» → саҳифаи чарх.
  *
  * Қоидаҳо:
@@ -18,7 +18,7 @@ import { Ic } from "./Icons";
  *    агар дода нашавад → худаш як дафъа мегирад (дар саҳифаи асосӣ)
  */
 export default function CoinsCard({ data }: { data?: CoinsInfo | null }) {
-  const { t, user } = useApp();
+  const { t, user, balance } = useApp();
   const [own, setOwn] = useState<CoinsInfo | null>(null);
   const [failed, setFailed] = useState(false);
 
@@ -52,10 +52,12 @@ export default function CoinsCard({ data }: { data?: CoinsInfo | null }) {
     );
   }
 
-  const cost = Math.max(1, info.spin_cost);
+  const costTjs = Math.max(0.01, Number(info.spin_cost_tjs) || 0);
   const amount = Math.max(0, info.coins);
-  const left = Math.max(0, cost - amount);
-  const pct = Math.min(100, Math.round((amount / cost) * 100));
+  // Прогресс то гардиш = БАЛАНС назди нархи гардиш (сомонӣ)
+  const bal = Math.max(0, balance);
+  const left = Math.max(0, costTjs - bal);
+  const pct = Math.min(100, Math.round((bal / costTjs) * 100));
 
   return (
     <div className="rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 p-4 text-white shadow-lg shadow-blue-700/30 ring-1 ring-white/20 dark:from-blue-700 dark:to-indigo-800 dark:shadow-none">
@@ -73,16 +75,18 @@ export default function CoinsCard({ data }: { data?: CoinsInfo | null }) {
         </span>
       </div>
 
-      {/* 📏 Прогресс: тангаҳо → хароҷоти гардиш */}
+      {/* 📏 Прогресс: баланс → нархи гардиш (сомонӣ) */}
       <div className="mt-2.5 text-[11px] font-semibold text-blue-100/90">
-        {left > 0 ? t("toSpin").replace("{n}", String(left)) : t("spinReady")}
+        {left > 0
+          ? t("toSpin").replace("{n}", left.toLocaleString("tj-TJ"))
+          : t("spinReady")}
       </div>
       <div
         role="progressbar"
         aria-label="Pers Coins"
         aria-valuemin={0}
-        aria-valuemax={cost}
-        aria-valuenow={Math.min(amount, cost)}
+        aria-valuemax={costTjs}
+        aria-valuenow={Math.min(bal, costTjs)}
         className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-white/25"
       >
         <div

@@ -2,11 +2,13 @@
 🎡 ЧАРХИ БАХТ — гардиши тангаҳо (Фаза 2).
 
 Қоидаҳо:
-  • Ҳар гардиш `SPIN_COST_COINS` танга сарф мекунад (аз `.env`)
+  • Ҳар гардиш НАРХИ `SPIN_COST_COINS` танга = SPIN_COST_COINS/COINS_TO_TJS
+    сомонӣ АЗ БАЛАНСи корбар сарф мешавад (10 сомонӣ = 50 танга = 5 танга/сомонӣ)
+  • ҶОИЗА танҳо дар ТАНГА (коин) меафтомад — коинро танҳо чарх медиҳад
   • Ҷоиза аз рӯйхати `SEGMENTS` бо вазни куллӣ интихоб мешавад
     (`secrets.randbelow` → ҳеҷ кас пешакӣ натиҷаро пешгӯӣ карда наметавонад)
-  • Ҳар ду амал (буриши хароҷот + ҷоиза) ДАР ЯК transaction навишта мешавад
-    → ҳисоб ҳеҷ гоҳ дар миён намемонад
+  • Ҳар се амал (буриши баланс + сатри гардиш + ҷоиза) ДАР ЯК transaction
+    навишта мешавад → ҳисоб ҳеҷ гоҳ дар миён намемонад
   • Эҳтимолиётҳо аз ҳамон вазнҳо ҳисоб мешаванд, барои ҳамин ҷадвали
     саҳифа ҲЕҶ ГОҲ рақами сохта нишон намедиҳад
 
@@ -26,20 +28,26 @@
     ---
     200    100.0 %
 
-Миқдори миёнаи ҷоиза ≈ 41 танга < 50 тангаи гардиш → ҳисоби лоиҳа мантиқан
-дуруст мемонад ва ҳар гардиш ҳатман як ҷоиза медиҳад (ҳадди ақал 10 танга).
+Миқдори миёнаи ҷоиза ≈ 41 танга < 50 тангаи гардиш (10 сомонӣ) → ҳисоби лоиҳа
+мантиқан дуруст мемонад ва ҳар гардиш ҳатман як ҷоиза медиҳад (ҳадди ақал 10 танга).
 """
 from __future__ import annotations
 
 import logging
 import secrets
+from decimal import Decimal, ROUND_HALF_UP
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.config import settings
-from app.models import CoinTransaction, CoinTransactionKind, User
-from app.services import coins
+from app.models import (
+    BalanceTransactionKind,
+    CoinTransaction,
+    CoinTransactionKind,
+    User,
+)
+from app.services import coins, wallet
 
 logger = logging.getLogger("wheel")
 
@@ -78,48 +86,73 @@ def pick_prize() -> int:
     return SEGMENTS[-1][0]
 
 
-def spin_cost() -> int:
-    """Хароҷоти як гардиш аз `.env` (ҳадди ақал 1)."""
-    return max(1, coins._to_int(settings.SPIN_COST_COINS))
+def spin_price_tjs() -> Decimal:
+    """
+    Нархи гардиш дар СОМОНИИ: `SPIN_COST_COINS` танга = SPIN_COST_COINS/COINS_TO_TJS сомонӣ.
+
+    Аз ҳамон `.env` ҳисоб мешавад → нарх ҳеҷ гоҳ аз ивази танга ба баланс
+    (5 танга = 1 сомонӣ) зиёд ё кам намешавад. 50/5 → 10.00 сомонӣ.
+    """
+    coins_cost = max(1, coins._to_int(settings.SPIN_COST_COINS))
+    rate = max(1, coins._to_int(settings.COINS_TO_TJS))
+    return (Decimal(coins_cost) / Decimal(rate)).quantize(
+        Decimal("0.01"), rounding=ROUND_HALF_UP
+    )
 
 
 # =====================================================================
 # 🎡 ЯК ГАРДИШ — ДАР ЯК TRANSACTION
 # =====================================================================
-def spin(db: Session, *, user_id: int) -> tuple[User, int, int]:
+def spin(db: Session, *, user_id: int) -> tuple[User, int, Decimal]:
     """
-    Як гардиши чарх: ҳазми хароҷот + ҷоиза.
+    Як гардиши чарх: ҳазми нархи гардиш АЗ БАЛАНС (сомонӣ) + ҷоиза дар танга.
 
-    Қулфи сатри корбар → рақобат имконпазир нест; ҳар ду сатри
-    `coin_transactions` («spin» ва «spin_reward») якҷоя сабт мешаванд.
+    Дар ЯК transaction:
+      1. қулфи сатри корбар (рақобат имконпазир нест)
+      2. санҷиш: баланс >= нарх ? → не → InsufficientBalance (ҳеҷ тағйирот нест)
+      3. ➖ баланс − нарх бо сатри `BalanceTransaction` (сабти сабаб)
+      4. сатри `coin_transactions` навъи «spin» (amount=0: танга ҳазм
+         намешавад — сатр танҳо сабти гардиш + сабаб «N сомонӣ аз баланс»)
+      5. ➕ ҷоиза дар танга (сатри «spin_reward»)
+      6. COMMIT якҷоя → ҳеҷ гоҳ нимамонда намемонад
 
-    Бармегардонад: (корбар, ҷоиза, хароҷот).
+    Бармегардонад: (корбар, ҷоиза, нархи сомонӣ).
     """
-    price = spin_cost()
+    price = spin_price_tjs()
 
     try:
         # Ҳамон ёрдамчии хидмати coins: қулфи сатр (SELECT ... FOR UPDATE)
         user = coins._lock_user(db, user_id)
-        current = coins._to_int(user.coins)
+        current_balance = wallet._to_decimal(user.balance or 0)
 
-        if current < price:
-            raise coins.InsufficientCoins(
-                f"Танга нокифоя аст: {current} танга (лозим {price})"
+        if current_balance < price:
+            raise wallet.InsufficientBalance(
+                f"Баланс нокифоя аст: {current_balance} сомонӣ "
+                f"(лозим {price} сомонӣ)"
             )
 
         prize = pick_prize()
 
-        # ➖ хароҷоти гардиш
-        user.coins = current - price
+        # ➖ БАЛАНС — нархи гардиш (сомонӣ) + сатри таърихи буриш
+        user.balance = current_balance - price
+        wallet._write_entry(
+            db,
+            user=user,
+            kind=BalanceTransactionKind.DEBIT,
+            amount=-price,
+            reason=f"Гардиши чарх ({price} сомонӣ)",
+        )
+
+        # ➖ Сатри гардиш дар дафтари тангаҳо (amount=0: танга ҳазм намешавад)
         coins._write_coin_entry(
             db,
             user=user,
             kind=CoinTransactionKind.SPIN,
-            amount=-price,
-            reason=f"Гардиши чарх ({price} танга)",
+            amount=0,
+            reason=f"Гардиши чарх ({price} сомонӣ аз баланс)",
         )
 
-        # ➕ ҷоиза
+        # ➕ ҶОИЗА (танга)
         user.coins = coins._to_int(user.coins) + prize
         coins._write_coin_entry(
             db,
@@ -132,12 +165,12 @@ def spin(db: Session, *, user_id: int) -> tuple[User, int, int]:
         db.commit()
         db.refresh(user)
         logger.info(
-            "🎡 Гардиш: -%s +%s → %s танга (user=%s)",
-            price, prize, user.coins, user_id,
+            "🎡 Гардиш: −%s сомонӣ +%s танга → баланс %s / танга %s (user=%s)",
+            price, prize, user.balance, user.coins, user_id,
         )
         return user, prize, price
 
-    except coins.CoinsError:
+    except (coins.CoinsError, wallet.InsufficientBalance):
         db.rollback()
         raise
     except Exception:

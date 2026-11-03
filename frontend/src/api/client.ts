@@ -11,7 +11,6 @@ import type {
   BalanceInfo,
   BalanceTx,
   CoinsExchange,
-  CoinsExchangeTjs,
   CoinsInfo,
   FirelootBalance,
   FirelootCatalog,
@@ -350,17 +349,10 @@ export const api = {
   exchangeCoins: () =>
     request<CoinsExchange>("/coins/exchange", { method: "POST" }),
 
-  /** 💱 Ивази БАЛАНС ба танга (самти нав: 1 сомонӣ = N танга, адади куллӣ) */
-  exchangeToCoins: (amountTjs: number) =>
-    request<CoinsExchangeTjs>("/coins/exchange-to-coins", {
-      method: "POST",
-      body: JSON.stringify({ amount_tjs: amountTjs }),
-    }),
-
   // ========================== 🎡 ЧАРХ ==========================
   /** Сегментҳо + эҳтимолиётҳои воқеӣ + бурди охирин (оммавӣ) */
   wheel: () => request<WheelData>("/coins/wheel"),
-  /** Як гардиш (SPIN_COST_COINS танга) — ҷоиза дар backend ҳисоб мешавад */
+  /** Як гардиш — нарх АЗ БАЛАНС (сомонӣ), ҷоиза дар танга (backend ҳисоб мекунад) */
   spinWheel: () => request<WheelSpin>("/coins/spin", { method: "POST" }),
 
   // ========================== АДМИН ==========================

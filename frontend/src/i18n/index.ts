@@ -332,10 +332,6 @@ const tj: Dict = {
   coinsRate: "{n} танга = 1 сомонӣ",
   minExchange: "Ҳадди ақал {n} танга",
   exchangeCoins: "Иваз ба баланс",
-  exchangeToCoins: "Иваз ба танга",
-  coinsRateTjs: "1 сомонӣ = {n} танга",
-  minExchangeTjs: "Ҳадди ақал {n} сомонӣ",
-  exchangeToCoinsDone: "{amount} танга баҳисоби шумо рехт",
   exchangeDir: "Самти иваз",
   coinUnit: "танга",
   exchangeDone: "Иваз шуд: +{amount} сомонӣ",
@@ -360,14 +356,13 @@ const tj: Dict = {
   pickGameFirst: "Аввал бозӣ-ро интихоб кунед",
   openMyGame: "Кушодани бозӣ",
   wheel: "Чарх",
-  wheelHint: "Гардиш бо тангаҳои шумо — ҳар гардиш ҷоиза медиҳад",
+  wheelHint: "Гардиш аз баланс — ҳар гардиш ҷоиза дар танга медиҳад",
   gardonan: "Гардондан",
   spin: "Гардишкун",
   coinsUnit: "танга",
-  toSpin: "То гардиш — {n} танга",
+  toSpin: "То гардиш — {n} сомонӣ",
   spinReady: "Гардишкун тайёр аст",
   yourCoins: "Тангаҳои шумо",
-  notEnoughCoins: "Танга нокифоя — лозим {n} танга",
   loginToSpin: "Барои гардиш ворид шавед",
   youWon: "Шумо {n} танга бурд кардед!",
   jackpot: "Ҷекпот",
@@ -382,7 +377,7 @@ const tj: Dict = {
   prizeCoins: "Ҷоиза",
   wheelRules: "Қоидаҳои чарх",
   wheelRule1:
-    "Ҳар гардиш {n} танга сарф мекунад; тангаҳо аз фармоиши иҷрочуда, даъват ва админ мебаромаданд.",
+    "Ҳар гардиш {n} сомонӣ аз баланс сарф мекунад; тангаҳо аз бурди чарх, фармоиши иҷрочуда, даъват ва админ меоянд.",
   wheelRule2:
     "Ҷоиза дарҳамон лаҳза ба тангаҳои шумо меафтомад ва онро дар ҳамин саҳифа ба баланс иваз кардан мумкин аст: {rate} танга = 1 сомонӣ.",
   wheelRule3:
@@ -396,7 +391,7 @@ const tj: Dict = {
     "Ҷоиза дар тангаҳои шумо ҷамъ мешавад ва онро ба баланс иваз кардан мумкин аст.",
   faqQ3: "Тангаҳо аз куҷо меоянд?",
   faqA3:
-    "Аз фармоиши иҷрочуда (cashback), аз даъвати дӯстон ва аз иловакунии админ.",
+    "Аз бурди чарх, аз фармоиши иҷрочуда (cashback), аз даъвати дӯстон ва аз иловакунии админ.",
   kindSpin: "Гардиши чарх",
   kindSpinReward: "Ҷоизаи чарх",
 };
@@ -719,10 +714,6 @@ const ru: Dict = {
   coinsRate: "{n} монет = 1 сомони",
   minExchange: "Минимум {n} монет",
   exchangeCoins: "Обменять в баланс",
-  exchangeToCoins: "Обменять в монеты",
-  coinsRateTjs: "1 сомони = {n} монет",
-  minExchangeTjs: "Минимум {n} сомони",
-  exchangeToCoinsDone: "{amount} монет зачислено",
   exchangeDir: "Направление обмена",
   coinUnit: "монет",
   exchangeDone: "Обменяно: +{amount} сомони",
@@ -747,14 +738,13 @@ const ru: Dict = {
   pickGameFirst: "Сначала выберите игру",
   openMyGame: "Открыть игру",
   wheel: "Колесо",
-  wheelHint: "Вращение за ваши монеты — каждое вращение даёт приз",
+  wheelHint: "Вращение с баланса — каждое вращение даёт приз в монетах",
   gardonan: "Крутить",
   spin: "Крутить",
   coinsUnit: "монет",
-  toSpin: "До вращения — {n} монет",
+  toSpin: "До вращения — {n} сомони",
   spinReady: "Вращение доступно",
   yourCoins: "Ваши монеты",
-  notEnoughCoins: "Мало монет — нужно {n}",
   loginToSpin: "Войдите, чтобы крутить",
   youWon: "Вы выиграли {n} монет!",
   jackpot: "Джекпот",
@@ -769,7 +759,7 @@ const ru: Dict = {
   prizeCoins: "Приз",
   wheelRules: "Правила колеса",
   wheelRule1:
-    "Каждое вращение стоит {n} монет; монеты даются за выполненные заказы, приглашения и от администратора.",
+    "Каждое вращение стоит {n} сомони с баланса; монеты даются за выигрыш в колесе, выполненные заказы, приглашения и от администратора.",
   wheelRule2:
     "Приз сразу добавляется в ваши монеты, и его можно обменять на баланс прямо здесь: {rate} монет = 1 сомони.",
   wheelRule3:
@@ -783,7 +773,7 @@ const ru: Dict = {
     "Приз накапливается в ваших монетах и его можно обменять на баланс.",
   faqQ3: "Откуда берутся монеты?",
   faqA3:
-    "За выполненные заказы (cashback), за приглашение друзей и от администратора.",
+    "За выигрыш в колесе, за выполненные заказы (cashback), за приглашение друзей и от администратора.",
   kindSpin: "Вращение колеса",
   kindSpinReward: "Приз колеса",
 };
@@ -1106,10 +1096,6 @@ const en: Dict = {
   coinsRate: "{n} coins = 1 TJS",
   minExchange: "Minimum {n} coins",
   exchangeCoins: "Convert to balance",
-  exchangeToCoins: "Convert to coins",
-  coinsRateTjs: "1 TJS = {n} coins",
-  minExchangeTjs: "Minimum {n} TJS",
-  exchangeToCoinsDone: "{amount} coins credited",
   exchangeDir: "Exchange direction",
   coinUnit: "coins",
   exchangeDone: "Converted: +{amount} TJS",
@@ -1134,14 +1120,13 @@ const en: Dict = {
   pickGameFirst: "Choose a game first",
   openMyGame: "Open the game",
   wheel: "Wheel",
-  wheelHint: "Spin with your coins — every spin gives a prize",
+  wheelHint: "Spin from your balance — every spin gives coins as a prize",
   gardonan: "Spin",
   spin: "Spin",
   coinsUnit: "coins",
-  toSpin: "To spin — {n} coins",
+  toSpin: "To spin — {n} TJS",
   spinReady: "Ready to spin",
   yourCoins: "Your coins",
-  notEnoughCoins: "Not enough coins — {n} needed",
   loginToSpin: "Sign in to spin",
   youWon: "You won {n} coins!",
   jackpot: "Jackpot",
@@ -1156,7 +1141,7 @@ const en: Dict = {
   prizeCoins: "Prize",
   wheelRules: "Wheel rules",
   wheelRule1:
-    "Each spin costs {n} coins; coins come from delivered orders, invites and the admin.",
+    "Each spin costs {n} TJS from your balance; coins come from wheel wins, delivered orders, invites and the admin.",
   wheelRule2:
     "The prize is added to your coins right away and can be converted to balance here: {rate} coins = 1 TJS.",
   wheelRule3:
@@ -1170,7 +1155,7 @@ const en: Dict = {
     "The prize accumulates in your coins and can be converted to balance.",
   faqQ3: "Where do coins come from?",
   faqA3:
-    "From delivered orders (cashback), from inviting friends and from the admin.",
+    "From wheel wins, from delivered orders (cashback), from inviting friends and from the admin.",
   kindSpin: "Wheel spin",
   kindSpinReward: "Wheel prize",
 };
@@ -1493,10 +1478,6 @@ const uz: Dict = {
   coinsRate: "{n} tanga = 1 somoni",
   minExchange: "Kamida {n} tanga",
   exchangeCoins: "Balansga almashtirish",
-  exchangeToCoins: "Tangaga almashtirish",
-  coinsRateTjs: "1 somoni = {n} tanga",
-  minExchangeTjs: "Kamida {n} somoni",
-  exchangeToCoinsDone: "{amount} tanga hisobingizga tushdi",
   exchangeDir: "Almashtirish yo'nalishi",
   coinUnit: "tanga",
   exchangeDone: "Almashtirildi: +{amount} somoni",
@@ -1521,14 +1502,13 @@ const uz: Dict = {
   pickGameFirst: "Avval o'yinni tanlang",
   openMyGame: "O'yinni ochish",
   wheel: "G'ildirak",
-  wheelHint: "Tangalaringiz bilan aylantiring — har bir aylantirish sovg'a beradi",
+  wheelHint: "Balansdan aylantiring — har bir aylantirish tanga sovg'a beradi",
   gardonan: "Aylantirish",
   spin: "Aylantirish",
   coinsUnit: "tanga",
-  toSpin: "Aylantirishgacha — {n} tanga",
+  toSpin: "Aylantirishgacha — {n} somoni",
   spinReady: "Aylantirish tayyor",
   yourCoins: "Sizning tangangiz",
-  notEnoughCoins: "Tanga yetmaydi — {n} kerak",
   loginToSpin: "Aylantirish uchun kiring",
   youWon: "Siz {n} tanga yutdingiz!",
   jackpot: "Jekpot",
@@ -1543,7 +1523,7 @@ const uz: Dict = {
   prizeCoins: "Sovg'a",
   wheelRules: "G'ildirak qoidalari",
   wheelRule1:
-    "Har bir aylantirish {n} tanga turadi; tangalar bajarilgan buyurtmalar, takliflar va admindan keladi.",
+    "Har bir aylantirish balansdan {n} somoni turadi; tangalar g'ildirakda yutish, bajarilgan buyurtmalar, takliflar va admindan keladi.",
   wheelRule2:
     "Sovg'a darhol tangalaringizga tushadi va shu yerda balansga almashtirish mumkin: {rate} tanga = 1 somoni.",
   wheelRule3:
@@ -1556,7 +1536,7 @@ const uz: Dict = {
   faqA2: "Sovg'a tangalaringizda to'planadi va balansga almashtiriladi.",
   faqQ3: "Tangalar qayerdan keladi?",
   faqA3:
-    "Bajarilgan buyurtmalardan (cashback), do'stlarni taklif qilishdan va admindan.",
+    "G'ildirakda yutishdan, bajarilgan buyurtmalardan (cashback), do'stlarni taklif qilishdan va admindan.",
   kindSpin: "G'ildirak aylantirishi",
   kindSpinReward: "G'ildirak sovg'asi",
 };

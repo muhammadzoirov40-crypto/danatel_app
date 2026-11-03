@@ -244,10 +244,9 @@ class CoinsMeOut(BaseModel):
     coins: int = 0
     coins_per_tjs: int = 5       # ҳар 1 сомонӣ = N танга (cashback)
     exchange_rate: int = 100     # N танга = 1 сомонӣ
-    min_exchange: int = 100      # ҳадди ақал барои иваз
-    # 💱 Ивази БАЛАНС → танга (самти нав): ҳадди ақал N сомонӣ
-    min_exchange_tjs: int = 1
-    spin_cost: int = 50          # хароҷоти як гардиши чарх
+    min_exchange: int = 100      # ҳадди ақал барои ивази танга ба баланс
+    # 🎡 Нархи гардиш дар сомонӣ (SPIN_COST_COINS/COINS_TO_TJS) — аз баланс
+    spin_cost_tjs: Decimal = Decimal("10.00")
     referral_code: str = ""
     referred_count: int = 0
     # 🔗 Қоидаи даъват: ҳар 2 даъватшуда = N танга (аз .env)
@@ -278,23 +277,6 @@ class CoinsExchangeOut(BaseModel):
     spent_coins: int
 
 
-class CoinsExchangeTjsIn(BaseModel):
-    """Ивази баланс (сомонӣ) ба танга — танҳо адади куллӣ."""
-
-    amount_tjs: Decimal = Field(
-        gt=0, description="Маблағ дар сомонӣ (бояд адади куллӣ бошад)"
-    )
-
-
-class CoinsExchangeTjsOut(BaseModel):
-    """Натиҷаи ивази баланс ба танга (самти нав)."""
-
-    coins: int
-    balance: Decimal
-    gained_coins: int
-    spent_tjs: Decimal
-
-
 # =====================================================================
 # 🎡 ЧАРХИ БАХТ (Фаза 2)
 # =====================================================================
@@ -321,7 +303,7 @@ class WheelRecentWinOut(BaseModel):
 class WheelOut(BaseModel):
     """Маълумоти чарх барои саҳифа (оммавӣ, бе маълумоти шахсӣ)."""
 
-    cost: int = 50
+    cost_tjs: Decimal = Decimal("10.00")   # нархи гардиш дар сомонӣ (аз баланс)
     exchange_rate: int = 100
     min_exchange: int = 100
     total_spins: int = 0
@@ -334,7 +316,7 @@ class WheelSpinOut(BaseModel):
 
     prize: int
     jackpot: bool = False
-    cost: int
+    cost_tjs: Decimal
     coins_after: int
 
 

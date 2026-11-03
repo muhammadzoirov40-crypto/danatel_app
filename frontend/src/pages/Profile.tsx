@@ -190,6 +190,8 @@ export default function Profile() {
     admin_grant: "kindAdminGrant",
     exchange: "kindExchange",
     exchange_in: "kindExchangeIn",
+    spin: "kindSpin",
+    spin_reward: "kindSpinReward",
   };
 
   return (
@@ -545,13 +547,16 @@ export default function Profile() {
                         <div className="shrink-0 text-right">
                           <div
                             className={`text-sm font-black tabular-nums ${
-                              tx.amount >= 0
-                                ? "text-emerald-600 dark:text-emerald-400"
-                                : "text-rose-600 dark:text-rose-400"
+                              tx.amount === 0
+                                ? "text-slate-400 dark:text-slate-500"
+                                : tx.amount > 0
+                                  ? "text-emerald-600 dark:text-emerald-400"
+                                  : "text-rose-600 dark:text-rose-400"
                             }`}
                           >
-                            {tx.amount > 0 ? "+" : ""}
-                            {tx.amount}
+                            {tx.amount === 0
+                              ? "—"
+                              : `${tx.amount > 0 ? "+" : ""}${tx.amount}`}
                           </div>
                           <div className="text-[11px] text-slate-400">
                             {new Date(tx.created_at).toLocaleDateString(lang)}

@@ -103,13 +103,9 @@ export default function Wheel() {
   const [showHistory, setShowHistory] = useState(false);
   const [rotation, setRotation] = useState(0);
 
-  // 💱 Иваз ба баланс
+  // 💱 Иваз ба баланс (танга → сомонӣ)
   const [busyEx, setBusyEx] = useState(false);
   const [exMsg, setExMsg] = useState<{ ok: boolean; text: string } | null>(null);
-  // 💱 Иваз — самт: ба баланс (танга→сомонӣ) ё ба танга (сомонӣ→танга)
-  const [exDir, setExDir] = useState<"toBalance" | "toCoins">("toBalance");
-  const [tjsAmount, setTjsAmount] = useState("");
-  const [busyEx2, setBusyEx2] = useState(false);
 
   const timerRef = useRef<number | null>(null);
 
@@ -163,20 +159,15 @@ export default function Wheel() {
     };
   }, []);
 
-  const cost = data?.cost ?? 0;
+  // 🎡 Нархи гардиш дар СОМОНИИ (аз баланс) — ҳама аз backend, фронт ҳисоб намекунад
+  const costTjs = Number(data?.cost_tjs ?? 0);
   const exchangeRate = mine?.exchange_rate ?? data?.exchange_rate ?? 0;
   const minExchange = mine?.min_exchange ?? data?.min_exchange ?? 0;
-  const minExchangeTjs = mine?.min_exchange_tjs ?? 1;
-  const tjsNum = Number(tjsAmount);
-  const tjsOk =
-    !!tjsAmount &&
-    !Number.isNaN(tjsNum) &&
-    Number.isInteger(tjsNum) &&
-    tjsNum >= minExchangeTjs;
   const myCoins = mine?.coins ?? null;
-  const missing = myCoins !== null && myCoins < cost;
   const waitLogin = !user;
   const waitCoins = !!user && myCoins === null;
+  // Баланс бояд барои нархи гардиш кофӣ бошад
+  const missing = !!user && myCoins !== null && balance < costTjs;
   const pickedSlug = mine?.favorite_game ?? null;
   const pickedGame = games.find((g) => g.slug === pickedSlug) ?? null;
   // Қоидаи соҳиб: «ба ҳама накун» — корбар аввал бозии худашро интихоб мекунад
@@ -251,6 +242,7 @@ export default function Wheel() {
         setResult(res);
         void loadMine(); // тангаҳо + таърихи гардишҳо нав
         void loadWheel(); // бурдиҳони охирин нав
+        void refreshUser(); // баланс пас аз ҳазми нархи гардиш нав
       }, SPIN_MS + 200);
     } catch (e) {
       setSpinning(false);
@@ -282,33 +274,6 @@ export default function Wheel() {
       });
     } finally {
       setBusyEx(false);
-    }
-  };
-
-  /** 💱 Ивази БАЛАНС ба танга: 1 сомонӣ = N танга (танҳо адади куллӣ) */
-  const doExchangeToCoins = async () => {
-    if (!mine || busyEx2 || !tjsOk) return;
-    setBusyEx2(true);
-    setExMsg(null);
-    try {
-      const res = await api.exchangeToCoins(tjsNum);
-      setExMsg({
-        ok: true,
-        text: t("exchangeToCoinsDone").replace(
-          "{amount}",
-          String(res.gained_coins),
-        ),
-      });
-      setTjsAmount("");
-      await refreshUser();
-      await loadMine();
-    } catch (e) {
-      setExMsg({
-        ok: false,
-        text: e instanceof ApiError ? e.message : t("error"),
-      });
-    } finally {
-      setBusyEx2(false);
     }
   };
 
@@ -389,13 +354,16 @@ export default function Wheel() {
                     <div className="shrink-0 text-right">
                       <div
                         className={`text-sm font-black tabular-nums ${
-                          tx.amount >= 0
-                            ? "text-emerald-600 dark:text-emerald-400"
-                            : "text-rose-600 dark:text-rose-400"
+                          tx.amount === 0
+                            ? "text-slate-400 dark:text-slate-500"
+                            : tx.amount > 0
+                              ? "text-emerald-600 dark:text-emerald-400"
+                              : "text-rose-600 dark:text-rose-400"
                         }`}
                       >
-                        {tx.amount > 0 ? "+" : ""}
-                        {tx.amount}
+                        {tx.amount === 0
+                          ? "—"
+                          : `${tx.amount > 0 ? "+" : ""}${tx.amount}`}
                       </div>
                       <div className="text-[11px] text-slate-400">
                         {new Date(tx.created_at).toLocaleString(lang)}
@@ -662,7 +630,7 @@ export default function Wheel() {
               ) : (
                 <>
                   <Ic icon={Sparkles} />
-                  {t("spin")} — {cost} {t("coinsUnit")}
+                  {t("spin")} — {costTjs.toLocaleString("tj-TJ")} {t("somoni")}
                 </>
               )}
             </button>
@@ -674,11 +642,19 @@ export default function Wheel() {
                 </span>
               ) : missing ? (
                 <span className="text-rose-600 dark:text-rose-400">
-                  {t("notEnoughCoins").replace("{n}", String(cost))}
+                  {t("insufficientBalance")} — {t("currentBalance")}:{" "}
+                  <span className="tabular-nums">
+                    {balance.toLocaleString("tj-TJ")}
+                  </span>{" "}
+                  {t("somoni")} / {costTjs.toLocaleString("tj-TJ")}
                 </span>
               ) : mine ? (
                 <span>
-                  {t("yourCoins")}:{" "}
+                  {t("currentBalance")}:{" "}
+                  <span className="tabular-nums">
+                    {balance.toLocaleString("tj-TJ")}
+                  </span>{" "}
+                  {t("somoni")} · {t("yourCoins")}:{" "}
                   <span className="tabular-nums">
                     {myCoins?.toLocaleString("tj-TJ")}
                   </span>{" "}
@@ -706,8 +682,9 @@ export default function Wheel() {
                       )}`
                     : t("youWon").replace("{n}", String(result.prize))}
                 </span>
-                <span className="shrink-0 tabular-nums text-slate-500 dark:text-slate-400">
-                  → {result.coins_after} {t("coinsUnit")}
+                <span className="tabular-nums text-right text-slate-500 dark:text-slate-400">
+                  −{Number(result.cost_tjs).toLocaleString("tj-TJ")}{" "}
+                  {t("somoni")} → {result.coins_after} {t("coinsUnit")}
                 </span>
               </div>
             )}
@@ -725,157 +702,48 @@ export default function Wheel() {
           </div>
         </section>
 
-        {/* ===== 💱 ИВАЗ: ба баланс / ба танга (ЗЕБО) ===== */}
+        {/* ===== 💱 ИВАЗИ ТАНГА БА БАЛАНС (танга → сомонӣ) ===== */}
         {user && mine && (
-          <section className="card p-4 sm:p-5" aria-label={t("exchangeDir")}>
-            {/* 🔘 Самти иваз — toggle-и сегментӣ (ду нима, баробар) */}
-            <div
-              role="tablist"
-              aria-label={t("exchangeDir")}
-              className="mb-4 grid grid-cols-2 gap-1 rounded-2xl bg-slate-100 p-1 dark:bg-slate-800/80"
-            >
+          <section className="card p-4 sm:p-5" aria-label={t("exchangeCoins")}>
+            <div className="space-y-3">
+              <div className="flex items-center gap-2.5">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-[0_3px_8px_rgba(245,158,11,0.4)]">
+                  <Ic icon={Coins} size="sm" className="text-white" />
+                </span>
+                <span className="text-sm font-extrabold text-slate-800 dark:text-slate-100">
+                  {t("exchangeCoins")}
+                </span>
+              </div>
+
+              {/* 📌 Callout-и нарху ҳадд — нарм ва хонда */}
+              <div className="flex items-start gap-2 rounded-xl bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 ring-1 ring-blue-100 dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-500/20">
+                <Ic icon={CircleHelp} size="xs" className="mt-0.5 shrink-0" />
+                <span>
+                  {t("coinsRate").replace("{n}", String(exchangeRate))} ·{" "}
+                  {t("minExchange").replace("{n}", String(minExchange))}
+                </span>
+              </div>
+
               <button
                 type="button"
-                role="tab"
-                aria-selected={exDir === "toBalance"}
-                onClick={() => setExDir("toBalance")}
-                className={`rounded-xl px-3 py-2 text-xs sm:text-sm font-extrabold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${
-                  exDir === "toBalance"
-                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/30"
-                    : "text-slate-600 hover:bg-white/70 dark:text-slate-300 dark:hover:bg-white/10"
-                }`}
+                onClick={() => void doExchange()}
+                disabled={busyEx || mine.coins < mine.min_exchange}
+                aria-disabled={busyEx || mine.coins < mine.min_exchange}
+                className="btn-primary w-full justify-center text-sm disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {t("exchangeCoins")}
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={exDir === "toCoins"}
-                onClick={() => setExDir("toCoins")}
-                className={`rounded-xl px-3 py-2 text-xs sm:text-sm font-extrabold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${
-                  exDir === "toCoins"
-                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/30"
-                    : "text-slate-600 hover:bg-white/70 dark:text-slate-300 dark:hover:bg-white/10"
-                }`}
-              >
-                {t("exchangeToCoins")}
+                {busyEx ? (
+                  <>
+                    <Ic icon={Loader2} className="animate-spin" />
+                    {t("loading")}
+                  </>
+                ) : (
+                  <>
+                    <Ic icon={Coins} />
+                    {t("exchangeCoins")}
+                  </>
+                )}
               </button>
             </div>
-
-            {exDir === "toBalance" ? (
-              /* ---- Танга → Баланс ---- */
-              <div className="space-y-3">
-                <div className="flex items-center gap-2.5">
-                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-[0_3px_8px_rgba(245,158,11,0.4)]">
-                    <Ic icon={Coins} size="sm" className="text-white" />
-                  </span>
-                  <span className="text-sm font-extrabold text-slate-800 dark:text-slate-100">
-                    {t("exchangeCoins")}
-                  </span>
-                </div>
-
-                {/* 📌 Callout-и нарху ҳадд — нарм ва хонда */}
-                <div className="flex items-start gap-2 rounded-xl bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 ring-1 ring-blue-100 dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-500/20">
-                  <Ic icon={CircleHelp} size="xs" className="mt-0.5 shrink-0" />
-                  <span>
-                    {t("coinsRate").replace("{n}", String(exchangeRate))} ·{" "}
-                    {t("minExchange").replace("{n}", String(minExchange))}
-                  </span>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => void doExchange()}
-                  disabled={busyEx || mine.coins < mine.min_exchange}
-                  aria-disabled={busyEx || mine.coins < mine.min_exchange}
-                  className="btn-primary w-full justify-center text-sm disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {busyEx ? (
-                    <>
-                      <Ic icon={Loader2} className="animate-spin" />
-                      {t("loading")}
-                    </>
-                  ) : (
-                    <>
-                      <Ic icon={Coins} />
-                      {t("exchangeCoins")}
-                    </>
-                  )}
-                </button>
-              </div>
-            ) : (
-              /* ---- Баланс → Танга ---- */
-              <div className="space-y-3">
-                <div className="flex items-center gap-2.5">
-                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-sky-400 to-blue-600 shadow-[0_3px_8px_rgba(59,130,246,0.4)]">
-                    <Ic icon={Coins} size="sm" className="text-white" />
-                  </span>
-                  <span className="text-sm font-extrabold text-slate-800 dark:text-slate-100">
-                    {t("exchangeToCoins")}
-                  </span>
-                </div>
-
-                {/* 📌 Callout-и нарху ҳадд */}
-                <div className="flex items-start gap-2 rounded-xl bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 ring-1 ring-blue-100 dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-500/20">
-                  <Ic icon={CircleHelp} size="xs" className="mt-0.5 shrink-0" />
-                  <span>
-                    {t("coinsRateTjs").replace("{n}", String(exchangeRate))} ·{" "}
-                    {t("minExchangeTjs").replace("{n}", String(minExchangeTjs))}
-                  </span>
-                </div>
-
-                <div>
-                  <label className="label mb-1" htmlFor="ex-tjs-amount">
-                    {t("amount")} ({t("somoni")})
-                  </label>
-                  <input
-                    id="ex-tjs-amount"
-                    className="input !py-2.5 text-sm"
-                    inputMode="numeric"
-                    placeholder="1"
-                    value={tjsAmount}
-                    onChange={(e) => setTjsAmount(e.target.value)}
-                  />
-                  {/* 💰 Баланси чорӣ + пешбинӣ — дар як сатри тоза */}
-                  <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-                    <span className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2 py-1 font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-                      {t("currentBalance")}:{" "}
-                      <b className="tabular-nums text-slate-900 dark:text-white">
-                        {Number(balance).toFixed(2)}
-                      </b>{" "}
-                      {t("somoni")}
-                    </span>
-                    {tjsOk && (
-                      <span className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2 py-1 font-semibold text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/20">
-                        → <b className="tabular-nums">{(Number(balance) - tjsNum).toFixed(2)}</b>{" "}
-                        {t("somoni")} · +<b className="tabular-nums">{tjsNum * exchangeRate}</b>{" "}
-                        {t("coinUnit")}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => void doExchangeToCoins()}
-                  disabled={busyEx2 || !tjsOk}
-                  aria-disabled={busyEx2 || !tjsOk}
-                  className="btn-primary w-full justify-center text-sm disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {busyEx2 ? (
-                    <>
-                      <Ic icon={Loader2} className="animate-spin" />
-                      {t("loading")}
-                    </>
-                  ) : (
-                    <>
-                      <Ic icon={Coins} />
-                      {t("exchangeToCoins")}
-                    </>
-                  )}
-                </button>
-              </div>
-            )}
 
             {exMsg && (
               <div
@@ -1043,7 +911,7 @@ export default function Wheel() {
           <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
             <li className="flex gap-2">
               <span aria-hidden className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-500" />
-              <span>{t("wheelRule1").replace("{n}", String(cost))}</span>
+              <span>{t("wheelRule1").replace("{n}", String(costTjs))}</span>
             </li>
             <li className="flex gap-2">
               <span aria-hidden className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-500" />
