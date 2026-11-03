@@ -13,6 +13,7 @@ import {
   PartyPopper,
   ReceiptText,
   RefreshCw,
+  Send,
   Smartphone,
   Upload,
 } from "lucide-react";
@@ -411,6 +412,15 @@ export default function OrderPage() {
             <Ic icon={House} />
             {t("goHome")}
           </Link>
+
+          {/* 💬 Пардохт НОКОМ шуд → чат бо админ дар Telegram (@Muhammad_beckend):
+              харидор дар ҳамон лаҳза метавонад муроҷиат кунад. */}
+          {order.status === "failed" && (
+            <a href="https://t.me/Muhammad_beckend" className="btn-primary w-full">
+              <Ic icon={Send} />
+              {t("chatWithAdmin")}
+            </a>
+          )}
         </div>
 
         {!paid && (
