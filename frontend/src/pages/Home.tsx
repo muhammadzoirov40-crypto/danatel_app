@@ -239,14 +239,17 @@ export default function Home() {
                 type="button"
                 onClick={() => setFilterTab("favorites")}
                 aria-pressed={filterTab === "favorites"}
-                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-[13px] font-bold transition active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-400 ${
+                /* Мобилӣ (≤420px) чип танҳо иконка мешавад — матн дар 320px бурида мешуд.
+                   aria-label номи дастрасиро нигоҳ дорад, вақте матн пинҳон аст. */
+                aria-label={lang === "ru" ? "Избранное" : lang === "uz" ? "Sevimlilar" : lang === "en" ? "Favorites" : "Дӯстдоштаҳо"}
+                className={`inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full px-3.5 py-2 text-[13px] font-bold transition active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-400 max-[420px]:min-h-9 ${
                   filterTab === "favorites"
                     ? "bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-md shadow-pink-500/35"
                     : "bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:ring-white/10 dark:hover:bg-white/10"
                 }`}
               >
                 <Ic icon={Heart} size="xs" className={favorites.length ? "fill-current" : ""} />
-                <span>{lang === "ru" ? "Избранное" : lang === "uz" ? "Sevimlilar" : lang === "en" ? "Favorites" : "Дӯстдоштаҳо"}</span>
+                <span className="max-[420px]:hidden">{lang === "ru" ? "Избранное" : lang === "uz" ? "Sevimlilar" : lang === "en" ? "Favorites" : "Дӯстдоштаҳо"}</span>
                 {favorites.length > 0 && (
                   <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] bg-white/20">{favorites.length}</span>
                 )}
