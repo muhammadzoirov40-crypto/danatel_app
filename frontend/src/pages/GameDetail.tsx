@@ -110,10 +110,6 @@ export default function GameDetail() {
 
   return (
     <div className="mx-auto max-w-6xl px-3 sm:px-4 py-5 sm:py-8">
-      {/* ⬅️ Тугмаи бозгашт — ДАР ЗЕРИ navbar (болои баннер, берун аз он).
-          Аккун аз компоненти ягонаи BackButton (услуби якхела дар ҳамаи саҳифаҳо). */}
-      <BackButton />
-
       {/* ============ САРПӯШИ БОЗӢ (COVER) ============ */}
       <div
         className="relative rounded-3xl overflow-hidden shadow-[0_22px_50px_-25px_rgba(37,99,235,0.7)] mb-5"
@@ -154,36 +150,43 @@ export default function GameDetail() {
         />
 
         {/* Мазмуни сарпӯш */}
-        <div className="relative flex items-center gap-4 sm:gap-6 p-5 sm:p-8 text-white">
-          <div className="shrink-0">
-            <GameLogo game={game} size="hero" />
+        <div className="relative p-5 sm:p-8 text-white">
+          {/* ⬅️ «Бозгашт» ДАР ДОХИЛИ САРПӯШ, дар болои мазмун — танҳо саҳифаи бозӣ
+              (талаби соҳиб 03.11.2026: тугма бояд ДАР БОЛОИ БОЗӢ бошад). */}
+          <div className="mb-3">
+            <BackButton />
           </div>
-          <div className="min-w-0">
-            <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-semibold uppercase tracking-wider bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full mb-2">
-              <Ic icon={Gem} size="xs" />
-              {t("topup")}
-            </span>
-            <h1 className="text-2xl sm:text-4xl font-extrabold leading-tight drop-shadow-sm">
-              {game.name}
-            </h1>
-            <p className="text-white/85 text-sm sm:text-base mt-1.5">
-              {t("gameSubtitle")}
-            </p>
+          <div className="flex items-center gap-4 sm:gap-6">
+            <div className="shrink-0">
+              <GameLogo game={game} size="hero" />
+            </div>
+            <div className="min-w-0">
+              <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-semibold uppercase tracking-wider bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full mb-2">
+                <Ic icon={Gem} size="xs" />
+                {t("topup")}
+              </span>
+              <h1 className="text-2xl sm:text-4xl font-extrabold leading-tight drop-shadow-sm">
+                {game.name}
+              </h1>
+              <p className="text-white/85 text-sm sm:text-base mt-1.5">
+                {t("gameSubtitle")}
+              </p>
 
-            {/* Чипҳои асосӣ */}
-            <div className="flex flex-wrap gap-2 mt-3">
-              {minPrice != null && (
-                <span className="text-xs sm:text-sm bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full font-semibold">
-                  {t("from")} {minPrice.toLocaleString("tj-TJ")} {t("currency")}
-                </span>
-              )}
-              {itemsCount > 0 && (
-                <span className="text-xs sm:text-sm bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full">
-                  {itemsCount} {t("statProducts")}
-                </span>
-              )}
-              {/* ⚠️ Чипи «Дар сонияҳо» (даъвои суръат) бароварда шуд —
-                  танҳо маълумоти воқеӣ: нархи аз + шумораи бастаҳо */}
+              {/* Чипҳои асосӣ */}
+              <div className="flex flex-wrap gap-2 mt-3">
+                {minPrice != null && (
+                  <span className="text-xs sm:text-sm bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full font-semibold">
+                    {t("from")} {minPrice.toLocaleString("tj-TJ")} {t("currency")}
+                  </span>
+                )}
+                {itemsCount > 0 && (
+                  <span className="text-xs sm:text-sm bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full">
+                    {itemsCount} {t("statProducts")}
+                  </span>
+                )}
+                {/* ⚠️ Чипи «Дар сонияҳо» (даъвои суръат) бароварда шуд —
+                    танҳо маълумоти воқеӣ: нархи аз + шумораи бастаҳо */}
+              </div>
             </div>
           </div>
         </div>
