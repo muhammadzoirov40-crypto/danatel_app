@@ -87,6 +87,8 @@ export default function OrderPage() {
   // ⭐ Тақриз — худкор: танҳо вақте ки фармоиш иҷро шуд (delivered).
   //    Агар муштарӣ ҳанӯз тақриз навишта бошад (my_review_id) — шакл пинҳон.
   const [sum, setSum] = useState<ReviewSummary | null>(null);
+  /** summary омодаву ё хатогӣ шуд? (вагарна блоки тақриз сеҳрона холӣ мемонад) */
+  const [sumReady, setSumReady] = useState(false);
 
   useEffect(() => {
     if (order?.status !== "delivered") return;
@@ -94,10 +96,14 @@ export default function OrderPage() {
     api
       .reviewSummary()
       .then((d) => {
-        if (alive) setSum(d);
+        if (alive) {
+          setSum(d);
+          setSumReady(true);
+        }
       })
       .catch(() => {
-        /* хатогӣ → шакл пинҳон мемонад */
+        /* хатогӣ → шакл пинҳон, аммо «боргирӣ» ҳам баромад */
+        if (alive) setSumReady(true);
       });
     return () => {
       alive = false;
@@ -344,11 +350,33 @@ export default function OrderPage() {
         )}
 
         {/* ⭐ Тақриз дар бораи ин фармоиш — пас аз иҷро ХУДКОР пайдо мешавад.
-            Танҳо барои муштариёни бо фармоиши иҷрочуда (can_review) ва ҳанӯз
-            бе тақриз (my_review_id = null). Мебарад: ҳамон фармоиш (order_id). */}
-        {order.status === "delivered" && sum?.can_review && !sum.my_review_id && (
-          <div className="mt-5">
-            <ReviewForm orderId={orderId} />
+            Ҳолатҳои возеҳ (дар мобил таъхир ба чашм намезанад):
+            боргирӣ → шакл (can_review + бе тақриз) → «фиристода шуд» */}
+        {order.status === "delivered" && !sumReady && (
+          <div
+            role="status"
+            className="mt-5 flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-500"
+          >
+            <Ic icon={Loader2} size="xs" className="animate-spin text-slate-400" />
+            {t("loading")}
+          </div>
+        )}
+        {order.status === "delivered" &&
+          sumReady &&
+          sum?.can_review &&
+          !sum.my_review_id && (
+            <div className="mt-5">
+              <ReviewForm orderId={orderId} />
+            </div>
+          )}
+        {order.status === "delivered" && sumReady && sum?.my_review_id && (
+          <div className="mt-5 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-700">
+            <Ic
+              icon={CircleCheck}
+              size="xs"
+              className="mt-0.5 shrink-0 text-amber-500"
+            />
+            <span>{t("reviewSent")}</span>
           </div>
         )}
 
