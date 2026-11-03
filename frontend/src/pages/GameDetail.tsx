@@ -160,7 +160,7 @@ export default function GameDetail() {
               {t("topup")}
             </span>
           </div>
-          <div className="flex items-center gap-4 sm:gap-6">
+          <div className="flex items-start gap-4 sm:gap-6">
             <div className="shrink-0">
               <GameLogo game={game} size="hero" />
             </div>
