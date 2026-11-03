@@ -81,6 +81,9 @@ export interface Order {
   dc_payment_url?: string | null;
   created_at: string;
   game_name?: string;
+  /** 🎮 Слаг + логотипи бозӣ — барои иконка дар корти фармоиш */
+  game_slug?: string;
+  image_url?: string | null;
   product_name?: string;
   /** 🧾 Чеки пардохт (расм/матн) аз корбар */
   receipt_file?: string | null;

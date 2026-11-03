@@ -7,6 +7,7 @@ import { copyText } from "../utils/clipboard";
 import type { Order } from "../types";
 import StatusBadge from "../components/StatusBadge";
 import BackButton from "../components/BackButton";
+import GameLogo from "../components/GameLogo";
 import { Ic } from "../components/Icons";
 
 /**
@@ -80,14 +81,15 @@ export default function MyOrders() {
     <div className="profile-soft min-h-[calc(100vh-4rem)]">
       <div className="mx-auto max-w-3xl px-4 py-8 space-y-4">
         {/* ⬅️ Тугмаи бозгашт (услуби якхела дар ҳамаи саҳифаҳо) */}
-        <BackButton />
-        {/* ===== САРЛАВҲА ===== */}
-        <div className="flex items-center justify-between gap-3 flex-wrap">
+        {/* ===== САРЛАВҲА: [← иконка] [ном] ДАР ЯК САТР
+             (талаби соҳиб — мисли скриншоти «Интересное») ===== */}
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <BackButton iconOnly />
           <h1 className="text-2xl md:text-3xl font-black tracking-tight">
             {t("myOrders")}
           </h1>
           {!loading && !err && (
-            <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">
+            <span className="ml-auto text-sm font-semibold text-slate-500 dark:text-slate-400">
               {orders.length} / {t("orders")}
             </span>
           )}
@@ -140,19 +142,37 @@ export default function MyOrders() {
               <li key={o.id}>
                 <Link
                   to={`/order/${o.id}`}
-                  className="card flex items-center justify-between gap-3 p-4 transition hover:border-brand-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
+                  className="card flex items-center justify-between gap-3 p-4 transition hover:border-brand-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400
+                             max-[420px]:flex-col max-[420px]:items-stretch max-[420px]:gap-2.5"
                 >
-                  <div className="min-w-0">
-                    <div className="text-sm font-semibold">
-                      #{o.id} — {o.game_name}
+                  {/* 🎮 Иконкаи бозӣ + ном — ҳамон тавр мисли кортҳои бозӣ
+                      (талаби соҳиб): сатри боло [logo] [ном], дар PC сатри ягона */}
+                  <div className="flex min-w-0 flex-1 items-start gap-3 max-[420px]:gap-2.5">
+                    <div
+                      aria-hidden
+                      className="w-10 h-10 shrink-0 max-[420px]:w-9 max-[420px]:h-9"
+                    >
+                      <GameLogo
+                        game={{
+                          name: o.game_name ?? "",
+                          image_url: o.image_url,
+                        }}
+                      />
                     </div>
-                    <div className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                      {o.product_name}
-                      {o.player_id ? ` · ID: ${o.player_id}` : ""} ·{" "}
-                      {new Date(o.created_at).toLocaleDateString(lang)}
+                    <div className="min-w-0">
+                      <div className="text-sm font-semibold">
+                        #{o.id} — {o.game_name}
+                      </div>
+                      <div className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                        {o.product_name}
+                        {o.player_id ? ` · ID: ${o.player_id}` : ""} ·{" "}
+                        {new Date(o.created_at).toLocaleDateString(lang)}
+                      </div>
                     </div>
                   </div>
-                  <div className="shrink-0 text-right">
+                  {/* Нарх + бейҷа: дар мобилӣ (≤420px) қтори алоҳидаи
+                      паҳн — то 320px танг набошад; дар PC сатри рост мисли қаблан */}
+                  <div className="shrink-0 text-right max-[420px]:flex max-[420px]:items-center max-[420px]:justify-between max-[420px]:text-left">
                     <div className="text-sm font-bold tabular-nums">
                       {Number(o.amount_tjs).toLocaleString("tj-TJ")}{" "}
                       {t("currency")}

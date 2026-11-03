@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Gamepad2 } from "lucide-react";
-import type { Game } from "../types";
 import { Ic } from "./Icons";
 
 /** Фолбэк: агар расм нобурд → иконкаи касбии бозӣ (на emoji) */
@@ -9,7 +8,8 @@ function GamepadFallback() {
 }
 
 interface Props {
-  game: Game;
+  /** Танҳо ном + расм кофист (мисли корти фармоиш: `Game` пурра лозим нест) */
+  game: { name: string; image_url?: string | null };
   /** Андоза: "card" (саҳифаи асосӣ) | "hero" (тафсилот) */
   size?: "card" | "hero";
 }

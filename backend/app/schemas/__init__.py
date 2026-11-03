@@ -381,6 +381,9 @@ class OrderOut(BaseModel):
     dc_payment_url: str | None = None
     created_at: datetime
     game_name: str = ""
+    # 🎮 Слаг + логотипи бозӣ — барои иконкаи бозӣ дар корти фармоиш
+    game_slug: str = ""
+    image_url: str | None = None
     product_name: str = ""
     # 🧾 Чеки пардохт
     receipt_file: str | None = None
