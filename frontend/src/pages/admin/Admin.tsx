@@ -16,6 +16,7 @@ import {
 import { api } from "../../api/client";
 import { useApp } from "../../context/AppContext";
 import { Ic } from "../../components/Icons";
+import BackButton from "../../components/BackButton";
 import Dashboard from "./Dashboard";
 import Orders from "./Orders";
 import Products from "./Products";
@@ -73,10 +74,15 @@ export default function Admin() {
           «Баромад» ба қатори дуюм мепечид (3 қатор ≈130px). Ҳоло матни
           хурд (text-base) + justify-between → як сатр, Баромад намепечад. */}
       <div className="flex items-center justify-between gap-2 mb-3">
-        <h1 className="text-base sm:text-xl font-bold text-white inline-flex items-center gap-2 min-w-0">
-          <Ic icon={Settings} size="md" className="shrink-0" />
-          {t("adminPanel")}
-        </h1>
+        {/* ⬅️ [←] [ном] ДАР ЯК САТР — ҳамон тавр мисли саҳифаҳои корбар
+            (талаби соҳиб «dar admin ham doshta boshad») */}
+        <div className="flex items-center gap-2 min-w-0">
+          <BackButton iconOnly />
+          <h1 className="text-base sm:text-xl font-bold text-white inline-flex items-center gap-2 min-w-0">
+            <Ic icon={Settings} size="md" className="shrink-0" />
+            {t("adminPanel")}
+          </h1>
+        </div>
         <button onClick={logout} className="btn-ghost text-sm shrink-0">
           <Ic icon={LogOut} />
           {t("logout")}

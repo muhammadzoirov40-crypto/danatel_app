@@ -14,6 +14,7 @@ import type { Order, OrderStatus } from "../../types";
 import { STATUS_META } from "../../types";
 import { useApp } from "../../context/AppContext";
 import { Ic } from "../../components/Icons";
+import GameLogo from "../../components/GameLogo";
 
 const FILTERS: (OrderStatus | "all")[] = [
   "all",
@@ -34,6 +35,25 @@ export default function Orders() {
   const [busy, setBusy] = useState<number | null>(null);
   /** Ҳузвати харидорон: {id: "Ном · @user · 📞 рақам"} — бе онҳам кор мекунад */
   const [labels, setLabels] = useState<Record<string, string>>({});
+  /** 🎮 Логотипи бозӣ барои корт: {номи бозӣ (tj) → расм} аз /admin/games */
+  const [gameImgs, setGameImgs] = useState<Record<string, string>>({});
+
+  // Логотипҳо як дафъа бор мешаванд (админ танҳо иҷозат дорад)
+  useEffect(() => {
+    let alive = true;
+    api
+      .adminGames()
+      .then((gs) => {
+        if (!alive) return;
+        const m: Record<string, string> = {};
+        for (const g of gs) if (g.image_url) m[g.name] = g.image_url;
+        setGameImgs(m);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -140,7 +160,20 @@ export default function Orders() {
                 {orders.map((o) => (
                   <tr key={o.id} className="hover:bg-slate-50">
                     <td className="px-4 py-3 font-mono">#{o.id}</td>
-                    <td className="px-4 py-3">{o.game_name}</td>
+                    <td className="px-4 py-3">
+                      {/* 🎮 Иконкаи бозӣ + ном — ҳамон тавр мисли корти корбар */}
+                      <span className="flex items-center gap-2">
+                        <span aria-hidden className="w-6 h-6 shrink-0">
+                          <GameLogo
+                            game={{
+                              name: o.game_name ?? "",
+                              image_url: gameImgs[o.game_name ?? ""],
+                            }}
+                          />
+                        </span>
+                        {o.game_name}
+                      </span>
+                    </td>
                     <td className="px-4 py-3">{o.product_name}</td>
                     <td className="px-4 py-3 font-mono text-xs">
                       {o.player_id}
@@ -183,8 +216,19 @@ export default function Orders() {
                   </span>
                 </div>
                 <div className="text-sm text-slate-600 space-y-1">
-                  <div>
-                    {o.game_name} — {o.product_name}
+                  <div className="flex items-center gap-2">
+                    {/* 🎮 Иконкаи бозӣ + ном — ҳамон тавр мисли корти корбар */}
+                    <span aria-hidden className="w-7 h-7 shrink-0">
+                      <GameLogo
+                        game={{
+                          name: o.game_name ?? "",
+                          image_url: gameImgs[o.game_name ?? ""],
+                        }}
+                      />
+                    </span>
+                    <span className="min-w-0">
+                      {o.game_name} — {o.product_name}
+                    </span>
                   </div>
                   <div className="font-mono text-xs">
                     ID: {o.player_id}
