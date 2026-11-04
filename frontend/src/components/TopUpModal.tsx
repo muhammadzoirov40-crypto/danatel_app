@@ -494,27 +494,16 @@ export default function TopUpModal({ open, onClose }: Props) {
         ) : (
           /* ============ 2️⃣ ПАРДОХТ → ЧЕК ДАР 1 ДАҚИҚА ============ */
           <>
-            {/* Маблағ + шумораи воз */}
-            <div className="mb-4 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100/70 border border-slate-200/80 p-4 flex items-center justify-between gap-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
-              <div className="min-w-0">
-                <div className="text-[10px] font-extrabold uppercase tracking-[0.12em] text-slate-400">
-                  {lang === "ru" ? "Сумма заявки:" : "Маблағи дархост:"}
-                </div>
-                <div className="mt-1 text-[17px] font-black text-slate-900 tabular-nums tracking-[-0.01em]">
-                  {Number(prepared?.amount_tjs || 0).toLocaleString("tj-TJ")}
-                  <span className="ml-1 text-[11px] font-bold text-slate-400">сомонӣ</span>
-                </div>
+            {/* Маблағ — шумораи воз аз ин ҷо ба сатри норанҷии зери
+                минтақаи чек кӯчида шуд (ҳамчун модалкаи чек — Image 2-и соҳиб:
+                «инҳоро ҳам ҳамин хел кун») */}
+            <div className="mb-4 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100/70 border border-slate-200/80 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
+              <div className="text-[10px] font-extrabold uppercase tracking-[0.12em] text-slate-400">
+                {lang === "ru" ? "Сумма заявки:" : "Маблағи дархост:"}
               </div>
-              <div
-                className={`flex shrink-0 items-center gap-1.5 px-3 py-2 rounded-xl border font-black text-[15px] tabular-nums shadow-sm transition ${
-                  left <= 15
-                    ? "bg-rose-50 border-rose-300 text-rose-700"
-                    : "bg-white border-slate-200 text-slate-900"
-                }`}
-                aria-label={t("topupTimeLeft")}
-              >
-                <Ic icon={Timer} />
-                <span>{mmss}</span>
+              <div className="mt-1 text-[17px] font-black text-slate-900 tabular-nums tracking-[-0.01em]">
+                {Number(prepared?.amount_tjs || 0).toLocaleString("tj-TJ")}
+                <span className="ml-1 text-[11px] font-bold text-slate-400">сомонӣ</span>
               </div>
             </div>
 
@@ -535,42 +524,73 @@ export default function TopUpModal({ open, onClose }: Props) {
               {t("topupReopenPay")}
             </button>
 
-            {/* 📷 Чеки пардохт */}
+            {/* 📷 Чеки пардохт — ҳамон минтақаи сабзи модалкаи чеки
+                фармоиш (талаби соҳиб: «инҳоро ҳам ҳамин хел кун» — Image 2):
+                марказонида, иконка + матн + нишонаи форматҳо, дар зери он
+                сатри норанҷии шумораи воқеии чек (1 дақиқаи backend) */}
             <div className="mb-4">
-              <label
-                htmlFor="topup-receipt"
-                className="block text-xs font-bold text-slate-700 mb-1.5"
-              >
-                {t("topupReceipt")} *
-              </label>
               <input
                 ref={fileRef}
                 id="topup-receipt"
                 type="file"
                 accept="image/*"
                 disabled={expired}
-                className="hidden"
+                className="peer sr-only"
                 onChange={(e) => {
                   setFile(e.target.files?.[0] ?? null);
                   setErr("");
                 }}
               />
-              <button
-                type="button"
-                onClick={() => fileRef.current?.click()}
-                disabled={expired}
-                aria-label={t("topupChooseReceipt")}
-                className={`w-full py-2.5 px-4 rounded-xl border-2 border-dashed text-xs font-bold transition flex items-center justify-center gap-2 disabled:opacity-50 ${
-                  file
-                    ? "border-emerald-300 bg-emerald-50 text-emerald-800"
-                    : "border-slate-300 bg-slate-50 text-slate-600 hover:border-brand-400"
+              <label
+                htmlFor="topup-receipt"
+                className={`peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500 peer-focus-visible:ring-offset-2 flex flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed px-4 py-5 text-center transition ${
+                  expired
+                    ? "border-slate-200 bg-slate-50 opacity-60 cursor-not-allowed"
+                    : "border-emerald-300 bg-emerald-50/60 cursor-pointer hover:border-emerald-400 hover:bg-emerald-50"
                 }`}
               >
-                <Ic icon={ImagePlus} />
-                <span className="truncate max-w-[230px]">
-                  {file ? file.name : t("topupChooseReceipt")}
+                <Ic
+                  icon={ImagePlus}
+                  size="xl"
+                  strokeWidth={1.75}
+                  className="text-slate-400"
+                />
+                <span className="text-sm font-bold text-slate-700">
+                  {t("topupChooseReceipt")}
                 </span>
-              </button>
+                <span className="text-xs text-slate-400">
+                  {t("receiptFormats")}
+                </span>
+              </label>
+
+              {file && (
+                <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-emerald-600">
+                  <Ic icon={CircleCheck} size="xs" className="shrink-0" />
+                  <span className="truncate">
+                    {t("fileChosen")}: {file.name}
+                  </span>
+                </p>
+              )}
+
+              {/* ⏱ Шумораи чек — ҳамчун сатри норанҷии модалкаи чек:
+                  вақти ҲАҚИҚИИ backend; ≤15 сония → сурх (тахдиди ҷиддӣ),
+                  дар 00:00 → «Вақт гузашт» (баъдан блоки expired пайдо мешавад) */}
+              <p
+                role="timer"
+                aria-live="off"
+                className={`mt-3 flex items-center justify-center gap-1.5 text-xs font-bold ${
+                  left <= 0
+                    ? "text-slate-500"
+                    : left <= 15
+                      ? "text-rose-600"
+                      : "text-amber-700"
+                }`}
+              >
+                <Ic icon={Timer} size="xs" className="shrink-0" />
+                {left > 0
+                  ? t("receiptWithin").replace("{t}", mmss)
+                  : t("topupExpiredShort")}
+              </p>
             </div>
 
             {err && (
@@ -596,31 +616,42 @@ export default function TopUpModal({ open, onClose }: Props) {
                 </button>
               </div>
             ) : (
-              <button
-                onClick={handleSendReceipt}
-                disabled={!file || sending}
-                className="w-full rounded-2xl py-3.5 px-4
-                           bg-gradient-to-r from-blue-600 via-blue-600 to-indigo-600
-                           text-white text-[15px] font-extrabold tracking-[0.01em]
-                           shadow-[0_14px_30px_-12px_rgba(37,99,235,0.85),inset_0_1px_0_rgba(255,255,255,0.3)]
-                           transition hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98]
-                           flex items-center justify-center gap-2.5
-                           disabled:opacity-60 disabled:pointer-events-none
-                           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
-              >
-                {sending ? (
-                  <Ic icon={Loader2} className="animate-spin" />
-                ) : (
-                  <Ic icon={Send} />
-                )}
-                <span>
-                  {sending
-                    ? lang === "ru"
-                      ? "Отправка..."
-                      : "Мефиристад..."
-                    : t("topupSendReceipt")}
-                </span>
-              </button>
+              /* Тугмаҳо — ба мисли модалкаи чек: дар мобилӣ зери ҳамдигар
+                 (ghost «Ҳозир не» + CTA), дар ≥640px бо ҳамдигар */
+              <div className="flex flex-col gap-2.5 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="w-full sm:flex-1 sm:min-w-0 inline-flex items-center justify-center px-4 py-3 rounded-xl text-sm font-bold text-slate-600 bg-white border-2 border-slate-200 hover:border-slate-300 transition active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                >
+                  {t("notNow")}
+                </button>
+                <button
+                  onClick={handleSendReceipt}
+                  disabled={!file || sending}
+                  className="w-full sm:flex-[1.4] sm:min-w-0 rounded-2xl py-3.5 px-4
+                             bg-gradient-to-r from-blue-600 via-blue-600 to-indigo-600
+                             text-white text-[15px] font-extrabold tracking-[0.01em]
+                             shadow-[0_14px_30px_-12px_rgba(37,99,235,0.85),inset_0_1px_0_rgba(255,255,255,0.3)]
+                             transition hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98]
+                             flex items-center justify-center gap-2.5
+                             disabled:opacity-60 disabled:pointer-events-none
+                             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
+                >
+                  {sending ? (
+                    <Ic icon={Loader2} className="animate-spin" />
+                  ) : (
+                    <Ic icon={Send} />
+                  )}
+                  <span>
+                    {sending
+                      ? lang === "ru"
+                        ? "Отправка..."
+                        : "Мефиристад..."
+                      : t("topupSendReceipt")}
+                  </span>
+                </button>
+              </div>
             )}
           </>
         )}
