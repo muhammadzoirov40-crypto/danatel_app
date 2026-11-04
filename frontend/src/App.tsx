@@ -6,8 +6,9 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import Navbar from "./components/Navbar";
 import BottomNav from "./components/BottomNav";
 import Footer from "./components/Footer";
-import Logo from "./components/Logo";
-import { Ic } from "./components/Icons";
+import Logo from "./components/Logo";
+import UpdateToast from "./components/UpdateToast";
+import { Ic } from "./components/Icons";
 import Home from "./pages/Home";
 import GameDetail from "./pages/GameDetail";
 import OrderPage from "./pages/OrderPage";
@@ -59,6 +60,8 @@ export default function App() {
     <AppProvider>
       <BrowserRouter>
         <RefCapture />
+        {/* 🔄 Авто-навсозӣ: версияи нав омад → тост + худаш reload */}
+        <UpdateToast />
         <Navbar />
         <main className="relative min-h-[calc(100vh-4rem)] w-full max-w-full overflow-x-clip pb-20 md:pb-0">
           {/* 🌅 Камарбанди кабуди ягона — дар ҳамаи саҳифаҳо якхела */}
