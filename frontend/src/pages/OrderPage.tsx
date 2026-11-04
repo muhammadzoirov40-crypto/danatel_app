@@ -9,6 +9,7 @@ import {
   ExternalLink,
   Frown,
   House,
+  ImagePlus,
   Loader2,
   PartyPopper,
   ReceiptText,
@@ -16,6 +17,7 @@ import {
   Send,
   Smartphone,
   Upload,
+  X,
 } from "lucide-react";
 import { api } from "../api/client";
 import type { Order, ReviewSummary } from "../types";
@@ -43,6 +45,10 @@ export default function OrderPage() {
   const [sentOk, setSentOk] = useState(false);
   const [sendErr, setSendErr] = useState("");
   const [copied, setCopied] = useState(false);
+  // 📱 Модалкаи «Сурати чекро боргирӣ кунед» — пас аз «Идома» ё ҳангоми
+  //    кушодани нави фармоиши pending-и DC худкор пайдо мешавад (талаби соҳиб:
+  //    «badi idomaro zer mekunad ... surat ravon kunad»).
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -59,6 +65,30 @@ export default function OrderPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // 📱 Модалкаи чек: pending + DC + чек ҳанӯз равон нашуда → худкор пайдо
+  //    мешавад (пас аз «Идома» ё ҳангоми бори нав кушодани саҳифа).
+  //    Дисмис (`Ҳозир не`) дар ҳамон баррасӣ мемонад — `order` тағйир
+  //    намеёбад (polling фақат статусро мегирад), пас effect такрор намешавад.
+  useEffect(() => {
+    const ask =
+      !!order &&
+      order.status === "pending" &&
+      order.payment_method === "dc_wallet" &&
+      !order.receipt_file &&
+      !order.receipt_text;
+    setShowReceiptModal(ask);
+  }, [order]);
+
+  // ⎋ ESC → пӯшиди модалка (клавиатура — WCAG)
+  useEffect(() => {
+    if (!showReceiptModal) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowReceiptModal(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [showReceiptModal]);
 
   // Санҷиши худкори статус ҳар 5 сония — то он даме, ки маҳсулот расид.
   //  ⚠️ БОЯД то `delivered` идома ёбад (НА то `paid`): вагарна лаҳзаи
@@ -125,6 +155,7 @@ export default function OrderPage() {
       setSentOk(true);
       setReceiptText("");
       setReceiptFile(null);
+      setShowReceiptModal(false);
     } catch (e) {
       setSendErr((e as Error)?.message ?? t("error"));
     } finally {
@@ -432,6 +463,137 @@ export default function OrderPage() {
           <p className="mt-5 text-xs text-slate-500">{t("statusChecking")}</p>
         )}
       </div>
+
+      {/* 📱 Модалкаи «Сурати чекро боргирӣ кунед» — тарҳи DC Wallet (Image 3):
+          худкор пас аз «Идома» / кушодани фармоиши pending-и DC пайдо мешавад.
+          «Ҳозирне»/ESC/× → блоки чек дар саҳифа боқӣ мемонад; мустақиман
+          фиристодан ҳам аз ҳамон `sendReceipt` — як роҳи ягона ба backend. */}
+      {showReceiptModal &&
+        order &&
+        order.status === "pending" &&
+        order.payment_method === "dc_wallet" && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="receipt-modal-title"
+            className="fixed inset-0 z-[70] flex items-center justify-center p-4"
+          >
+            {/* Пасманзар */}
+            <button
+              type="button"
+              aria-label={t("close")}
+              onClick={() => setShowReceiptModal(false)}
+              className="absolute inset-0 bg-slate-900/50 backdrop-blur-[2px]"
+            />
+
+            {/* Модалка */}
+            <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl max-h-[90vh] overflow-y-auto">
+              {/* Сарлавҳа */}
+              <div className="flex items-start justify-between gap-3 px-5 pt-5 pb-1">
+                <div className="flex items-center gap-3 min-w-0">
+                  <span
+                    aria-hidden
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sky-400 to-blue-600 text-white shadow-[0_6px_16px_-8px_rgba(14,165,233,0.9)]"
+                  >
+                    <Ic icon={ReceiptText} size="md" strokeWidth={2.25} />
+                  </span>
+                  <h3
+                    id="receipt-modal-title"
+                    className="text-base font-bold text-slate-800"
+                  >
+                    {t("receiptModalTitle")}
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowReceiptModal(false)}
+                  aria-label={t("close")}
+                  className="grid place-items-center w-8 h-8 shrink-0 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition"
+                >
+                  <Ic icon={X} />
+                </button>
+              </div>
+
+              {/* Тавзеҳ */}
+              <p className="px-5 pb-4 text-sm leading-relaxed text-slate-500">
+                {t("receiptModalNote")}
+              </p>
+
+              {/* Минтақаи калони боргирӣ */}
+              <div className="px-5">
+                <input
+                  id="receipt-modal-file"
+                  type="file"
+                  accept="image/*"
+                  className="peer sr-only"
+                  onChange={(e) => setReceiptFile(e.target.files?.[0] ?? null)}
+                />
+                <label
+                  htmlFor="receipt-modal-file"
+                  className="flex flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed border-emerald-300 bg-emerald-50/60 px-4 py-7 text-center cursor-pointer transition hover:border-emerald-400 hover:bg-emerald-50 peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500 peer-focus-visible:ring-offset-2"
+                >
+                  <Ic
+                    icon={ImagePlus}
+                    size="xl"
+                    strokeWidth={1.75}
+                    className="text-slate-400"
+                  />
+                  <span className="text-sm font-bold text-slate-700">
+                    {t("receiptPick")}
+                  </span>
+                  <span className="text-xs text-slate-400">
+                    {t("receiptFormats")}
+                  </span>
+                </label>
+
+                {receiptFile && (
+                  <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-emerald-600">
+                    <Ic icon={CircleCheck} size="xs" className="shrink-0" />
+                    <span className="truncate">
+                      {t("fileChosen")}: {receiptFile.name}
+                    </span>
+                  </p>
+                )}
+
+                {sendErr && (
+                  <div className="mt-3 rounded-xl bg-rose-50 border border-rose-200 px-3 py-2 text-xs text-rose-700">
+                    {sendErr}
+                  </div>
+                )}
+              </div>
+
+              {/* Тугмаҳо — дар мобилӣ зери ҳамдигар (то «Чекро равон кунед»
+                  дар 320px як сатр шикасташавад), дар ≥640px бо ҳамдигар */}
+              <div className="px-5 pt-4 pb-5 flex flex-col gap-2.5 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={() => setShowReceiptModal(false)}
+                  className="w-full sm:flex-1 sm:min-w-0 inline-flex items-center justify-center px-4 py-3 rounded-xl text-sm font-bold text-slate-600 bg-white border-2 border-slate-200 hover:border-slate-300 transition active:scale-[0.98]"
+                >
+                  {t("notNow")}
+                </button>
+                <button
+                  type="button"
+                  onClick={sendReceipt}
+                  disabled={sending || !receiptFile}
+                  className="w-full sm:flex-[1.4] sm:min-w-0 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 transition active:scale-[0.98] disabled:opacity-60"
+                >
+                  {sending ? (
+                    <>
+                      <Ic icon={Loader2} className="animate-spin" />
+                      {t("loading")}
+                    </>
+                  ) : (
+                    <>
+                      <Ic icon={Upload} />
+                      {t("receiptModalSend")}
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
     </div>
   );
