@@ -49,6 +49,8 @@ export default function OrderPage() {
   //    кушодани нави фармоиши pending-и DC худкор пайдо мешавад (талаби соҳиб:
   //    «badi idomaro zer mekunad ... surat ravon kunad»).
   const [showReceiptModal, setShowReceiptModal] = useState(false);
+  // ⏱ Шумораи бозхуни дар модалка: 01:00 → 00:59 → … (талаби соҳиб — Image 3)
+  const [receiptTimer, setReceiptTimer] = useState(60);
 
   const load = useCallback(async () => {
     try {
@@ -88,6 +90,18 @@ export default function OrderPage() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+  }, [showReceiptModal]);
+
+  // ⏱ Шумораи бозхуни: ҳар бор ки модалка кушода шавад аз 01:00 оғоз мешавад.
+  //    Дар 00:00 модалка НАБОМЕШАД — танҳо матн иваз мешавад: вақти ҳақиқии
+  //    чек дар backend маҳдуд нест, харидор ҳанӯз ҳам равон карда метавонад.
+  useEffect(() => {
+    if (!showReceiptModal) return;
+    setReceiptTimer(60);
+    const iv = setInterval(() => {
+      setReceiptTimer((s) => (s > 0 ? s - 1 : 0));
+    }, 1000);
+    return () => clearInterval(iv);
   }, [showReceiptModal]);
 
   // Санҷиши худкори статус ҳар 5 сония — то он даме, ки маҳсулот расид.
@@ -196,6 +210,11 @@ export default function OrderPage() {
   }
 
   const paid = ["paid", "delivered"].includes(order.status);
+
+  // ⏱ Формати mm:ss барои шумораи модалка (01:00, 00:59, …)
+  const timerText = `${String(Math.floor(receiptTimer / 60)).padStart(2, "0")}:${String(
+    receiptTimer % 60,
+  ).padStart(2, "0")}`;
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 sm:py-12 -mb-20 md:mb-0">
@@ -560,6 +579,22 @@ export default function OrderPage() {
                     {sendErr}
                   </div>
                 )}
+
+                {/* ⏱ Шумораи бозхуни — ба мисли DC Wallet (Image 3):
+                    01:00 → 00:59 … дар 00:00 матн иваз мешавад, фаъолият
+                    ҳеҷ гоҳ кушода намемонад */}
+                <p
+                  role="timer"
+                  aria-live="off"
+                  className={`mt-3 flex items-center justify-center gap-1.5 text-xs font-bold ${
+                    receiptTimer > 0 ? "text-amber-700" : "text-slate-500"
+                  }`}
+                >
+                  <Ic icon={Clock} size="xs" className="shrink-0" />
+                  {receiptTimer > 0
+                    ? t("receiptWithin").replace("{t}", timerText)
+                    : t("receiptTimeUp")}
+                </p>
               </div>
 
               {/* Тугмаҳо — дар мобилӣ зери ҳамдигар (то «Чекро равон кунед»
