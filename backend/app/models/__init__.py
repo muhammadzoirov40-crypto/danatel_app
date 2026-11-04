@@ -7,6 +7,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Integer,
+    LargeBinary,
     Numeric,
     String,
     Text,
@@ -487,3 +488,56 @@ class BalanceRequest(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     user: Mapped["User | None"] = relationship(foreign_keys=[user_id])
+
+
+# =====================================================================
+# 😶 FACE AUTHENTICATION — маълумоти биометрӣ (рамзгузоришуда)
+# =====================================================================
+
+
+class FaceCredential(Base):
+    """🔐 Вақтиномаи чеҳраи корбар (embedding-и рамзгузоришуда).
+
+    • ТАНҲО vector-и 128-уҷаи (face-api.js) нигоҳ дошта мешавад —
+      расм/видео ҲЕҶ ГОҲ ба сервер намефиристад ва дар DB нест.
+    • `descriptor_enc` = AES-256-GCM (nonce 12 || ciphertext || tag):
+      дар DB ҳамчун байтҳои беҳуда менамоянд.
+    • Ҷадвали ягона барои ҳар корбар: `user_id` UNIQUE → танҳо як
+      Face Credential фаъол (сабти дубра = навсозӣ).
+    • `consent_at` = вақти розигии возеҳии корбар (талаби амниятӣ).
+    """
+
+    __tablename__ = "face_credentials"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), unique=True, index=True
+    )
+    descriptor_enc: Mapped[bytes] = mapped_column(LargeBinary)
+    model_version: Mapped[str] = mapped_column(String(32), default="faceapi_v1")
+    consent_at: Mapped[datetime] = mapped_column(DateTime)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), onupdate=func.now()
+    )
+
+    user: Mapped["User"] = relationship()
+
+
+class FaceChallenge(Base):
+    """🎯 Чолиши лайвлес (liveness): якдафъаӣ + муҳлаташ кӯтоҳ.
+
+    Ҳангоми вуруд/сабти чеҳра сервер тасодуфӣ як амал (чашм пузур /
+    даҳон кушодан) медиҳад → фронт аз рӯйи landmarkҳо тасдиқ мекунад →
+    ин `challenge_id` якдафъаӣ истифода мешавад (муқовимат аз replay):
+    акс/видеои оддӣ амали тасодуфиро иҷро карда наметавонад.
+    """
+
+    __tablename__ = "face_challenges"
+
+    id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    action: Mapped[str] = mapped_column(String(16))  # blink / mouth
+    ip: Mapped[str | None] = mapped_column(String(45))
+    used: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    expires_at: Mapped[datetime] = mapped_column(DateTime, index=True)

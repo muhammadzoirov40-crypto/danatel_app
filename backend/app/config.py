@@ -20,6 +20,14 @@ class Settings(BaseSettings):
     #    ҳисобро хориҷ намекунад; танҳо баъди 15 рӯз вуруди нав лозим аст.
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 21600
 
+    # 😶 FACE AUTHENTICATION — маълумоти биометрӣ
+    #    Калиди рамзгузории AES-256-GCM (base64, 32 байт). Холӣ →
+    #    аз SECRET_KEY худкор (SHA-256) — бе танзими иловагӣ устувор.
+    FACE_ENCRYPTION_KEY: str = ""
+    #    Ҳадди муқоисаи чеҳра: евклидӣ байни векторҳои L2-normalized.
+    #    0.6 = ҳамон чӣ face-api.js дар намунаҳояш истифода мекунад.
+    FACE_MATCH_THRESHOLD: float = 0.6
+
     # DC WALLET
     DC_MERCHANT_ID: str = ""
     DC_SECRET_KEY: str = ""

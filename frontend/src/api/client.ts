@@ -256,6 +256,61 @@ export const api = {
     return res;
   },
 
+  // ========================== 😶 FACE AUTHENTICATION ==========================
+  /** 🎯 Чолиши лайвлес: якдафъаӣ, 60s, амали тасодуфӣ (blink/mouth) */
+  faceChallenge: () =>
+    request<{ challenge_id: string; action: string; expires_in: number }>(
+      "/auth/face/challenge",
+      { method: "POST" },
+    ),
+
+  /** 😶 Вуруд бо чеҳра → ҳамон токени JWT-и вуруди оддӣ (setToken) */
+  faceLogin: async (descriptor: number[], challengeId: string, actionDone: string) => {
+    const res = await request<{ access_token: string; is_admin: boolean }>(
+      "/auth/face/login",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          descriptor,
+          challenge_id: challengeId,
+          action_done: actionDone,
+        }),
+      },
+    );
+    setToken(res.access_token);
+    return res;
+  },
+
+  /** 😶 Сабти чеҳра бо розигии возеҳӣ (танҳо корбари вурудкарда) */
+  faceRegister: (
+    descriptor: number[],
+    challengeId: string,
+    actionDone: string,
+    consent: boolean,
+  ) =>
+    request<{ registered: boolean; registered_at: string | null }>(
+      "/auth/face/register",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          descriptor,
+          challenge_id: challengeId,
+          action_done: actionDone,
+          consent,
+        }),
+      },
+    ),
+
+  /** 📌 Оё чеҳра сабт шудааст? (танҳо корбари вурудкарда) */
+  faceStatus: () =>
+    request<{ registered: boolean; registered_at: string | null }>(
+      "/auth/face/status",
+    ),
+
+  /** 🗑️ Нест кардани Face Credential (ҳуқуқи нест кардани биометрӣ) */
+  faceDeleteCredential: () =>
+    request<{ ok: boolean }>("/auth/face/credential", { method: "DELETE" }),
+
   /**
    * 🧾 Гирифтани расми чек барои админ.
    * Расмҳои чек (маълумоти корти шахсӣ) бе токени админ кушода намешавад.

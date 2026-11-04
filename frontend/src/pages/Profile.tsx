@@ -18,8 +18,10 @@ import {
   LogOut,
   Plus,
   Save,
+  ScanFace,
   ShieldCheck,
   Smartphone,
+  Trash2,
   UserRound,
   Wallet,
 } from "lucide-react";
@@ -28,6 +30,7 @@ import { api, ApiError } from "../api/client";
 import type { CoinsInfo } from "../types";
 import { Ic } from "../components/Icons";
 import TopUpModal from "../components/TopUpModal";
+import FaceAuthModal from "../components/FaceAuthModal";
 import BackButton from "../components/BackButton";
 import { copyText } from "../utils/clipboard";
 
@@ -66,6 +69,34 @@ export default function Profile() {
   // 🪙 Pers Coins — худи корт дар компоненти `CoinsCard` (ҳамон дар Home)
   const [coins, setCoins] = useState<CoinsInfo | null>(null);
   const [inviteCopied, setInviteCopied] = useState(false);
+
+  // 😶 Face Authentication — вазъи credential дар сервер + модалка
+  const [faceStatus, setFaceStatus] = useState<{
+    registered: boolean;
+    registered_at: string | null;
+  } | null>(null);
+  const [faceOpen, setFaceOpen] = useState(false);
+  const loadFaceStatus = useCallback(async () => {
+    try {
+      setFaceStatus(await api.faceStatus());
+    } catch {
+      /* бе токен ё хатои шабака → ҳолатро нишон надиҳем */
+    }
+  }, []);
+  useEffect(() => {
+    if (authReady && user) void loadFaceStatus();
+  }, [authReady, user, loadFaceStatus]);
+
+  /** 🗑️ Нест кардани чеҳра бо тасдики корбар */
+  const deleteFace = async () => {
+    if (!window.confirm(t("faceDeleteConfirm"))) return;
+    try {
+      await api.faceDeleteCredential();
+      await loadFaceStatus();
+    } catch {
+      /* хато → ҳолатро нишон надиҳем, дубра кӯшиш мекунад */
+    }
+  };
 
   // 🗂️ Як панели кушода (accordion)
   const [panel, setPanel] = useState<PanelKey | null>(null);
@@ -459,6 +490,61 @@ export default function Profile() {
                   )}
                 </button>
               </form>
+
+              {/* 😶 ВУРУД БО ЧЕҲРА — идоракунии Face Credential */}
+              <div className="mt-5 border-t border-slate-100 pt-4 dark:border-white/10">
+                <div className="mb-1 flex items-center gap-2">
+                  <Ic icon={ScanFace} className="text-brand-600" />
+                  <h3 className="text-sm font-semibold">{t("faceManageTitle")}</h3>
+                </div>
+                <p className="mb-3 text-[11px] leading-relaxed text-slate-500">
+                  {t("faceSecureNote")}
+                </p>
+
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 px-3.5 py-2.5 dark:border-white/10">
+                  <span
+                    role="status"
+                    className={`flex items-center gap-1.5 text-xs font-semibold ${
+                      faceStatus?.registered ? "text-emerald-600" : "text-slate-500"
+                    }`}
+                  >
+                    <span
+                      aria-hidden
+                      className={`h-2 w-2 rounded-full ${
+                        faceStatus?.registered ? "bg-emerald-500" : "bg-slate-300"
+                      }`}
+                    />
+                    {faceStatus?.registered ? t("faceStatusYes") : t("faceStatusNo")}
+                  </span>
+                  {faceStatus?.registered && faceStatus.registered_at && (
+                    <span className="text-[10px] text-slate-400">
+                      {t("faceRegisteredOn")}{" "}
+                      {new Date(faceStatus.registered_at).toLocaleDateString(lang)}
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setFaceOpen(true)}
+                    className="btn-primary flex items-center justify-center gap-1.5 py-2.5 text-sm"
+                  >
+                    <Ic icon={ScanFace} />
+                    {faceStatus?.registered ? t("faceReenroll") : t("faceModalEnrollTitle")}
+                  </button>
+                  {faceStatus?.registered && (
+                    <button
+                      type="button"
+                      onClick={() => void deleteFace()}
+                      className="flex items-center justify-center gap-1.5 rounded-xl border border-rose-200 py-2.5 text-sm font-medium text-rose-600 transition hover:bg-rose-50 active:scale-[0.98]"
+                    >
+                      <Ic icon={Trash2} />
+                      {t("faceDelete")}
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           )}
         </section>
@@ -574,6 +660,18 @@ export default function Profile() {
 
       {/* 💳 Модали пур кардани баланс (ҳамон мавҷуда дар BottomNav) */}
       <TopUpModal open={topUpOpen} onClose={() => setTopUpOpen(false)} />
+
+      {/* 😶 Модалкаи сабти чеҳра (Панели «Амният») */}
+      {faceOpen && (
+        <FaceAuthModal
+          mode="enroll"
+          onClose={() => setFaceOpen(false)}
+          onSuccess={() => {
+            setFaceOpen(false);
+            void loadFaceStatus();
+          }}
+        />
+      )}
     </div>
   );
 }

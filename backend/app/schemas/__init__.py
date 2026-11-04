@@ -32,6 +32,41 @@ class ChangePasswordRequest(BaseModel):
     new_password: str = Field(min_length=8, max_length=128)
 
 
+# =====================================================================
+# 😶 FACE AUTHENTICATION
+# =====================================================================
+
+
+class FaceChallengeOut(BaseModel):
+    """🎯 Чолиши лайвлес аз сервер (якдафъаӣ, 60 сония)."""
+
+    challenge_id: str
+    action: str  # blink / mouth
+    expires_in: int = 60
+
+
+class FaceRegisterRequest(BaseModel):
+    """😶 Сабти чеҳра (танҳо корбари вурудкарда + розигии возеҳ)."""
+
+    descriptor: list[float] = Field(min_length=128, max_length=128)
+    challenge_id: str = Field(min_length=8, max_length=40)
+    action_done: str = Field(min_length=4, max_length=16)
+    consent: bool = False
+
+
+class FaceLoginRequest(BaseModel):
+    """😶 Вуруд бо чеҳра."""
+
+    descriptor: list[float] = Field(min_length=128, max_length=128)
+    challenge_id: str = Field(min_length=8, max_length=40)
+    action_done: str = Field(min_length=4, max_length=16)
+
+
+class FaceStatusOut(BaseModel):
+    registered: bool = False
+    registered_at: datetime | None = None
+
+
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
