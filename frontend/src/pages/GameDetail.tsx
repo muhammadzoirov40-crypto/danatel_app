@@ -200,7 +200,17 @@ export default function GameDetail() {
             game={game}
             selected={selected}
             onSelected={setSelected}
-            onCreated={(id) => nav(`/order/${id}`)}
+            onCreated={(id, paymentUrl) => {
+              // 📌 Аввал саҳифаи фармоиш (Image 1: «Фармоиш сохта шуд») кушода мешавад
+              nav(`/order/${id}`);
+              // 💳 Баъди «Идома» (BankPicker) → бевосита ба линки пардохти DC
+              //    дар таби нав (ҳамон усули TopUpModal). Агар блокер popup-ро
+              //    бигирад → тугмаи «Пардохт» + «Линки пардохт» дар ҳамон саҳифа
+              //    боқӣ мемонад (пардохт ҳеҷ гоҳ бе роҳ намемонад).
+              if (paymentUrl) {
+                window.open(paymentUrl, "_blank", "noopener,noreferrer");
+              }
+            }}
           />
         </div>
       </div>
