@@ -200,11 +200,15 @@ export default function OrderPage() {
           />
         </div>
 
+        {/* 📱 Тартиб дар телефон (≤420px): аввал блоки чек → баъд «Линки пардохт»
+            (талаби соҳиб: «surati chekro pursad» — пурсиши чек бояд ДАР ЭКРАНИ АВВАЛ
+            дида шавад, на зери 1,5 экран). Дар ≥421px тартиби аслӣ мемонад. */}
+        <div className="flex flex-col">
         {/* 💳 Пардохти берунӣ: линк + рақами корта (танҳо ҳоло pending) */}
         {order.status === "pending" &&
           order.payment_method === "dc_wallet" &&
           (order.payment_link || order.dc_payment_url) && (
-            <div className="mt-5 rounded-2xl border border-slate-200 bg-white text-left overflow-hidden shadow-sm">
+            <div className="mt-5 order-1 max-[420px]:order-2 rounded-2xl border border-slate-200 bg-white text-left overflow-hidden shadow-sm">
               <div className="px-4 py-3 bg-gradient-to-r from-brand-50 to-blue-50 border-b border-brand-100 text-sm font-bold text-brand-700 inline-flex items-center gap-2.5">
                 <span
                   aria-hidden
@@ -269,7 +273,7 @@ export default function OrderPage() {
 
         {/* 🧾 Формаи фиристодани чек (барои пардохти DC) */}
         {order.status === "pending" && order.payment_method === "dc_wallet" && (
-          <div className="mt-5 rounded-2xl border border-slate-200 bg-white overflow-hidden text-left shadow-sm">
+          <div className="mt-5 order-2 max-[420px]:order-1 rounded-2xl border border-slate-200 bg-white overflow-hidden text-left shadow-sm">
             <div className="px-4 py-3 bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-100 text-sm font-bold text-amber-800 inline-flex items-center gap-2.5">
               <span
                 aria-hidden
@@ -324,6 +328,7 @@ export default function OrderPage() {
             </div>
           </div>
         )}
+        </div>
 
         {/* ✅ Чек қабул шуд — пардохт қабул шуд, интизори тасдиқи админ */}
         {order.status === "checking" && (
