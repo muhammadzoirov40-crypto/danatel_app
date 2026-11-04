@@ -260,20 +260,22 @@ export default function TopUpModal({ open, onClose }: Props) {
           <Ic icon={X} />
         </button>
 
-        {/* Сарлавҳа: иконка-плита + матн бо типографияи фишурда */}
-        <div className="relative flex items-center gap-3.5 mb-5 pr-10">
+        {/* Сарлавҳа: иконка-плита + матн бо типографияи фишурда.
+            Майдатар (талаби соҳиб: «inro kame maydatar navis»): 48→40px,
+            18.4→15px, зерлавҳа 11→10px — дар 320px сарлавҳа аз 2 сатр ба 1 мегузарад */}
+        <div className="relative flex items-center gap-3 mb-4 pr-10">
           <div
-            className="grid place-items-center w-12 h-12 shrink-0 rounded-2xl
+            className="grid place-items-center w-10 h-10 shrink-0 rounded-xl
                        bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 text-white
                        shadow-[0_10px_22px_-8px_rgba(37,99,235,0.75)] ring-1 ring-white/25"
           >
             <Ic icon={step === "pay" ? Timer : Send} size="lg" strokeWidth={2.5} />
           </div>
           <div className="min-w-0">
-            <h2 className="text-[1.15rem] leading-tight font-extrabold tracking-[-0.01em] text-slate-900">
+            <h2 className="text-[15px] leading-snug font-extrabold tracking-[-0.01em] text-slate-900">
               {lang === "ru" ? "Пополнение баланса" : "Пур кардани баланс"}
             </h2>
-            <p className="mt-0.5 text-[11px] sm:text-xs leading-snug font-medium text-slate-500">
+            <p className="mt-0.5 text-[10px] sm:text-[11px] leading-snug font-medium text-slate-500">
               {lang === "ru"
                 ? "Оплата DC City (pay.dc.tj) в сомони"
                 : "Пардохти DC City (pay.dc.tj) бо сомонӣ"}
