@@ -33,6 +33,7 @@ import logging
 import re
 from datetime import datetime, timedelta
 from decimal import Decimal, InvalidOperation
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -133,7 +134,12 @@ def _unmatched(
             html.escape(text[:400]),
         )
     )
-    return {"status": "not_found", "reason": reason, "admin_text": admin_text}
+    return {
+        "status": "not_found",
+        "reason": reason,
+        "amount": float(amount),
+        "admin_text": admin_text,
+    }
 
 
 # =====================================================================
@@ -229,3 +235,92 @@ def process_push(db: Session, *, title: str = "", body: str = "") -> dict:
         "amount": float(decided.amount_tjs),
         "balance": float(updated_user.balance),
     }
+
+
+# =====================================================================
+# 💬 ҶАВОБ БА БОТ (4 забон) + муайянкунандаи матни пардохт
+# =====================================================================
+# Ҳамон вебхук, ки боти Telegram (форвард/нусхаи матни DC аз чати
+# админ) истифода мебарад — формати ҷавобҳо дар якҷо нигоҳ дошта
+# мешавад, то веб ва бот як забон бошанд.
+
+_PAY_HINT = re.compile(r"TJS|сомонӣ|сомони", re.IGNORECASE)
+
+_REPLIES: dict[str, dict[str, str]] = {
+    "success": {
+        "tj": "✅ Пардохт қабул шуд: <b>{amount} TJS</b>\nБаланс: <b>{balance} TJS</b>",
+        "ru": "✅ Платёж принят: <b>{amount} TJS</b>\nБаланс: <b>{balance} TJS</b>",
+        "en": "✅ Payment accepted: <b>{amount} TJS</b>\nBalance: <b>{balance} TJS</b>",
+        "uz": "✅ To'lov qabul qilindi: <b>{amount} TJS</b>\nBalans: <b>{balance} TJS</b>",
+    },
+    "already": {
+        "tj": "♻️ Аллакай қабул шудааст — баланс дубора зиёд нашуд.",
+        "ru": "♻️ Уже принято — баланс повторно не увеличен.",
+        "en": "♻️ Already accepted — balance was not increased again.",
+        "uz": "♻️ Allaqabon qilingan — balans qayta oshirilmadi.",
+    },
+    "ignored": {
+        "tj": (
+            "⚠️ Маблағ дар матн ёфт нашуд.\n"
+            "Формат: <code>25.00 TJS</code> ё <code>25 сомонӣ</code> "
+            "+ рақами фиристодагар."
+        ),
+        "ru": (
+            "⚠️ Сумма в тексте не найдена.\n"
+            "Формат: <code>25.00 TJS</code> или <code>25 сомони</code> "
+            "+ номер отправителя."
+        ),
+        "en": (
+            "⚠️ Amount not found in text.\n"
+            "Format: <code>25.00 TJS</code> or <code>25 somoni</code> "
+            "+ sender number."
+        ),
+        "uz": (
+            "⚠️ Summa matndan topilmadi.\n"
+            "Format: <code>25.00 TJS</code> yoki <code>25 somoni</code> "
+            "+ yuboruvchi raqami."
+        ),
+    },
+    "not_found": {
+        "tj": (
+            "❌ Дархости мувофиқ ёфт нашуд ({amount} TJS).\n"
+            "Матн дар таърих сабт шуд — тасдиқи дастӣ лозим аст."
+        ),
+        "ru": (
+            "❌ Подходящий запрос не найден ({amount} TJS).\n"
+            "Текст записан в историю — нужно ручное подтверждение."
+        ),
+        "en": (
+            "❌ No matching request ({amount} TJS).\n"
+            "Text logged — manual confirmation needed."
+        ),
+        "uz": (
+            "❌ Mos so'rov topilmadi ({amount} TJS).\n"
+            "Matn tarixga yozildi — qo'lda tasdiqlash kerak."
+        ),
+    },
+}
+
+
+def looks_like_push(text: str) -> bool:
+    """Матн эҳтимолан огоҳиномаи пардохт аст (TJS / сомонӣ)."""
+    return bool(_PAY_HINT.search(text or ""))
+
+
+def _num(value: Any) -> str:
+    """25.00 → «25», 25.50 → «25.5» (барои ҷавоби бот)."""
+    try:
+        return f"{float(value):.2f}".rstrip("0").rstrip(".")
+    except (TypeError, ValueError):
+        return "—"
+
+
+def format_reply(result: dict, lang: str = "tj") -> str:
+    """Ҷавоби кӯтоҳ барои бот аз натиҷаи `process_push` (HTML)."""
+    status = str(result.get("status") or "ignored")
+    table = _REPLIES.get(status, _REPLIES["ignored"])
+    tpl = table.get(lang) or table["tj"]
+    return tpl.format(
+        amount=_num(result.get("amount")),
+        balance=_num(result.get("balance")),
+    )

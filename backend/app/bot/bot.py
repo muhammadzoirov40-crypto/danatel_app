@@ -15,7 +15,7 @@ from sqlalchemy import select
 from app.config import settings
 from app.database import SessionLocal
 from app.models import AuditLog, Game, Order, OrderStatus, Product
-from app.services import dc_service, telegram_service
+from app.services import dc_push, dc_service, telegram_service
 
 logger = logging.getLogger("bot")
 
@@ -256,6 +256,21 @@ async def cb_game(call: CallbackQuery):
 @router.message(F.text)
 async def on_text(message: Message):
     lang = get_lang(message.chat.id)
+
+    # 🔔 Пуши DC (талаби соҳиб, 05.11.2026): танҳо чати админ —
+    #    огоҳиномаи DC-ро ба бот ФОРВАРД ё нусхабардорӣ кунед →
+    #    ҳамон `process_push`, ки вебхук истифода мебарад → ҷавоб бо
+    #    натиҷа (✅ қабул / ♻️ такрорӣ / ⚠️ бе маблағ / ❌ бе дархост).
+    #    Одамони дигар ҳамон роҳи пешинаро мегиранд (мизичаи оғоз).
+    text = (message.text or "").strip()
+    if _admin_chat(message.chat.id) and text and not text.startswith("/"):
+        forwarded = getattr(message, "forward_origin", None) is not None
+        if forwarded or dc_push.looks_like_push(text):
+            with SessionLocal() as db:
+                result = dc_push.process_push(db, body=text)
+            await message.answer(dc_push.format_reply(result, lang))
+            return
+
     slot = SLOTS.get(str(message.chat.id), {})
 
     # Агар ID талаб карда шудааст

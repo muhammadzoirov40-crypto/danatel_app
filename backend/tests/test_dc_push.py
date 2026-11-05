@@ -11,8 +11,11 @@
 """
 from __future__ import annotations
 
+import asyncio
 import io
 import uuid
+from types import SimpleNamespace
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from fastapi.testclient import TestClient
@@ -211,3 +214,104 @@ def test_duplicate_push_no_double_credit(
     assert second.json()["request_id"] == req["id"]
     assert balance_of(client, token) == bal
     assert dc_push_env == []
+
+
+# =====================================================================
+# 💬 ФОРМАТИ ҶАВОБ + МУАЙЯНКУНАНДАИ МАТН
+# =====================================================================
+def test_format_reply_statuses_all_langs():
+    """Ҳамаи 4 ҳолат × 4 забон — ҷавоб пурра ва рақамҳо дуруст."""
+    from app.services.dc_push import format_reply
+
+    for lang in ("tj", "ru", "en", "uz"):
+        ok = format_reply(
+            {"status": "success", "amount": 25, "balance": 125}, lang
+        )
+        assert "25" in ok and "125" in ok, (lang, ok)
+        assert format_reply({"status": "already"}, lang).strip()
+        assert format_reply({"status": "ignored"}, lang).strip()
+        nf = format_reply({"status": "not_found", "amount": 50}, lang)
+        assert "50" in nf, (lang, nf)
+
+
+def test_looks_like_push():
+    """Танҳо матни пардохт (TJS/сомонӣ) ҳамчун пуш қабул мешавад."""
+    from app.services.dc_push import looks_like_push
+
+    assert looks_like_push("25.00 TJS от +9929000123456")
+    assert looks_like_push("Получено 40 сомони")
+    assert not looks_like_push("салом")
+    assert not looks_like_push("12345")
+
+
+# =====================================================================
+# 🤖 БОТ: форвард/нусхаи матни DC аз чати админ → ҳамон process_push
+# =====================================================================
+@pytest.fixture(scope="module")
+def bot_mod():
+    """Модули ботро бе Telegram-и воқеӣ мекушояд (танҳо формати токен)."""
+    from app.config import settings as cfg
+
+    saved = cfg.TELEGRAM_BOT_TOKEN
+    cfg.TELEGRAM_BOT_TOKEN = "123456:TEST_FORMAT_ONLY"
+    try:
+        import app.bot.bot as m
+
+        return m
+    finally:
+        cfg.TELEGRAM_BOT_TOKEN = saved
+
+
+def _msg(chat_id: int, text: str, forwarded: bool = False) -> MagicMock:
+    msg = MagicMock()
+    msg.chat = SimpleNamespace(id=chat_id)
+    msg.text = text
+    msg.forward_origin = object() if forwarded else None
+    msg.answer = AsyncMock()
+    return msg
+
+
+def _run(handler, msg) -> str:
+    asyncio.run(handler(msg))
+    return msg.answer.call_args[0][0]
+
+
+def test_bot_admin_paste_auto_credits(client, bot_mod, monkeypatch):
+    """Нусхаи матни DC аз чати админ → қабул + баланс +25."""
+    monkeypatch.setattr(settings, "TELEGRAM_ADMIN_CHAT_ID", "777001")
+    token, phone = register(client)
+    prepare(client, token, "25")
+
+    reply = _run(
+        bot_mod.on_text, _msg(777001, f"Получено 25.00 TJS от +{phone}")
+    )
+    assert "✅" in reply, reply
+    assert balance_of(client, token) == 25.0
+
+
+def test_bot_non_admin_never_processed(client, bot_mod, monkeypatch):
+    """Одамони дигар ҳатто бо ҳамон матн → мизичаи оддӣ, бе қабул."""
+    monkeypatch.setattr(settings, "TELEGRAM_ADMIN_CHAT_ID", "777001")
+    token, phone = register(client)
+    prepare(client, token, "25")
+
+    reply = _run(
+        bot_mod.on_text, _msg(555002, f"Получено 25.00 TJS от +{phone}")
+    )
+    assert "✅" not in reply, reply
+    assert "Хуш омадед" in reply, reply
+    assert balance_of(client, token) == 0.0
+
+
+def test_bot_admin_casual_text_keeps_menu(client, bot_mod, monkeypatch):
+    """Матни оддии админ (бе форвард ва бе TJS/сомонӣ) → мизича, не push."""
+    monkeypatch.setattr(settings, "TELEGRAM_ADMIN_CHAT_ID", "777001")
+    reply = _run(bot_mod.on_text, _msg(777001, "салом"))
+    assert "Хуш омадед" in reply, reply
+
+
+def test_bot_forwarded_without_amount_gets_hint(client, bot_mod, monkeypatch):
+    """Форварди бе маблағ → ҷавоби «ignored» бо формат (бе амали дигар)."""
+    monkeypatch.setattr(settings, "TELEGRAM_ADMIN_CHAT_ID", "777001")
+    reply = _run(bot_mod.on_text, _msg(777001, "hello", forwarded=True))
+    assert "⚠️" in reply, reply
