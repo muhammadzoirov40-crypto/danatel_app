@@ -117,6 +117,12 @@ export default function FaceAuthModal({ mode, onClose, onSuccess }: Props) {
   const [errKind, setErrKind] = useState<ErrKind>("network");
   const [consent, setConsent] = useState(false);
   const [challenge, setChallenge] = useState<Challenge | null>(null);
+  // Прогресси «чашм пузур» (0..2) — нуқтаҳо дар карткаи чолиш
+  const [blinkProg, setBlinkProg] = useState(0);
+  /** recognition net (6.4MB) дар замин: true = тайёр, false = хато */
+  const recogRef = useRef<Promise<boolean> | null>(null);
+  /** дар роҳи гузариш ба capture (лайвлес гузашт → recognition меборад) */
+  const awaitingRef = useRef(false);
   // 🔑 Дарвозаи парол (танҳо сабт)
   const [pw, setPw] = useState("");
   const [pwErr, setPwErr] = useState<string | null>(null);
@@ -134,7 +140,8 @@ export default function FaceAuthModal({ mode, onClose, onSuccess }: Props) {
   const submittingRef = useRef(false);
   const samplesRef = useRef<number[][]>([]);
   const captureStartRef = useRef(0);
-  const blinkRef = useRef({ closed: 0, cycles: 0 });
+  /** win = медианаи EAR (20 фрейм), deep = фрейми амиқи ягона, bad = фрейми бади пайваста */
+  const blinkRef = useRef({ closed: 0, cycles: 0, win: [] as number[], deep: false, bad: 0 });
   const mouthRef = useRef({ open: 0, done: false });
   const phaseRef = useRef(phase);
   phaseRef.current = phase;
@@ -175,9 +182,10 @@ export default function FaceAuthModal({ mode, onClose, onSuccess }: Props) {
   }, [onClose, stopAll]);
 
   const resetLiveness = useCallback(() => {
-    blinkRef.current = { closed: 0, cycles: 0 };
+    blinkRef.current = { closed: 0, cycles: 0, win: [], deep: false, bad: 0 };
     mouthRef.current = { open: 0, done: false };
     samplesRef.current = [];
+    setBlinkProg(0);
   }, []);
 
   const fail = useCallback((kind: ErrKind) => {
@@ -190,6 +198,8 @@ export default function FaceAuthModal({ mode, onClose, onSuccess }: Props) {
     setPhase("starting");
     resetLiveness();
     setChallenge(null);
+    recogRef.current = null;
+    awaitingRef.current = false;
 
     // 🔒 Камера танҳо дар secure context (http://IP → HTTPS лозим)
     if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
@@ -241,7 +251,13 @@ export default function FaceAuthModal({ mode, onClose, onSuccess }: Props) {
       await tf.ready();
       await faceapi.nets.tinyFaceDetector.loadFromUri("/face-models");
       await faceapi.nets.faceLandmark68Net.loadFromUri("/face-models");
-      await faceapi.nets.faceRecognitionNet.loadFromUri("/face-models");
+      // recognition (6.4MB) ДАР ЗАМИНА → scan дар ~6s сар мешавад.
+      // Пештар ҳар чаҳор файл ПЕШ аз scan =60-100s дар шабакаи заъиф →
+      // модалка БЕҲАД дар «Камера ва моделҳо тайёр мешаванд» мебандид.
+      recogRef.current = faceapi.nets.faceRecognitionNet
+        .loadFromUri("/face-models")
+        .then(() => true)
+        .catch(() => false);
     } catch {
       fail("models");
       return;
@@ -402,6 +418,22 @@ export default function FaceAuthModal({ mode, onClose, onSuccess }: Props) {
     [fail, mode, resetLiveness, stopAll, t],
   );
 
+  /** Гузариш ба capture: recognition (6.4MB) бояд ТАЙЁР бошад → мунтазирӣ.
+   *  awaitingRef то ба тахтаи capture расидан true мемонад (баъди он дар
+   *  шохаи capture сифр мешавад) → воридшавии дубора ғайриимкон. */
+  const enterCapture = useCallback(async () => {
+    const ok = (await recogRef.current) ?? false;
+    if (phaseRef.current !== "scan") return; // модалка баста/ҳолат иваз шуд
+    if (!ok) {
+      fail("models");
+      return;
+    }
+    samplesRef.current = [];
+    captureStartRef.current = performance.now();
+    setHint("capturing");
+    setPhase("capture");
+  }, [fail]);
+
   // ========================== 👁️ Цикли детектсия ==========================
   useEffect(() => {
     if (phase !== "scan" && phase !== "capture") return;
@@ -420,10 +452,10 @@ export default function FaceAuthModal({ mode, onClose, onSuccess }: Props) {
             inputSize: 320,
             scoreThreshold: 0.5,
           });
-          const all = await faceapi
-            .detectAllFaces(video, opts)
-            .withFaceLandmarks()
-            .withFaceDescriptors();
+          // descriptor танҳо ҳангоми capture — scan сабук → детектсия тезтар
+          const task = faceapi.detectAllFaces(video, opts).withFaceLandmarks();
+          const all =
+            phaseRef.current === "capture" ? await task.withFaceDescriptors() : await task;
           if (phaseRef.current !== "scan" && phaseRef.current !== "capture") return;
           drawOverlay(all);
 
@@ -431,8 +463,10 @@ export default function FaceAuthModal({ mode, onClose, onSuccess }: Props) {
 
           // ---------- ҲОЛАТИ CAPTURE: ҷамъ кардани нусхаҳо ----------
           if (phaseRef.current === "capture") {
+            awaitingRef.current = false;
             if (all.length === 1 && all[0].detection.box.width >= vw * 0.24) {
-              samplesRef.current.push(Array.from(all[0].descriptor));
+              const desc = (all[0] as { descriptor?: Float32Array }).descriptor;
+              if (desc) samplesRef.current.push(Array.from(desc));
             }
             const elapsed = performance.now() - captureStartRef.current;
             if (samplesRef.current.length >= 3 || elapsed > 1800) {
@@ -448,42 +482,59 @@ export default function FaceAuthModal({ mode, onClose, onSuccess }: Props) {
           }
 
           // ---------- ҲОЛАТИ SCAN ----------
-          if (all.length === 0) {
-            setHint("noface");
-            resetLiveness();
+          if (awaitingRef.current) return; // дар роҳи capture (recognition меборад)
+          // Фрейми бади ягона (лаҳзаи гузариш/флукер) → САБР: танҳо2 фрейми
+          // пайваста ҳолатро иваз мекунад,5 фрейм → нул кардани пешрафт.
+          // (Пеш: ҳар фрейми бад = reset → пешрафти чашм ҳамеша сифр мешуд.)
+          const badKind =
+            all.length === 0 ? "noface" : all.length > 1 ? "multi" : null;
+          const tooFar = all.length === 1 && all[0].detection.box.width < vw * 0.24;
+          if (badKind || tooFar) {
+            blinkRef.current.bad += 1;
+            if (blinkRef.current.bad >= 2) {
+              setHint(badKind ?? "toofar");
+              if (blinkRef.current.bad >= 5) resetLiveness();
+            }
             return;
           }
-          if (all.length > 1) {
-            setHint("multi");
-            resetLiveness();
-            return;
-          }
-          const det = all[0];
-          if (det.detection.box.width < vw * 0.24) {
-            setHint("toofar");
-            resetLiveness();
-            return;
-          }
+          blinkRef.current.bad = 0;
 
           const ch = challengeRef.current;
           if (!ch) return;
           setHint("liveness");
 
-          const pts = det.landmarks.positions;
+          const pts = all[0].landmarks.positions;
           const ear = (earOf(pts, 36) + earOf(pts, 42)) / 2;
           const mar = mouthAspect(pts);
 
           if (ch.action === "blink") {
-            if (ear <= 0.19) blinkRef.current.closed += 1;
-            else {
-              if (blinkRef.current.closed >= 2) blinkRef.current.cycles += 1;
-              blinkRef.current.closed = 0;
+            const bl = blinkRef.current;
+            // Одаптивӣ: медионаи EAR-и20 фрейми охир → барои чашми танг ва
+            // васеъ алоҳида мувофиқ мешавад; сабти тақрибӣ =0.14.
+            // (Пеш: сахти ear<=0.19 бо суръати300ms → чашми табиӣ ҲЕҶ ГОҲ
+            //  2 фрейми пӯшид намегирифт → лайвлес БЕҲАД мебандад.)
+            bl.win.push(ear);
+            if (bl.win.length > 20) bl.win.shift();
+            const sorted = [...bl.win].sort((a, b) => a - b);
+            const med =
+              sorted.length >= 5 ? sorted[sorted.length >> 1] : Math.max(ear, 0.2);
+            const closedTh = Math.max(0.14, med * 0.78);
+            const deepTh = Math.max(0.12, med * 0.6);
+            if (ear <= closedTh) {
+              bl.closed += 1;
+              if (ear <= deepTh) bl.deep = true;
+            } else {
+              // кушода: ≥2 фрейми пӯшид ИЁ фрейми амиқи ягона = як чашм задан
+              if (bl.closed >= 2 || (bl.closed >= 1 && bl.deep)) bl.cycles += 1;
+              bl.closed = 0;
+              bl.deep = false;
+              setBlinkProg(bl.cycles);
             }
-            if (blinkRef.current.cycles >= 2) {
-              samplesRef.current = [Array.from(det.descriptor)];
-              captureStartRef.current = performance.now();
+            if (bl.cycles >= 2) {
+              awaitingRef.current = true;
+              setBlinkProg(2);
               setHint("capturing");
-              setPhase("capture");
+              void enterCapture(); // recognition (6.4MB) тайёр шуданашро интизор
               return;
             }
           } else {
@@ -493,10 +544,9 @@ export default function FaceAuthModal({ mode, onClose, onSuccess }: Props) {
               mouthRef.current.open = 0;
             }
             if (mouthRef.current.done) {
-              samplesRef.current = [Array.from(det.descriptor)];
-              captureStartRef.current = performance.now();
+              awaitingRef.current = true;
               setHint("capturing");
-              setPhase("capture");
+              void enterCapture(); // recognition (6.4MB) тайёр шуданашро интизор
               return;
             }
           }
@@ -506,14 +556,14 @@ export default function FaceAuthModal({ mode, onClose, onSuccess }: Props) {
           busyRef.current = false;
         }
       })();
-    }, 300);
+    }, 100); // 🚀 пеш300ms →100ms: чашми табиӣ (150-250ms) акнун2-3 фрейм мегирад
     return () => {
       if (timerRef.current) {
         window.clearInterval(timerRef.current);
         timerRef.current = undefined;
       }
     };
-  }, [phase, drawOverlay, resetLiveness, submit]);
+  }, [phase, drawOverlay, resetLiveness, submit, enterCapture]);
 
   // ========================== 🎨 Рамкаи UI ==========================
   const hintKey =
@@ -707,7 +757,7 @@ export default function FaceAuthModal({ mode, onClose, onSuccess }: Props) {
               )}
             </div>
 
-            {/* Чолиши лайвлес — калон ва возеҳ */}
+            {/* Чолиши лайвлес — калон ва возеҳ + пешрафти чашм задан */}
             {phase === "scan" && hint === "liveness" && challenge && (
               <div className="flex items-center gap-2.5 rounded-2xl border border-sky-200 bg-sky-50 px-3.5 py-2.5">
                 <span className="relative flex h-2.5 w-2.5 shrink-0">
@@ -717,6 +767,20 @@ export default function FaceAuthModal({ mode, onClose, onSuccess }: Props) {
                 <span className="text-[13px] font-semibold leading-snug text-sky-800">
                   {t(challengeKey)}
                 </span>
+                {challenge.action === "blink" && (
+                  <span aria-hidden className="ml-auto flex shrink-0 gap-1.5">
+                    <span
+                      className={`h-2.5 w-2.5 rounded-full transition-colors ${
+                        blinkProg >= 1 ? "bg-sky-500" : "bg-sky-200"
+                      }`}
+                    />
+                    <span
+                      className={`h-2.5 w-2.5 rounded-full transition-colors ${
+                        blinkProg >= 2 ? "bg-sky-500" : "bg-sky-200"
+                      }`}
+                    />
+                  </span>
+                )}
               </div>
             )}
 

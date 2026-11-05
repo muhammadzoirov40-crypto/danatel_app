@@ -1,7 +1,8 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Disc3,
+  Download,
   Info,
   LayoutGrid,
   LogIn,
@@ -17,6 +18,12 @@ import {
 } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { LANGS } from "../i18n";
+import { httpsUrl } from "./FaceAuthModal";
+import {
+  InstallPromptEvent,
+  isIos,
+  isStandalone,
+} from "./InstallApp";
 import {
   Ic,
   RussianFlag,
@@ -40,6 +47,7 @@ import Logo from "./Logo";
  *   · Чарх          → /wheel
  *   · Тақризҳо     → /reviews
  *   · Дар бораи мo → #about (бахши SEO дар саҳифаи асосӣ)
+ *   · Насб барнома → PWA prompt / iOS-дастур / HTTPS (танҳо вақте роҳ ҳаст)
  *   · Панели идора  → /admin (танҳо барои админ)
  *   · Баромад       → logout
  *   · 🌙/☀️ + забон  → мавзӯи воқеӣ (localStorage) + 4 забон
@@ -59,6 +67,61 @@ export default function SidebarMenu({
   const { pathname } = useLocation();
   const panelRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
+
+  // 📦 Насб кардани барнома (PWA) — ҳамон муколамаи InstallApp, дар меню.
+  //    Рӯйдоди браузер дар ин ҷо ҳам гирифта мешавад (preventDefault) →
+  //    тугмаи меню ва блоки Профил як event-и ягонаро истифода мебаранд.
+  const [installEvt, setInstallEvt] = useState<InstallPromptEvent | null>(null);
+  const [installed, setInstalled] = useState<boolean>(() => isStandalone());
+  const [installBusy, setInstallBusy] = useState(false);
+  const [iosHint, setIosHint] = useState(false);
+
+  useEffect(() => {
+    const onPrompt = (e: Event) => {
+      e.preventDefault();
+      setInstallEvt(e as InstallPromptEvent);
+    };
+    const onInstalled = () => {
+      setInstalled(true);
+      setInstallEvt(null);
+    };
+    window.addEventListener("beforeinstallprompt", onPrompt);
+    window.addEventListener("appinstalled", onInstalled);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", onPrompt);
+      window.removeEventListener("appinstalled", onInstalled);
+    };
+  }, []);
+
+  const insecure = !window.isSecureContext;
+  const ios = isIos();
+  /** Банди насб танҳо вақте нишон дода мешавад, ки роҳи насб ВОҚЕӢ мавҷуд:
+      Android prompt / iPhone / http→HTTPS. Firefox-и десктоп → пинҳон. */
+  const showInstall = !installed && (insecure || ios || !!installEvt);
+
+  /** Клик: http → HTTPS; iOS → дастур дар ҷои худ; Android → prompt() */
+  const onInstall = async () => {
+    if (insecure) {
+      window.location.href = httpsUrl();
+      return;
+    }
+    if (ios) {
+      setIosHint((v) => !v);
+      return;
+    }
+    if (!installEvt || installBusy) return;
+    setInstallBusy(true);
+    try {
+      await installEvt.prompt();
+      const choice = await installEvt.userChoice;
+      if (choice.outcome === "accepted") setInstalled(true);
+      setInstallEvt(null);
+    } catch {
+      /* браузер рад кард → ҳолати пешина мемонад */
+    } finally {
+      setInstallBusy(false);
+    }
+  };
 
   // 🔒 Escape + lock-и скролл + focus ба ✕ ҳангоми кушодан
   useEffect(() => {
@@ -294,6 +357,29 @@ export default function SidebarMenu({
                 <Ic icon={Settings} className="text-slate-500 shrink-0" />
                 {t("adminPanel")}
               </button>
+            )}
+
+            {/* 📦 Насб кардани барнома (PWA) — танҳо вақте роҳи насб ВОҚЕӢ
+                мавҷуд: Android prompt / iPhone-дастур / http→HTTPS.
+                Насб шуд → банд худкорона меравад (чизе барои амал нест). */}
+            {showInstall && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => void onInstall()}
+                  disabled={installBusy}
+                  aria-expanded={ios ? iosHint : undefined}
+                  className={`${rowCls} disabled:cursor-wait disabled:opacity-60`}
+                >
+                  <Ic icon={Download} className="text-brand-500 shrink-0" />
+                  {t("menuInstall")}
+                </button>
+                {ios && iosHint && (
+                  <p className="mb-1 rounded-xl bg-slate-50 px-3 py-2.5 text-[11px] leading-relaxed text-slate-600 dark:bg-white/5 dark:text-slate-300">
+                    🍎 {t("appIosHint")}
+                  </p>
+                )}
+              </>
             )}
 
             {user && (

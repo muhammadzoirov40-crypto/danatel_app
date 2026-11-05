@@ -18,19 +18,19 @@ import { httpsUrl } from "./FaceAuthModal";
  */
 
 /** Рӯйдоди муколамаи насби браузер (BeforeInstallPromptEvent) */
-interface InstallPromptEvent extends Event {
+export interface InstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
 }
 
-function isIos(): boolean {
+export function isIos(): boolean {
   const ua = navigator.userAgent || "";
   if (/iPhone|iPad|iPod/i.test(ua)) return true;
   // iPadOS 13+ худро Mac ҳамчун нишон медиҳад, вале touch дорад
   return /Macintosh/i.test(ua) && (navigator.maxTouchPoints ?? 0) > 1;
 }
 
-function isStandalone(): boolean {
+export function isStandalone(): boolean {
   if (window.matchMedia("(display-mode: standalone)").matches) return true;
   // iOS Safari
   return (navigator as unknown as { standalone?: boolean }).standalone === true;
