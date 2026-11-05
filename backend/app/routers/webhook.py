@@ -1,14 +1,18 @@
 """Вебхукҳо: DC Wallet (пардохт)."""
 from __future__ import annotations
 
+import hmac
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from app import ratelimit
+from app.config import settings
 from app.database import get_db
 from app.models import Order, OrderStatus
-from app.services import dc_service, telegram_service
+from app.services import dc_push, dc_service, telegram_service
 
 logger = logging.getLogger("webhook")
 router = APIRouter(prefix="/api/webhook", tags=["webhook"])
@@ -58,3 +62,55 @@ async def dc_webhook(request: Request, db: Session = Depends(get_db)):
         db.commit()
 
     return {"ok": True, "order_id": order.id, "status": order.status}
+
+
+# =====================================================================
+# 🔔 ПУШ-ОГОҲИНОМАИ DC АЗ ТЕЛЕФОН → ХУДКОР ТАСДИҚИ ПАРДОХТ
+# =====================================================================
+class PushPayload(BaseModel):
+    """Пуш аз телефони соҳиб: унвон + матни огоҳиномаи DC."""
+
+    title: str = ""
+    body: str = ""
+
+
+@router.post("/dc-push")
+async def dc_push_webhook(
+    payload: PushPayload,
+    request: Request,
+    x_secret_token: str | None = Header(default=None),
+    db: Session = Depends(get_db),
+):
+    """🔔 Огоҳиномаи DC (аз телефон) → худкор қабули дархости баланс.
+
+    • `X-Secret-Token` бояд баробари `DC_PUSH_TOKEN` бошад (бе он → 403;
+      токени холӣ → ҳама рад, то ки хатогии танзим пулро нодуруст
+      қабул накунад);
+    • аз матн маблағ + рақам → дархости ҳалнашудаи корбар → ҳамон
+      `approve_topup` (баланс + audit + realtime + email);
+    • мувофиқат нашуд → AuditLog + огоҳинома ба админ дар Telegram.
+    """
+    ip = request.client.host if request.client else "unknown"
+    # 🚦 60 дархост дар дақиқа барои як IP
+    ratelimit.enforce(request, "dc_push", 60, 60, identifier=ip)
+
+    if (
+        not settings.DC_PUSH_TOKEN
+        or not x_secret_token
+        or not hmac.compare_digest(x_secret_token, settings.DC_PUSH_TOKEN)
+    ):
+        logger.warning("DC push: токен нодуруст (IP=%s)", ip)
+        raise HTTPException(status_code=403, detail="Тасдиқ нашуд")
+
+    if not f"{payload.title} {payload.body}".strip():
+        raise HTTPException(status_code=422, detail="Матн холӣ аст")
+
+    result = dc_push.process_push(db, title=payload.title, body=payload.body)
+
+    admin_text = result.pop("admin_text", None)
+    if admin_text:
+        try:
+            await telegram_service.notify_admin(admin_text)
+        except Exception:  # noqa: BLE001 — Telegram набояд ҷавобро бозмедорад
+            logger.exception("Огоҳиномаи Telegram (dc push) ноком шуд")
+    return result

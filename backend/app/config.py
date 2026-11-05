@@ -33,6 +33,9 @@ class Settings(BaseSettings):
     DC_SECRET_KEY: str = ""
     DC_API_URL: str = "https://api.dcpay.tj"
     DC_WEBHOOK_URL: str = ""
+    # 🔔 Пуш-огоҳиномаҳои DC аз телефони соҳиб → POST /api/webhook/dc-push
+    #    (X-Secret-Token). Холӣ → ҳамаи пушҳо РАД мешаванд (403).
+    DC_PUSH_TOKEN: str = ""
 
     # 💳 ПАРДОХТИ БЕРУНӢ (линк + чек) — ҳамон усули боти Telegram
     # Линки пардохт; {amount} бо маблағи фармоиш иваз мешавад
