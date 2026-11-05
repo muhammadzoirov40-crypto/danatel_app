@@ -287,6 +287,7 @@ export const api = {
     challengeId: string,
     actionDone: string,
     consent: boolean,
+    pwTicket: string | null,
   ) =>
     request<{ registered: boolean; registered_at: string | null }>(
       "/auth/face/register",
@@ -297,8 +298,20 @@ export const api = {
           challenge_id: challengeId,
           action_done: actionDone,
           consent,
+          pw_ticket: pwTicket,
         }),
       },
+    ),
+
+  /**
+   * 🔑 Дарвозаи парол: тасдики парол пеш аз сабти чеҳра.
+   * Ҷавоб: ticket-и HMAC (300s) → дар faceRegister ҳатмӣ (428 бе он).
+   * Пароли нодуруст → 403 (НА 401 — 401 сеансро мешиканад).
+   */
+  faceConfirmPassword: (password: string) =>
+    request<{ ok: boolean; ticket: string; expires_in: number }>(
+      "/auth/face/confirm-password",
+      { method: "POST", body: JSON.stringify({ password }) },
     ),
 
   /** 📌 Оё чеҳра сабт шудааст? (танҳо корбари вурудкарда) */

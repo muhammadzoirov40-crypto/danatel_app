@@ -17,22 +17,25 @@ import { api, ApiError } from "../api/client";
  * 😶 Модалкаи Face Authentication (Вуруд бо чеҳра / Сабти чеҳра).
  *
  * Ҳаёти ҷараён:
- *   consent (танҳо сабт) → камера + моделҳо → скан → ЧОЛИШИ ЛАЙВЛЕС
- *   (чашм пузур ×2 / даҳон кушодан — аз рӯйи landmarkҳо) → 3 нусхаи
- *   descriptor → ба сервер (challenge якдафъаӣ) → муваффақият/хато.
+ *   gate (танҳо сабт: розигӣ + 🔑 ТАСДИКИ ПАРОЛ → ticket) → камера +
+ *   моделҳо → скан → ЧОЛИШИ ЛАЙВЛЕС (чашм пузур ×2 / даҳон кушодан —
+ *   аз рӯйи landmarkҳо) → 3 нусхаи descriptor → ба сервер (challenge
+ *   якдафъаӣ + pw_ticket) → муваффақият/хато.
+ *   Бе pw_ticket сервер 428 медиҳад → БАГАРДОНДАН ба дарвозаи парол.
  *
  * Амният:
  *   • Камера танҳо дар secure context (HTTPS) → дар http://IP экрани
  *     возеҳ бо линки HTTPS нишон дода мешавад (getUserMedia кушода намешавад).
  *   • Расм/видео ҲЕҶ ГОҲ ба сервер намефиристад — танҳо vector-и 128-уҷа.
- *   • Розигии возеҳӣ барои сабт (checkbox) ҲАТМИСТ.
+ *   • Розигии возеҳӣ + пароли ҳисоб барои сабт ҲАТМИАН (backend ҳам
+ *     маҷбур мекунад: HMAC-ticket, 300s, 403 бе он).
  *   • Агар чеҳра ноком шавад → тугмаи «Бо парол вуруд кунед» ҳамеша ҳаст.
  *
  * Дастгирӣ: role=dialog, aria-modal, ESC, aria-live барои ҳолатҳо,
  * ҳолатҳои Loading / Success / Error, мобил + десктоп (320px санҷида).
  */
 
-type Phase = "consent" | "starting" | "scan" | "capture" | "submit" | "success" | "error";
+type Phase = "gate" | "starting" | "scan" | "capture" | "submit" | "success" | "error";
 
 type Hint = "looking" | "noface" | "multi" | "toofar" | "liveness" | "capturing";
 
@@ -109,11 +112,17 @@ function httpsUrl(): string {
 export default function FaceAuthModal({ mode, onClose, onSuccess }: Props) {
   const { t } = useApp();
 
-  const [phase, setPhase] = useState<Phase>(mode === "enroll" ? "consent" : "starting");
+  const [phase, setPhase] = useState<Phase>(mode === "enroll" ? "gate" : "starting");
   const [hint, setHint] = useState<Hint>("looking");
   const [errKind, setErrKind] = useState<ErrKind>("network");
   const [consent, setConsent] = useState(false);
   const [challenge, setChallenge] = useState<Challenge | null>(null);
+  // 🔑 Дарвозаи парол (танҳо сабт)
+  const [pw, setPw] = useState("");
+  const [pwErr, setPwErr] = useState<string | null>(null);
+  const [gateBusy, setGateBusy] = useState(false);
+  const gateBusyRef = useRef(false);
+  const ticketRef = useRef<string | null>(null);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -250,11 +259,38 @@ export default function FaceAuthModal({ mode, onClose, onSuccess }: Props) {
     setHint("looking");
   }, [fail, resetLiveness]);
 
-  // Оғоз: login = фавран; enroll = баъди розигӣ
+  // Оғоз: login = фавран; enroll = баъди дарвозаи парол
   useEffect(() => {
     if (mode === "login") void begin();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
+
+  // ========================== 🔑 ДАРВОЗАИ ПАРОЛ ==========================
+  const confirmGate = useCallback(async () => {
+    if (gateBusyRef.current || !consent || !pw) return;
+    gateBusyRef.current = true;
+    setGateBusy(true);
+    setPwErr(null);
+    try {
+      // Тасдики парол → ticket (300s) → танҳо баъди он камера кушода мешавад
+      const res = await api.faceConfirmPassword(pw);
+      ticketRef.current = res.ticket;
+      setPw(""); // парол дар ҳолат мемонад не
+      await begin();
+    } catch (e) {
+      const st = e instanceof ApiError ? e.status : 0;
+      setPwErr(
+        st === 403
+          ? t("facePwWrong")
+          : st === 429
+            ? t("faceTooMany")
+            : t("faceNetworkError"),
+      );
+    } finally {
+      gateBusyRef.current = false;
+      setGateBusy(false);
+    }
+  }, [begin, consent, pw, t]);
 
   // ========================== 🖼️ Рамкаи overlay ==========================
   const drawOverlay = useCallback(
@@ -315,12 +351,29 @@ export default function FaceAuthModal({ mode, onClose, onSuccess }: Props) {
         if (mode === "login") {
           await api.faceLogin(descriptor, ch.challenge_id, ch.action);
         } else {
-          await api.faceRegister(descriptor, ch.challenge_id, ch.action, consentRef.current);
+          await api.faceRegister(
+            descriptor,
+            ch.challenge_id,
+            ch.action,
+            consentRef.current,
+            ticketRef.current,
+          );
         }
         setPhase("success");
         window.setTimeout(() => successFnRef.current(), 1300);
       } catch (e) {
         const status = e instanceof ApiError ? e.status : 0;
+        if (status === 428) {
+          // 🔑 Парол тасдиқ нашуд/вақташ гузашт → БАГАРДОНДАН ба дарвоза
+          submittingRef.current = false;
+          stopAll();
+          resetLiveness();
+          ticketRef.current = null;
+          setPw("");
+          setPwErr(t("facePwExpired"));
+          setPhase("gate");
+          return;
+        }
         if (status === 400) {
           // Чолиш муҳлаташ гузашт/нодуруст → ЧОЛИШИ НАВ, бе нишондодани хато
           submittingRef.current = false;
@@ -346,7 +399,7 @@ export default function FaceAuthModal({ mode, onClose, onSuccess }: Props) {
         submittingRef.current = false;
       }
     },
-    [fail, mode, resetLiveness],
+    [fail, mode, resetLiveness, stopAll, t],
   );
 
   // ========================== 👁️ Цикли детектсия ==========================
@@ -527,8 +580,8 @@ export default function FaceAuthModal({ mode, onClose, onSuccess }: Props) {
           </button>
         </div>
 
-        {/* ===== 1) РОЗИГӢ (танҳо сабт) ===== */}
-        {phase === "consent" && (
+        {/* ===== 1) ДАРВОЗАИ ПАРОЛ (розигӣ + парол — танҳо сабт) ===== */}
+        {phase === "gate" && (
           <div className="space-y-3">
             <div className="rounded-2xl border border-brand-100 bg-brand-50/60 p-3">
               <label className="flex cursor-pointer items-start gap-2.5">
@@ -548,13 +601,48 @@ export default function FaceAuthModal({ mode, onClose, onSuccess }: Props) {
               <ShieldCheck size={15} className="mt-px shrink-0 text-emerald-500" aria-hidden />
               {t("faceConsentNote")}
             </p>
+
+            {/* 🔑 ҲАТМИ: тасдики парол пеш аз сабти чеҳра (backend = 428 бе он) */}
+            <div>
+              <label
+                htmlFor="face-pw"
+                className="mb-1 block text-[12px] font-semibold text-slate-600"
+              >
+                {t("facePwLabel")}
+              </label>
+              <input
+                id="face-pw"
+                type="password"
+                value={pw}
+                autoComplete="current-password"
+                onChange={(e) => {
+                  setPw(e.target.value);
+                  if (pwErr) setPwErr(null);
+                }}
+                placeholder={t("facePwPlaceholder")}
+                aria-invalid={pwErr ? true : undefined}
+                aria-describedby={pwErr ? "face-pw-err" : undefined}
+                className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+              />
+              {pwErr && (
+                <p
+                  id="face-pw-err"
+                  role="alert"
+                  className="mt-1.5 text-[11px] font-medium text-rose-600"
+                >
+                  {pwErr}
+                </p>
+              )}
+            </div>
+
             <div className="grid grid-cols-[1fr_auto] gap-2">
               <button
                 type="button"
-                disabled={!consent}
-                onClick={() => void begin()}
-                className="btn-primary py-3 disabled:cursor-not-allowed disabled:opacity-45"
+                disabled={!consent || pw.length < 1 || gateBusy}
+                onClick={() => void confirmGate()}
+                className="btn-primary flex items-center justify-center gap-1.5 py-3 disabled:cursor-not-allowed disabled:opacity-45"
               >
+                {gateBusy && <Loader2 size={16} className="animate-spin" aria-hidden />}
                 {t("faceContinue")}
               </button>
               <button

@@ -13,8 +13,11 @@
 """
 from __future__ import annotations
 
+import hashlib
+import hmac
 import logging
 import random
+import time
 import uuid
 from datetime import datetime, timedelta, timezone
 
@@ -30,11 +33,12 @@ from app.routers.auth import _issue_token
 from app.schemas import (
     FaceChallengeOut,
     FaceLoginRequest,
+    FacePasswordRequest,
     FaceRegisterRequest,
     FaceStatusOut,
     Token,
 )
-from app.security import get_current_user
+from app.security import get_current_user, verify_password
 from app.services import face_crypto
 
 router = APIRouter(prefix="/api/auth/face", tags=["face-auth"])
@@ -44,6 +48,10 @@ logger = logging.getLogger("face_auth")
 CHALLENGE_SECONDS = 60
 ACTIONS: tuple[str, ...] = ("blink", "mouth")
 
+# 🔑 Тасдики парол (step-up) барои сабти чеҳра: ticket 5 дақиқа ҳаёт дорад
+TICKET_SECONDS = 300
+CONFIRM_LIMIT, CONFIRM_WINDOW = 10, 300  # 10 тасдиқ / 5 дақиқа, корбар
+
 # 🚦 Маҳдудсозии дархост (муҳофизат аз brute-force)
 CHALLENGE_LIMIT, CHALLENGE_WINDOW = 30, 300      # 30 чолиш / 5 дақиқа, IP
 LOGIN_LIMIT, LOGIN_WINDOW = 10, 300             # 10 кӯшиш / 5 дақиқа, IP
@@ -52,6 +60,34 @@ DELETE_LIMIT, DELETE_WINDOW = 10, 600           # 10 несткунӣ / 10 да�
 
 # Паёми ягонаи хато — бе ифшои оё аккаунт бо чеҳра дорад ё не
 LOGIN_FAILED = "Чеҳра шинохта нашуд — лутфан бо парол вуруд кунед"
+
+
+# =====================================================================
+# 🔑 TICKET-И ТАСДИКИ ПАРОЛ (stateless HMAC — DB лозим нест)
+# =====================================================================
+def _pw_sig(user_id: int, exp: int) -> str:
+    key = settings.SECRET_KEY.encode()
+    msg = f"danatel-face-pw:{user_id}:{exp}".encode()
+    return hmac.new(key, msg, hashlib.sha256).hexdigest()
+
+
+def _make_pw_ticket(user_id: int) -> tuple[str, int]:
+    exp = int(time.time()) + TICKET_SECONDS
+    return f"{user_id}.{exp}.{_pw_sig(user_id, exp)}", TICKET_SECONDS
+
+
+def _check_pw_ticket(user_id: int, ticket: str | None) -> bool:
+    """Санҷиши имзо + муҳлат + мувофиқии корбар. Такрорӣ дар 5 дақиқа ҷоиз."""
+    if not ticket:
+        return False
+    try:
+        uid_s, exp_s, sig = ticket.split(".", 2)
+        uid, exp = int(uid_s), int(exp_s)
+    except (ValueError, AttributeError):
+        return False
+    if uid != user_id or exp < int(time.time()):
+        return False
+    return hmac.compare_digest(sig, _pw_sig(uid, exp))
 
 
 def _utcnow_naive() -> datetime:
@@ -121,6 +157,38 @@ def face_challenge(request: Request, db: Session = Depends(get_db)):
 
 
 # =====================================================================
+# 🔑 ТАСДИКИ ПАРОЛ (дарвозаи парол пеш аз сабти чеҳра)
+# =====================================================================
+@router.post("/confirm-password")
+def face_confirm_password(
+    payload: FacePasswordRequest,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """
+    🔑 Тасдики парол (step-up) барои сабти чеҳра.
+
+    • Пароли дуруст → `ticket`-и stateless HMAC (300 сония) бармегардад;
+      дар `/register` ҳатмӣ санҷида мешавад (428 бе он).
+    • Парол нодуруст → **403** (на 401 — 401 дар клиент сеансро мешиканад).
+    • Rate-limit: 10 тасдиқ / 5 дақиқа, корбар.
+    """
+    ratelimit.enforce(
+        request,
+        "face_confirm_pw",
+        CONFIRM_LIMIT,
+        CONFIRM_WINDOW,
+        identifier=str(user.id),
+    )
+    if not verify_password(payload.password, user.password_hash):
+        raise HTTPException(status_code=403, detail="Парол нодуруст аст")
+    ticket, expires_in = _make_pw_ticket(user.id)
+    logger.info("🔑 Тасдики парол барои сабти чеҳра (user=%s)", user.id)
+    return {"ok": True, "ticket": ticket, "expires_in": expires_in}
+
+
+# =====================================================================
 # 😶 САБТИ ЧЕҲРА (танҳо корбари вурудкарда)
 # =====================================================================
 @router.post("/register", response_model=FaceStatusOut)
@@ -134,6 +202,8 @@ def face_register(
     😶 Сабти чеҳра → пайваст ба аккаунти ҷорӣ.
 
     • Розигии возеҳӣ ҲАТМИСТ (`consent=true`) — вақти розигӣ дар DB.
+    • 🔑 Тасдики парол ҲАТМИСТ (`pw_ticket` аз `/confirm-password`) —
+      бе он **428** (чолиш сӯзонда намешавад).
     • Descriptor (128 уҷа) → AES-256-GCM → танҳо байтҳои рамзшуда дар DB.
     • Танҳо ЯК credential барои ҳар корбар (сабти дубра = навсозӣ).
     • Чолиши якдафъаӣ + rate-limit (10/10 дақиқа, корбар).
@@ -142,6 +212,11 @@ def face_register(
         raise HTTPException(
             status_code=422,
             detail="Розигии шумо барои сабти маълумоти чеҳра лозим аст",
+        )
+    if not _check_pw_ticket(user.id, payload.pw_ticket):
+        raise HTTPException(
+            status_code=428,
+            detail="Парол тасдиқ нашуд ё вақташ гузашт — аввал паролро ворид кунед",
         )
     _consume_challenge(
         db,

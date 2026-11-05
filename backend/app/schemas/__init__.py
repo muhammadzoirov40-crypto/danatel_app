@@ -52,6 +52,14 @@ class FaceRegisterRequest(BaseModel):
     challenge_id: str = Field(min_length=8, max_length=40)
     action_done: str = Field(min_length=4, max_length=16)
     consent: bool = False
+    # 🔑 Тасдики парол (step-up): аз POST /confirm-password гирифта мешавад
+    pw_ticket: str | None = Field(default=None, max_length=200)
+
+
+class FacePasswordRequest(BaseModel):
+    """🔑 Тасдики парол пеш аз сабти чеҳра (дарвозаи парол)."""
+
+    password: str = Field(min_length=1, max_length=128)
 
 
 class FaceLoginRequest(BaseModel):

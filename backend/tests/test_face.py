@@ -14,6 +14,8 @@
  11  Нест кардани credential → status=false + вуруд ноком
  12  Рамзгузорӣ: дар DB байти рамзшуда (на vector-и оддӣ); decrypt ≈ normalize
  13  Парол ҳамеша кор мекунад (регрессияи /login пас аз face)
+ 14  Дарвозаи парол: confirm-password → 200/403/401/429 (rate 10/5 дақ)
+ 15  Бе pw_ticket → 428 (чолиш сӯзонда намешавад); тамеринг → 428
 """
 from __future__ import annotations
 
@@ -80,6 +82,17 @@ def challenge(client: TestClient) -> tuple[str, str]:
     return data["challenge_id"], data["action"]
 
 
+def pw_ticket(client: TestClient, token: str) -> str:
+    """🔑 Дарвозаи парол: confirm-password → ticket барои /register."""
+    r = client.post(
+        "/api/auth/face/confirm-password",
+        headers=auth(token),
+        json={"password": PASSWORD},
+    )
+    assert r.status_code == 200, r.text
+    return r.json()["ticket"]
+
+
 def face_register(
     client: TestClient, token: str, desc: list[float], consent: bool = True
 ):
@@ -92,6 +105,7 @@ def face_register(
             "challenge_id": cid,
             "action_done": action,
             "consent": consent,
+            "pw_ticket": pw_ticket(client, token),
         },
     )
 
@@ -161,6 +175,7 @@ def test_register_requires_consent(client: TestClient):
             "challenge_id": cid,
             "action_done": action,
             "consent": True,
+            "pw_ticket": pw_ticket(client, token),
         },
     )
     assert r2.status_code == 200, r2.text
@@ -265,6 +280,7 @@ def test_challenge_replay_rejected(client: TestClient):
         "challenge_id": cid,
         "action_done": action,
         "consent": True,
+        "pw_ticket": pw_ticket(client, token),
     }
     r1 = client.post("/api/auth/face/register", headers=auth(token), json=payload)
     assert r1.status_code == 200, r1.text
@@ -294,6 +310,7 @@ def test_challenge_expired_rejected(client: TestClient):
             "challenge_id": cid,
             "action_done": action,
             "consent": True,
+            "pw_ticket": pw_ticket(client, token),
         },
     )
     assert r.status_code == 400, r.text
@@ -311,6 +328,7 @@ def test_action_mismatch_rejected(client: TestClient):
             "challenge_id": cid,
             "action_done": other,
             "consent": True,
+            "pw_ticket": pw_ticket(client, token),
         },
     )
     assert r.status_code == 400, r.text
@@ -400,3 +418,105 @@ def test_password_login_still_works_after_face(client: TestClient):
     )
     assert r.status_code == 200, r.text
     assert r.json()["access_token"]
+
+
+# =====================================================================
+# 14–15) ДАРВОЗАИ ПАРОЛ (step-up пеш аз сабти чеҳра)
+# =====================================================================
+def test_confirm_password_ok(client: TestClient):
+    _, token = make_user(client)
+    r = client.post(
+        "/api/auth/face/confirm-password",
+        headers=auth(token),
+        json={"password": PASSWORD},
+    )
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["ok"] is True
+    assert body["expires_in"] == 300
+    assert body["ticket"].count(".") == 2
+    # Ҳамон ticket → /register кушода мекунад
+    cid, action = challenge(client)
+    rr = client.post(
+        "/api/auth/face/register",
+        headers=auth(token),
+        json={
+            "descriptor": descriptor(17.2),
+            "challenge_id": cid,
+            "action_done": action,
+            "consent": True,
+            "pw_ticket": body["ticket"],
+        },
+    )
+    assert rr.status_code == 200, rr.text
+
+
+def test_register_requires_pw_ticket(client: TestClient):
+    """Бе ticket → 428; чолиш СЎЗОНДА НАМЕШАВАД → бо ticket 200."""
+    _, token = make_user(client)
+    cid, action = challenge(client)
+    base = {
+        "descriptor": descriptor(18.5),
+        "challenge_id": cid,
+        "action_done": action,
+        "consent": True,
+    }
+    r = client.post("/api/auth/face/register", headers=auth(token), json=base)
+    assert r.status_code == 428, r.text
+    # чолиш сӯзонда нашуд → ҳамон чолиш + ticket → 200
+    r2 = client.post(
+        "/api/auth/face/register",
+        headers=auth(token),
+        json={**base, "pw_ticket": pw_ticket(client, token)},
+    )
+    assert r2.status_code == 200, r2.text
+
+
+def test_confirm_password_wrong(client: TestClient):
+    _, token = make_user(client)
+    r = client.post(
+        "/api/auth/face/confirm-password",
+        headers=auth(token),
+        json={"password": "wrong-pass-9"},
+    )
+    # 403 (НА 401 — 401 дар клиент сеансро мешиканад)
+    assert r.status_code == 403, r.text
+    assert r.json()["detail"] == "Парол нодуруст аст"
+
+
+def test_confirm_password_requires_auth(client: TestClient):
+    r = client.post(
+        "/api/auth/face/confirm-password", json={"password": PASSWORD}
+    )
+    assert r.status_code in (401, 403), r.text
+
+
+def test_pw_ticket_tampered_rejected(client: TestClient):
+    _, token = make_user(client)
+    cid, action = challenge(client)
+    r = client.post(
+        "/api/auth/face/register",
+        headers=auth(token),
+        json={
+            "descriptor": descriptor(19.1),
+            "challenge_id": cid,
+            "action_done": action,
+            "consent": True,
+            "pw_ticket": "1.9999999999.deadbeef",  # имзо қалбакӣ
+        },
+    )
+    assert r.status_code == 428, r.text
+
+
+def test_confirm_password_rate_limit(client: TestClient):
+    _, token = make_user(client)
+    statuses = []
+    for _ in range(11):
+        r = client.post(
+            "/api/auth/face/confirm-password",
+            headers=auth(token),
+            json={"password": "wrong-pass-9"},
+        )
+        statuses.append(r.status_code)
+    assert statuses[:10] == [403] * 10, statuses
+    assert statuses[10] == 429, statuses
