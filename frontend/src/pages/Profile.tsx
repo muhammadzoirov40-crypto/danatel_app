@@ -31,6 +31,7 @@ import type { CoinsInfo } from "../types";
 import { Ic } from "../components/Icons";
 import TopUpModal from "../components/TopUpModal";
 import FaceAuthModal from "../components/FaceAuthModal";
+import InstallApp from "../components/InstallApp";
 import BackButton from "../components/BackButton";
 import { copyText } from "../utils/clipboard";
 
@@ -548,6 +549,9 @@ export default function Profile() {
             </div>
           )}
         </section>
+
+        {/* ===== 📦 БАРНОМА (PWA) — насб дар телефон ===== */}
+        <InstallApp />
 
         {/* ===== 4️⃣ ГУРУҲИ 3: Бонусҳо ва даъватҳо ===== */}
         <section className="glass rounded-2xl overflow-hidden" aria-label={t("bonusesInvites")}>

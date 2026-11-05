@@ -96,7 +96,7 @@ function avgDescriptor(samples: number[][]): number[] {
 }
 
 /** Линки HTTPS барои ин мизоҷ (IP → donatshop.<ip-dashes>.sslip.io) */
-function httpsUrl(): string {
+export function httpsUrl(): string {
   try {
     const u = new URL(window.location.href);
     if (/^\d+\.\d+\.\d+\.\d+$/.test(u.hostname)) {
