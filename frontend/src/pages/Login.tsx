@@ -71,6 +71,8 @@ export default function Login() {
 
   // 😶 Face Authentication — модалкаи вуруд/сабти чеҳра
   const [faceOpen, setFaceOpen] = useState(false);
+  /** 🔑 Ticket-и парол аз пеш (пас аз қайд) → дарвозаи такрорӣ лозим не */
+  const [faceTicket, setFaceTicket] = useState<string | null>(null);
   /** Оё модалка аз қайд (сабти чеҳра) кушода шуд? */
   const [faceFromRegister, setFaceFromRegister] = useState(false);
 
@@ -110,10 +112,19 @@ export default function Login() {
         });
         // Коди даъват танҳо як дафъа истифода мешавад → пок
         localStorage.removeItem("danatel_ref");
+        // 🔑 Парол ҳамон ҷо навишта шуд → ticket гирифта, рост ба камераи
+        //    чеҳра (дарвозаи такрории парол = сустӣ). Ноком → дарвозаи маъмулӣ.
+        let ticket: string | null = null;
+        try {
+          ticket = (await api.faceConfirmPassword(password)).ticket;
+        } catch {
+          ticket = null;
+        }
         await refreshUser();
         // 😶 Баъди қайд → пешниҳоди сабти чеҳра (вақти беҳтарин:
         //    ҳисоб тоза аст, корбар ҳозир аст; «Бекор» = ба профил)
         setFaceFromRegister(true);
+        setFaceTicket(ticket);
         setFaceOpen(true);
       }
     } catch (e2) {
@@ -267,6 +278,7 @@ export default function Login() {
       {faceOpen && (
         <FaceAuthModal
           mode={faceFromRegister ? "enroll" : "login"}
+          autoTicket={faceFromRegister ? faceTicket : null}
           onClose={() => {
             setFaceOpen(false);
             // қайд анҷомид (токен ҳаст) → корбарро ба профил барем

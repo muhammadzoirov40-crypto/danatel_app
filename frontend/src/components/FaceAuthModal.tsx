@@ -54,6 +54,13 @@ interface Props {
   onClose: () => void;
   /** Баъди муваффақият (токен гирифта шуд ё чеҳра сабт шуд) */
   onSuccess: () => void;
+  /**
+   * 🔑 Ticket-и парол аз ПЕШ (масалан пас аз қайд: парол ҳамон ҷо навишта
+   * шуд) → дарвозаи такрории парол лозим НЕ → рост ба камера («бо face +
+   * тезтар»). Розигӣ (consent) ҳамеша ҳатмӣ мемонад. Агар нол ё ноком
+   * шавад → дарвозаи пароли маъмулӣ; агар ticket бихӯрад (428) → бармегардад.
+   */
+  autoTicket?: string | null;
 }
 
 interface Challenge {
@@ -109,7 +116,12 @@ export function httpsUrl(): string {
   }
 }
 
-export default function FaceAuthModal({ mode, onClose, onSuccess }: Props) {
+export default function FaceAuthModal({
+  mode,
+  onClose,
+  onSuccess,
+  autoTicket = null,
+}: Props) {
   const { t } = useApp();
 
   const [phase, setPhase] = useState<Phase>(mode === "enroll" ? "gate" : "starting");
@@ -126,9 +138,14 @@ export default function FaceAuthModal({ mode, onClose, onSuccess }: Props) {
   // 🔑 Дарвозаи парол (танҳо сабт)
   const [pw, setPw] = useState("");
   const [pwErr, setPwErr] = useState<string | null>(null);
+  /**
+   * Оё дарвоза паролро талаб мекунад? false = ticket аз пеш ҳаст
+   * (пас аз қайд) → танҳо розигӣ + «Давом» → камера. 428 → бармегардад.
+   */
+  const [pwNeeded, setPwNeeded] = useState(!autoTicket);
   const [gateBusy, setGateBusy] = useState(false);
   const gateBusyRef = useRef(false);
-  const ticketRef = useRef<string | null>(null);
+  const ticketRef = useRef<string | null>(autoTicket);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -283,15 +300,18 @@ export default function FaceAuthModal({ mode, onClose, onSuccess }: Props) {
 
   // ========================== 🔑 ДАРВОЗАИ ПАРОЛ ==========================
   const confirmGate = useCallback(async () => {
-    if (gateBusyRef.current || !consent || !pw) return;
+    if (gateBusyRef.current || !consent || (pwNeeded && !pw)) return;
     gateBusyRef.current = true;
     setGateBusy(true);
     setPwErr(null);
     try {
-      // Тасдики парол → ticket (300s) → танҳо баъди он камера кушода мешавад
-      const res = await api.faceConfirmPassword(pw);
-      ticketRef.current = res.ticket;
-      setPw(""); // парол дар ҳолат мемонад не
+      if (pwNeeded || !ticketRef.current) {
+        // Тасдики парол → ticket (300s) → танҳо баъди он камера кушода мешавад
+        const res = await api.faceConfirmPassword(pw);
+        ticketRef.current = res.ticket;
+        setPw(""); // парол дар ҳолат мемонад не
+      }
+      // Пас аз қайд: ticket аз пеш омода → фавран ба камера (бе пароли такрорӣ)
       await begin();
     } catch (e) {
       const st = e instanceof ApiError ? e.status : 0;
@@ -302,11 +322,13 @@ export default function FaceAuthModal({ mode, onClose, onSuccess }: Props) {
             ? t("faceTooMany")
             : t("faceNetworkError"),
       );
+      // Тicket ноком шуд → дарвозаи пароли маъмулӣ барқарор мешавад
+      setPwNeeded(true);
     } finally {
       gateBusyRef.current = false;
       setGateBusy(false);
     }
-  }, [begin, consent, pw, t]);
+  }, [begin, consent, pw, pwNeeded, t]);
 
   // ========================== 🖼️ Рамкаи overlay ==========================
   const drawOverlay = useCallback(
@@ -381,11 +403,13 @@ export default function FaceAuthModal({ mode, onClose, onSuccess }: Props) {
         const status = e instanceof ApiError ? e.status : 0;
         if (status === 428) {
           // 🔑 Парол тасдиқ нашуд/вақташ гузашт → БАГАРДОНДАН ба дарвоза
+          // (бо майдони парол — ticket-и auto дигар эътибор нест)
           submittingRef.current = false;
           stopAll();
           resetLiveness();
           ticketRef.current = null;
           setPw("");
+          setPwNeeded(true);
           setPwErr(t("facePwExpired"));
           setPhase("gate");
           return;
@@ -652,43 +676,47 @@ export default function FaceAuthModal({ mode, onClose, onSuccess }: Props) {
               {t("faceConsentNote")}
             </p>
 
-            {/* 🔑 ҲАТМИ: тасдики парол пеш аз сабти чеҳра (backend = 428 бе он) */}
-            <div>
-              <label
-                htmlFor="face-pw"
-                className="mb-1 block text-[12px] font-semibold text-slate-600"
-              >
-                {t("facePwLabel")}
-              </label>
-              <input
-                id="face-pw"
-                type="password"
-                value={pw}
-                autoComplete="current-password"
-                onChange={(e) => {
-                  setPw(e.target.value);
-                  if (pwErr) setPwErr(null);
-                }}
-                placeholder={t("facePwPlaceholder")}
-                aria-invalid={pwErr ? true : undefined}
-                aria-describedby={pwErr ? "face-pw-err" : undefined}
-                className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
-              />
-              {pwErr && (
-                <p
-                  id="face-pw-err"
-                  role="alert"
-                  className="mt-1.5 text-[11px] font-medium text-rose-600"
+            {/* 🔑 ҲАТМИ: тасдики парол пеш аз сабти чеҳра (backend = 428 бе он).
+                Пас аз қайд (autoTicket) ин майдон пинҳон: танҳо розигӣ +
+                «Давом» → камера, бе пароли такрорӣ (428 → бармегардад). */}
+            {pwNeeded && (
+              <div>
+                <label
+                  htmlFor="face-pw"
+                  className="mb-1 block text-[12px] font-semibold text-slate-600"
                 >
-                  {pwErr}
-                </p>
-              )}
-            </div>
+                  {t("facePwLabel")}
+                </label>
+                <input
+                  id="face-pw"
+                  type="password"
+                  value={pw}
+                  autoComplete="current-password"
+                  onChange={(e) => {
+                    setPw(e.target.value);
+                    if (pwErr) setPwErr(null);
+                  }}
+                  placeholder={t("facePwPlaceholder")}
+                  aria-invalid={pwErr ? true : undefined}
+                  aria-describedby={pwErr ? "face-pw-err" : undefined}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+                />
+                {pwErr && (
+                  <p
+                    id="face-pw-err"
+                    role="alert"
+                    className="mt-1.5 text-[11px] font-medium text-rose-600"
+                  >
+                    {pwErr}
+                  </p>
+                )}
+              </div>
+            )}
 
             <div className="grid grid-cols-[1fr_auto] gap-2">
               <button
                 type="button"
-                disabled={!consent || pw.length < 1 || gateBusy}
+                disabled={!consent || (pwNeeded && pw.length < 1) || gateBusy}
                 onClick={() => void confirmGate()}
                 className="btn-primary flex items-center justify-center gap-1.5 py-3 disabled:cursor-not-allowed disabled:opacity-45"
               >
