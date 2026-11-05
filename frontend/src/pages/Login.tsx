@@ -154,7 +154,7 @@ export default function Login() {
       <div className="card p-6 sm:p-8">
         <div className="text-center mb-4">
           <div className="flex justify-center mb-2">
-            <Logo size={46} />
+            <Logo size={46} animate />
           </div>
           <h1 className="text-xl font-bold">
             {mode === "login" ? t("login") : t("register")}

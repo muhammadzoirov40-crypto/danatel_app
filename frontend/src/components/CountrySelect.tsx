@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Check, ChevronDown, Search, X } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { COUNTRIES, type Country } from "../data/countries";
@@ -7,15 +7,17 @@ import { Ic } from "./Icons";
 /**
  * 🌍 Интихоби коди кишвар барои шакли телефон (Вуруд / Қайд).
  *
- *   · Тугмаи фишурда: парчам + «+992» + стрелка (ҳамон услуби `.input`);
- *   · Рӯйхат: 49 кишвар (парчам + ном ба забони лоиҳа + код), Тоҷикистон аввал;
- *   · 🔍 Ҷустуҷӯ дар болои рӯйхат: ном ба 4 забон / ISO / рақами код
+ *   · Тугмаи фишурда: чипи ISO-код + «+992» + стрелка (ҳамон услуби `.input`);
+ *   · Рӯйхат: 49 кишвар, Тоҷикистон аввал;
+ *   · 🔍 Ҷустуҷӯ дар боло: ном ба 4 забон / ISO / рақами код
  *     (мисол: «Рус», «russia», «998») → филтр фаврӣ, холӣ → «Ёфт нашод»;
+ *   · ⚠️ Парчами emoji НЕСТ: дар баъзе телефонҳо (Honor/Huawei) emoji-и
+ *     парчам ҳамчун «TJ» букваҳо бармегардад → чипи ISO ҳамеша кор мекунад;
+ *   · 📐 Ҳангоми кушодан ҷой дар ҷараён (margin) ишғол мешавад →
+ *     тугмаи «Вуруд» ҲАМЕША дида мешавад, рӯйхат бар он намепӯшад;
  *   · Фокус ҳангоми кушодан сӯи ҷустуҷӯ; ↑/↓ ба рӯйхат мебарад,
- *     Enter (аз ҷустуҷӯ) → аввали натиҷа;
- *   · Корбар ТАНҲО рақами миллӣ менависад — `+` лозим нест;
- *   · Клик берун / Escape → пӯшад; ҷустуҷӯ ҳангоми пӯштан пок мешавад;
- *   · aria: input бо label + listbox/option; дар 320px аз паҳнои экран зиёд нест.
+ *     Enter (аз ҷустуҷӯ) → аввали натиҷа; Escape/клик берун → пӯшад;
+ *   · aria: input бо label + listbox/option; дар 320px кор мекунад.
  */
 interface Props {
   /** ISO-коди кишвари интихобшуда (масалан "TJ") */
@@ -30,6 +32,8 @@ export default function CountrySelect({ value, onChange }: Props) {
   const rootRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [pad, setPad] = useState(0);
 
   const selected = COUNTRIES.find((c) => c.code === value) ?? COUNTRIES[0];
 
@@ -76,6 +80,18 @@ export default function CountrySelect({ value, onChange }: Props) {
       )
     : COUNTRIES;
 
+  // 📐 Ҳангоми кушодан — ҳаҷми рӯйхатро чен мекунам ва ба root
+  //    `margin-bottom` медиҳам → тугмаи «Вуруд» бо марҳила поён мешавад
+  //    ва ҲАМЕША дида мешавад (талаби соҳиб: «ин нашавад — ислоҳ кун»)
+  useLayoutEffect(() => {
+    if (!open) {
+      setPad(0);
+      return;
+    }
+    const h = panelRef.current?.offsetHeight ?? 0;
+    setPad(h ? h + 12 : 0); // 6px аз тугма + 6px то тугма
+  }, [open, q]);
+
   /** ↑/↓ аз ҷустуҷӯ ба рӯйхат ва байни бандҳо; Enter (аз ҷустуҷӯ) → аввалӣ */
   const onPanelKey = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown" || e.key === "ArrowUp") {
@@ -104,24 +120,42 @@ export default function CountrySelect({ value, onChange }: Props) {
   };
 
   return (
-    <div ref={rootRef} className="relative shrink-0">
-      {/* 🔘 Тугма: парчам + код */}
+    <div
+      ref={rootRef}
+      className="relative shrink-0"
+      style={{
+        marginBottom: pad || undefined,
+        transitionProperty: "margin-bottom",
+        transitionDuration: "0.18s",
+        transitionTimingFunction: "ease",
+      }}
+    >
+      {/* 🔘 Тугма: чипи ISO + код */}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={`${t("ccLabel")}: +${selected.dial}`}
-        className="h-[46px] px-2.5 inline-flex items-center gap-1.5 rounded-xl border
-                   border-slate-300 bg-white text-sm font-bold text-slate-700
-                   outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100
-                   transition hover:border-slate-400 active:scale-[.98]
-                   dark:bg-[#0f1626] dark:border-[#3a4767] dark:text-[#e3eaff]"
+        className={`h-[46px] px-2.5 inline-flex items-center gap-1.5 rounded-xl border
+                   bg-white text-sm font-bold text-slate-700
+                   outline-none transition active:scale-[.98]
+                   hover:border-slate-400
+                   focus:border-brand-500 focus:ring-2 focus:ring-brand-100
+                   dark:bg-[#0f1626] dark:border-[#3a4767] dark:text-[#e3eaff]
+                   ${open ? "border-brand-400 ring-2 ring-brand-100 dark:ring-brand-500/30" : "border-slate-300"}`}
       >
-        <span aria-hidden className="text-base leading-none">
-          {selected.flag}
+        <span
+          aria-hidden
+          className="grid h-[22px] min-w-[30px] place-items-center rounded-md px-1
+                     text-[10px] font-black tracking-wider
+                     bg-gradient-to-br from-blue-50 to-indigo-100 text-blue-700
+                     ring-1 ring-blue-200/70
+                     dark:from-white/10 dark:to-white/5 dark:text-blue-300 dark:ring-white/15"
+        >
+          {selected.code}
         </span>
-        <span>+{selected.dial}</span>
+        <span className="tabular-nums">+{selected.dial}</span>
         <Ic
           icon={ChevronDown}
           size="xs"
@@ -132,14 +166,18 @@ export default function CountrySelect({ value, onChange }: Props) {
       {/* 📜 Рӯйхати кишварҳо + 🔍 ҷустуҷӯ */}
       {open && (
         <div
+          ref={panelRef}
           onKeyDown={onPanelKey}
-          className="absolute left-0 top-[calc(100%+6px)] z-[60] w-[270px]
-                     max-w-[calc(100vw-40px)] overflow-hidden rounded-xl border
-                     border-slate-200 bg-white shadow-xl
-                     dark:bg-[#0f1626] dark:border-[#3a4767]"
+          className="cc-panel absolute left-0 top-[calc(100%+8px)] z-[60] w-[280px]
+                     max-w-[calc(100vw-32px)] rounded-2xl border p-1.5
+                     border-slate-200/80 bg-white
+                     shadow-[0_14px_40px_-10px_rgba(15,23,42,0.22)]
+                     ring-1 ring-slate-900/5
+                     dark:bg-[#0f1626] dark:border-[#3a4767] dark:ring-white/10
+                     dark:shadow-[0_14px_40px_-10px_rgba(0,0,0,0.55)]"
         >
-          {/* 🔍 Ҷустуҷӯ — ҳамеша дар боло (ҳангоми скролл намемонад) */}
-          <div className="relative border-b border-slate-100 dark:border-white/10">
+          {/* 🔍 Ҷустуҷӯ — қуттии дохилии pill (ҳамеша дар боло) */}
+          <div className="relative mb-1.5">
             <Ic
               icon={Search}
               size="xs"
@@ -155,9 +193,13 @@ export default function CountrySelect({ value, onChange }: Props) {
               autoComplete="off"
               spellCheck={false}
               enterKeyHint="search"
-              className="w-full bg-transparent py-2.5 pl-9 pr-9 text-sm text-slate-700
-                         outline-none placeholder:text-slate-400
-                         dark:text-[#e3eaff] dark:placeholder:text-slate-500"
+              className="w-full rounded-xl border border-transparent bg-slate-100/80
+                         py-2.5 pl-9 pr-9 text-sm text-slate-700 outline-none transition
+                         placeholder:text-slate-400
+                         focus:border-brand-400 focus:bg-white focus:ring-2 focus:ring-brand-100
+                         dark:bg-white/5 dark:text-[#e3eaff] dark:placeholder:text-slate-500
+                         dark:focus:border-brand-500 dark:focus:bg-white/10
+                         dark:focus:ring-brand-500/30"
             />
             {q && (
               <button
@@ -169,7 +211,7 @@ export default function CountrySelect({ value, onChange }: Props) {
                 }}
                 className="absolute right-1.5 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center
                            rounded-lg text-slate-400 transition
-                           hover:bg-slate-100 hover:text-slate-600 active:scale-95
+                           hover:bg-white hover:text-slate-600 active:scale-95
                            dark:hover:bg-white/10"
               >
                 <Ic icon={X} size="xs" />
@@ -182,10 +224,12 @@ export default function CountrySelect({ value, onChange }: Props) {
             ref={listRef}
             role="listbox"
             aria-label={t("ccLabel")}
-            className="max-h-[220px] overflow-y-auto overscroll-contain py-1"
+            className="max-h-[212px] overflow-y-auto overscroll-contain px-0.5 pb-0.5"
           >
             {filtered.length === 0 ? (
-              <p className="px-3 py-6 text-center text-xs text-slate-500 dark:text-slate-400">
+              <p className="flex flex-col items-center gap-2 px-3 py-7 text-center text-xs
+                            text-slate-500 dark:text-slate-400">
+                <Ic icon={Search} size="sm" className="text-slate-300 dark:text-slate-600" />
                 {t("ccEmpty")}
               </p>
             ) : (
@@ -201,25 +245,35 @@ export default function CountrySelect({ value, onChange }: Props) {
                       onChange(c);
                       setOpen(false);
                     }}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left
-                                text-sm transition focus-visible:outline-none
-                                focus-visible:bg-blue-50 dark:focus-visible:bg-white/10
-                                ${active ? "bg-brand-50 dark:bg-white/10" : "hover:bg-slate-50 dark:hover:bg-white/5"}`}
+                    className={`w-full flex items-center gap-2.5 rounded-xl px-2.5 py-2.5
+                                text-left text-sm transition
+                                focus-visible:outline-none focus-visible:ring-2
+                                focus-visible:ring-brand-400
+                                ${active
+                                  ? "bg-brand-50 text-brand-700 ring-1 ring-brand-200/70 dark:bg-brand-500/15 dark:text-brand-300 dark:ring-brand-400/30"
+                                  : "text-slate-700 hover:bg-slate-100/80 active:bg-slate-100 dark:text-[#e3eaff] dark:hover:bg-white/10"}`}
                   >
-                    <span aria-hidden className="text-lg leading-none">
-                      {c.flag}
+                    <span
+                      aria-hidden
+                      className={`grid h-[22px] min-w-[30px] shrink-0 place-items-center
+                                  rounded-md px-1 text-[10px] font-black tracking-wider
+                                  ${active
+                                    ? "bg-brand-600 text-white"
+                                    : "bg-gradient-to-br from-blue-50 to-indigo-100 text-blue-700 ring-1 ring-blue-200/70 dark:from-white/10 dark:to-white/5 dark:text-blue-300 dark:ring-white/15"}`}
+                    >
+                      {c.code}
                     </span>
                     <span
                       className={`flex-1 min-w-0 truncate font-semibold
-                        ${active ? "text-brand-700 dark:text-brand-400" : "text-slate-700 dark:text-[#e3eaff]"}`}
+                        ${active ? "" : "text-slate-700 dark:text-[#e3eaff]"}`}
                     >
                       {c.names[lang]}
                     </span>
-                    <span className="text-xs font-bold text-slate-400 dark:text-slate-500">
+                    <span className="text-xs font-bold tabular-nums text-slate-500 dark:text-slate-400">
                       +{c.dial}
                     </span>
                     {active && (
-                      <Ic icon={Check} size="xs" className="text-brand-600 shrink-0" />
+                      <Ic icon={Check} size="xs" className="text-brand-600 shrink-0 dark:text-brand-400" />
                     )}
                   </button>
                 );

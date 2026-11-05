@@ -87,6 +87,7 @@ export default function Logo({
   withText = false,
   textClass = "",
   variant = "onLight",
+  animate = false,
 }: {
   /** Баландии нишон дар px */
   size?: number;
@@ -95,9 +96,12 @@ export default function Logo({
   /** Классҳои иловагӣ барои матн */
   textClass?: string;
   variant?: "onLight" | "onDark";
+  /** 💎 Аниматсияи «шинои кристалл» — тасмаи равшан мегузарад */
+  animate?: boolean;
 }) {
   const uid = useId().replace(/[:]/g, "");
   const clip = `dClip${uid}`;
+  const shine = `dShine${uid}`;
   const onDark = variant === "onDark";
   const pal = onDark ? PAL_ICE : PAL_LIGHT;
   const { t } = useApp();
@@ -126,6 +130,29 @@ export default function Logo({
           {FACETS.map(([pts, tone], i) => (
             <polygon key={i} points={pts} fill={pal[tone]} />
           ))}
+
+          {/* 💎 Шинои кристалл — тасмаи равшан аз чап ба рост мегузарад */}
+          {animate && (
+            <>
+              <defs>
+                <linearGradient id={shine} x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0" stopColor="#ffffff" stopOpacity="0" />
+                  <stop offset="0.5" stopColor="#ffffff" stopOpacity="0.55" />
+                  <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              <g className="logo-shine">
+                <rect
+                  x="-78"
+                  y="-30"
+                  width="54"
+                  height="260"
+                  fill={`url(#${shine})`}
+                  transform="skewX(-18)"
+                />
+              </g>
+            </>
+          )}
         </g>
       </svg>
 
