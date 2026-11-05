@@ -5,6 +5,8 @@ import { useApp } from "../context/AppContext";
 import { api, ApiError } from "../api/client";
 import Logo from "../components/Logo";
 import { Ic } from "../components/Icons";
+import CountrySelect from "../components/CountrySelect";
+import { COUNTRIES, fullPhone, type Country } from "../data/countries";
 import FaceAuthModal from "../components/FaceAuthModal";
 
 /**
@@ -35,10 +37,37 @@ export default function Login() {
     refCode || wantRegister ? "register" : "login",
   );
   const [phone, setPhone] = useState("");
+  /** 🌍 Коди кишвари телефон (талаби соҳиб: корбар кодро интихоб мекунад,
+   *    `+`-ро худаш ворид намекунад) — Тоҷикистон пешфарз */
+  const [country, setCountry] = useState<Country>(COUNTRIES[0]);
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
+
+  /**
+   * 📱 Қабули рақами телефон:
+   *   · «+992…» навишта → коди кишвар худкор муайян ва интихоб мешавад,
+   *     дар майдон танҳо рақами миллӣ мемонад;
+   *   · бе «+» → танҳо рақамҳо (фосила/тире пок) → корбар `+` ворид НАмекунад.
+   */
+  const onPhoneChange = (v: string) => {
+    if (v.trimStart().startsWith("+")) {
+      const d = v.replace(/\D/g, "");
+      const m = [...COUNTRIES]
+        .sort((a, b) => b.dial.length - a.dial.length)
+        .find((c) => d.startsWith(c.dial));
+      if (m) {
+        setCountry(m);
+        setPhone(d.slice(m.dial.length));
+        return;
+      }
+      // код ҳанӯз пурра навишта нашуда → «+» дар майдон мемонад
+      setPhone(v.replace(/[^\d+]/g, ""));
+      return;
+    }
+    setPhone(v.replace(/\D/g, ""));
+  };
 
   // 😶 Face Authentication — модалкаи вуруд/сабти чеҳра
   const [faceOpen, setFaceOpen] = useState(false);
@@ -49,8 +78,8 @@ export default function Login() {
     e.preventDefault();
     setErr("");
 
-    // Санҷиши пешакӣ
-    const digits = phone.replace(/\D/g, "");
+    // Санҷиши пешакӣ — рақами ПУРРА (коди кишвар + рақами миллӣ)
+    const digits = fullPhone(country.dial, phone);
     if (digits.length < 9) {
       setErr(t("invalidPhone"));
       return;
@@ -68,12 +97,12 @@ export default function Login() {
     setLoading(true);
     try {
       if (mode === "login") {
-        await api.login(phone, password);
+        await api.login(digits, password);
         await refreshUser();
         nav("/profile");
       } else {
         await api.register({
-          phone,
+          phone: digits,
           password,
           full_name: fullName.trim() || undefined,
           language: lang,
@@ -127,14 +156,20 @@ export default function Login() {
         <form onSubmit={submit} className="space-y-3">
           <div>
             <label className="label">{t("phone")} *</label>
-            <input
-              className="input"
-              inputMode="tel"
-              placeholder="+992XXXXXXXXX"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              autoComplete="tel"
-            />
+            {/* 🌍 Коди кишвар ИНТИХОБ мешавад → корбар танҳо рақами
+                миллӣ менависад, `+` лозим нест (талаби соҳиб, 05.11.2026) */}
+            <div className="flex gap-2">
+              <CountrySelect value={country.code} onChange={setCountry} />
+              <input
+                className="input flex-1 min-w-0"
+                inputMode="tel"
+                placeholder="XXXXXXXXX"
+                value={phone}
+                onChange={(e) => onPhoneChange(e.target.value)}
+                autoComplete="tel-national"
+                aria-label={t("phone")}
+              />
+            </div>
           </div>
 
           <div>
