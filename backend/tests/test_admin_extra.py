@@ -7,6 +7,8 @@
   · POST /api/admin/products/adjust-prices mode="cost" — пойдор (такрорӣ
     ҳамон нархро медиҳад) + mode="current" қаблан чун буд
   · POST /api/admin/products/fill-costs — FireLOOT хомӯш → 400 (бе дастрасӣ)
+      + ҳисоби воқеӣ: cost = FireLoot $ × курс, такрории sku → танҳо бори
+      аввал, HALF_UP то 0.01, бе sku / бе match → дастнарасон
   · GET  /api/admin/users/secrets       — кодҳои даъват + вазъияти парол
   · DELETE /api/admin/users/{id}        — несткунӣ: фармоиш МЕМОНАД,
       худро нест кардан → 400
@@ -354,6 +356,58 @@ def test_fill_costs_validation(client: TestClient):
         headers=auth(token),
     )
     assert r.status_code == 422
+
+
+def test_fill_costs_computes_cost_from_fireloot(client: TestClient, monkeypatch):
+    """💲 Нархи харид = FireLoot $ × курси худатон (тағйироти воқеӣ бо mock).
+
+    Саҳиб дар admin курс менависад → «Пур аз FireLoot $» бояд ҳар маҳсулоти
+    sku-дорро = $ × курс нависад (такрории sku танҳо бори аввал, бе sku
+    дастнарасон, ФУРӮШ ҳеҷ иваз намешавад).
+    """
+    from app.routers import pricing
+
+    token = admin_token(client)
+    h = auth(token)
+    slug, pid = _own_game_product(client, h)
+    sku = "TST" + uuid.uuid4().hex[:8].upper()
+
+    # SKU мустақим дар DB — ягон маҳсулоти дигари базаро иваз намекунад
+    db = SessionLocal()
+    try:
+        db.query(Product).filter(Product.id == pid).update({"sku": sku})
+        db.commit()
+    finally:
+        db.close()
+
+    class _FakeFireloot:
+        configured = True
+
+        @staticmethod
+        async def products():
+            return [
+                {"sku": sku, "price": 0.99},
+                {"sku": sku, "price": 5.0},  # takrori → танҳо бори аввал
+                {"sku": "NOBODY-ELSE", "price": 7.0},
+                {"sku": "", "price": 9.0},  # бе sku → нодида
+            ]
+
+    monkeypatch.setattr(pricing, "_fireloot", _FakeFireloot)
+
+    r = client.post(
+        "/api/admin/products/fill-costs", json={"rate": 10.5}, headers=h
+    )
+    assert r.status_code == 200, r.text
+    assert r.json()["rate"] == 10.5
+    # Танҳо маҳсулоти мо match шуд (sku-и дигар дар каталог нест)
+    assert r.json()["updated"] == 1
+
+    r = client.get(f"/api/admin/games/{slug}/full", headers=h)
+    row = next(p for p in r.json()["products"] if p["id"] == pid)
+    # 0.99 × 10.5 = 10.395 → HALF_UP то 0.01 = 10.40
+    assert float(row["cost_tjs"]) == 10.4
+    # Фурӯш ҳеҷ иваз намешавад — танҳо ХАРИД
+    assert float(row["price_tjs"]) == 10.0
 
 
 def test_admin_users_secrets(client: TestClient):
