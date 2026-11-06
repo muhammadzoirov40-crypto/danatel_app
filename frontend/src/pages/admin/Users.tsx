@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import {
   Bot,
   CircleCheck,
@@ -10,6 +10,7 @@ import {
   Lock,
   Minus,
   Package,
+  Pencil,
   Plus,
   Search,
   Smartphone,
@@ -49,6 +50,11 @@ export default function Users() {
   // ❌ Ду-қадама несткунӣ: аввал «Ҳазф» → баъд «Тасдиқ» (то тугмаи тасодуфӣ)
   const [delId, setDelId] = useState<number | null>(null);
   const [delBusy, setDelBusy] = useState(false);
+  // 🔑 Иваз/нсб кардани пароли корбар (админ) — пароли аслӣ бозхонидан номумкин
+  const [pwdId, setPwdId] = useState<number | null>(null);
+  const [pwdVal, setPwdVal] = useState("");
+  const [pwdBusy, setPwdBusy] = useState(false);
+  const [pwdErr, setPwdErr] = useState("");
 
   useEffect(() => {
     let alive = true;
@@ -79,9 +85,13 @@ export default function Users() {
     void load();
   }, [load]);
 
+  // ⏱️ Таймери флэш — кӯҳна пок мешавад → флэши дуюм пурра 3.5s нишон дода
+  // мешавад (пештар таймери аввал флэши дуюмро зудтар мех кард)
+  const flashTimer = useRef<number | null>(null);
   const flash = (m: string) => {
     setMsg(m);
-    setTimeout(() => setMsg(""), 3500);
+    if (flashTimer.current) window.clearTimeout(flashTimer.current);
+    flashTimer.current = window.setTimeout(() => setMsg(""), 3500);
   };
 
   const openHistory = async (u: AdminUser) => {
@@ -111,6 +121,28 @@ export default function Users() {
       setErr((e as Error)?.message ?? t("error"));
     } finally {
       setDelBusy(false);
+    }
+  };
+
+  // 🔑 Иваз/нсб кардани парол (админ) — хато ДАР ҷои форма нишон дода мешавад
+  const savePwd = async (u: AdminUser) => {
+    if (pwdBusy) return;
+    setPwdBusy(true);
+    setPwdErr("");
+    try {
+      await api.adminSetUserPassword(u.id, pwdVal);
+      setPwdId(null);
+      setPwdVal("");
+      setSecrets((prev) => {
+        const s = prev[u.id];
+        return s ? { ...prev, [u.id]: { ...s, has_password: true } } : prev;
+      });
+      flash(t("pwdChanged"));
+    } catch (e) {
+      // Сервер: «Парол бояд аз 8 ҳарф…» / «набояд танҳо рақам бошад»…
+      setPwdErr((e as Error)?.message ?? t("error"));
+    } finally {
+      setPwdBusy(false);
     }
   };
 
@@ -231,6 +263,20 @@ export default function Users() {
                             <Ic icon={Lock} size="xs" />
                             {sec.has_password ? t("pwdSet") : t("pwdNotSet")}
                           </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPwdId(pwdId === u.id ? null : u.id);
+                              setPwdVal("");
+                              setPwdErr("");
+                            }}
+                            aria-expanded={pwdId === u.id}
+                            aria-label={`${t("setPwd")}: ${u.full_name || u.phone || `#${u.id}`}`}
+                            title={t("setPwd")}
+                            className="p-1 rounded text-slate-400 hover:text-brand-600 hover:bg-brand-50 active:bg-brand-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500"
+                          >
+                            <Ic icon={Pencil} size="xs" />
+                          </button>
                         </>
                       ) : (
                         <span className="text-slate-300" aria-hidden="true">
@@ -238,6 +284,62 @@ export default function Users() {
                         </span>
                       )}
                     </div>
+
+                    {/* 🔑 Формаи ивазкунии парол — танҳо барои як корбар кушода */}
+                    {pwdId === u.id && (
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          void savePwd(u);
+                        }}
+                        className="mt-2 flex flex-col sm:flex-row gap-1.5"
+                      >
+                        <input
+                          type="password"
+                          value={pwdVal}
+                          onChange={(e) => {
+                            setPwdVal(e.target.value);
+                            setPwdErr("");
+                          }}
+                          placeholder={t("newPwd")}
+                          aria-label={`${t("newPwd")}: ${u.full_name || u.phone || `#${u.id}`}`}
+                          autoComplete="new-password"
+                          autoFocus
+                          className="input flex-1 !py-2 text-xs"
+                        />
+                        <div className="flex gap-1.5">
+                          <button
+                            type="submit"
+                            disabled={pwdBusy}
+                            className="btn-primary text-xs px-3 py-2 whitespace-nowrap"
+                          >
+                            {pwdBusy ? (
+                              <Ic icon={Loader2} className="animate-spin" />
+                            ) : (
+                              <Ic icon={KeyRound} size="xs" />
+                            )}
+                            {t("save")}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPwdId(null);
+                              setPwdVal("");
+                              setPwdErr("");
+                            }}
+                            disabled={pwdBusy}
+                            className="btn-ghost text-xs px-3 py-2 whitespace-nowrap"
+                          >
+                            {t("cancel")}
+                          </button>
+                        </div>
+                        {pwdErr && (
+                          <p role="alert" className="w-full text-[11px] text-rose-600">
+                            {pwdErr}
+                          </p>
+                        )}
+                      </form>
+                    )}
                   </div>
 
                   {/* 💰 Баланс */}

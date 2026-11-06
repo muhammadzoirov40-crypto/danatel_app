@@ -438,6 +438,12 @@ export const api = {
       `/admin/users/${id}`,
       { method: "DELETE" },
     ),
+  /** 🔑 Иваз/нсб кардани пароли корбар (админ) — сеансҳои кӯҳна бекор */
+  adminSetUserPassword: (id: number, password: string) =>
+    request<{ ok: boolean; id: number; has_password: boolean }>(
+      `/admin/users/${id}/password`,
+      { method: "PUT", body: JSON.stringify({ password }) },
+    ),
   adminOrders: (status?: string) =>
     request<Order[]>(`/admin/orders${status ? `?status=${status}` : ""}`),
   /** 🔍 Кодҳои махфияши фармоиш (ник, fl_ref, транзаксия, ҳисоби DC …) */

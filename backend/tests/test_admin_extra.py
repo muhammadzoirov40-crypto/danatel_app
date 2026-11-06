@@ -10,6 +10,8 @@
   · GET  /api/admin/users/secrets       — кодҳои даъват + вазъияти парол
   · DELETE /api/admin/users/{id}        — несткунӣ: фармоиш МЕМОНАД,
       худро нест кардан → 400
+  · PUT  /api/admin/users/{id}/password — пароли нав аз ҷониби админ
+      (аслӣ бозхонидан номумкин — Argon2id); сеансҳои кӯҳна бекор
 """
 from __future__ import annotations
 
@@ -468,3 +470,95 @@ def test_admin_delete_user_guards(client: TestClient):
     assert r.status_code == 400, r.text
     # бе токен → 401/403
     assert client.delete("/api/admin/users/1").status_code in (401, 403)
+
+
+# =====================================================================
+# 8. 🔑 ИВАЗ/НСБ КАРДАНИ ПАРОЛИ КОРБАР АЗ ҶОНИБИ АДМИН (талаби соҳиб)
+# =====================================================================
+
+
+def test_admin_set_user_password(client: TestClient):
+    """🔑 Пароли нав: вуруди нав = 200, кӯҳна = 401, сеанси кӯҳна = 401."""
+    phone, old_token = _register(client)  # парол: TestPassw0rd!
+
+    db = SessionLocal()
+    try:
+        uid = db.query(User).filter_by(phone=phone).first().id
+    finally:
+        db.close()
+
+    token = admin_token(client)
+    r = client.put(
+        f"/api/admin/users/{uid}/password",
+        json={"password": "NewPassw999!"},
+        headers=auth(token),
+    )
+    assert r.status_code == 200, r.text
+    assert r.json()["has_password"] is True
+
+    # Пароли нав кор мекунад
+    assert client.post(
+        "/api/auth/login", json={"phone": phone, "password": "NewPassw999!"}
+    ).status_code == 200
+    # Пароли кӯҳна → 401
+    assert client.post(
+        "/api/auth/login", json={"phone": phone, "password": "TestPassw0rd!"}
+    ).status_code == 401
+    # Сеанси кӯҳна (токени қаблӣ) беэътибор шуд (token_version+1)
+    assert client.get("/api/auth/me", headers=auth(old_token)).status_code == 401
+    # Дар рӯйхат: ҳаст + коди даъват мемонад
+    secrets = client.get("/api/admin/users/secrets", headers=auth(token)).json()
+    row = next(s for s in secrets if s["id"] == uid)
+    assert row["has_password"] is True
+    assert row["referral_code"]
+
+
+def test_admin_set_user_password_guards(client: TestClient):
+    token = admin_token(client)
+
+    # Пароли суст (8 ҳарф танҳо рақам) → 422 В мутация нест
+    phone, _ = _register(client)
+    db = SessionLocal()
+    try:
+        uid = db.query(User).filter_by(phone=phone).first().id
+    finally:
+        db.close()
+    r = client.put(
+        f"/api/admin/users/{uid}/password",
+        json={"password": "12345678"},
+        headers=auth(token),
+    )
+    assert r.status_code == 422, r.text
+    # Парол иваз НАШУД → вуруди кӯҳна ҳанӯз кор мекунад
+    assert client.post(
+        "/api/auth/login", json={"phone": phone, "password": "TestPassw0rd!"}
+    ).status_code == 200
+
+    # 404 — номаълум
+    assert (
+        client.put(
+            "/api/admin/users/99999999/password",
+            json={"password": "NewPassw999!"},
+            headers=auth(token),
+        ).status_code
+        == 404
+    )
+    # ХУДРО иваз кардан → 400 (профил истифода бурда мешавад)
+    db = SessionLocal()
+    try:
+        admin_id = db.query(User).filter_by(is_admin=True).first().id
+    finally:
+        db.close()
+    r = client.put(
+        f"/api/admin/users/{admin_id}/password",
+        json={"password": "NewPassw999!"},
+        headers=auth(token),
+    )
+    assert r.status_code == 400, r.text
+    # бе токен → 401/403
+    assert (
+        client.put(
+            "/api/admin/users/1/password", json={"password": "NewPassw999!"}
+        ).status_code
+        in (401, 403)
+    )

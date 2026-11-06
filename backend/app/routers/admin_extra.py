@@ -12,6 +12,9 @@
   · DELETE /api/admin/users/{id}      — Нест кардани корбар: фармоишҳо
       МЕМОНАНД (FK SET NULL → даромад/фоида вайрон намешавад); тарихи
       баланс/танга/назар/чеҳра аз рӯи FK-ҳои CASCADE нест мешавад
+  · PUT /api/admin/users/{id}/password — Иваз/нсб кардани пароли корбар:
+      пароли АСЛӢ бозхонидан номумкин (Argon2id яктарафа) → админ пароли
+      нав мегузорад ва онро худаш медонад; сеансҳои кӯҳна бекор мешаванд
 
 ⚠️ admin.py ҳамчун файл ҳифз аст (кори агенти дигар) — ҳамаи тафсилот
    дар ин фоидаи нав аст.
@@ -28,8 +31,9 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import Game, Order, OrderStatus, Product, User
+from app.routers.auth import _weak_password  # ҳамон сиёсати пароли қайд
 from app.schemas import GameOut
-from app.security import require_admin
+from app.security import bump_token_version, hash_password, require_admin
 from app.services import coins
 
 router = APIRouter(
@@ -294,3 +298,58 @@ def admin_delete_user(
     return UserDeletedOut(
         id=user_id, orders_kept=int(orders_kept), ok=True
     )
+
+
+# =====================================================================
+# 🔑 ИВАЗ/НСБ КАРДАНИ ПАРОЛИ КОРБАР АЗ ҶОНИБИ АДМИН (талаби соҳиб)
+# =====================================================================
+
+
+class SetPasswordIn(BaseModel):
+    password: str
+
+
+class PasswordSetOut(BaseModel):
+    ok: bool = True
+    id: int
+    has_password: bool = True
+
+
+@router.put("/users/{user_id}/password", response_model=PasswordSetOut)
+def admin_set_user_password(
+    user_id: int,
+    payload: SetPasswordIn,
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    """🔑 Иваз ё насб кардани пароли корбар аз ҷониби админ.
+
+    Чаро НЕ пароли аслӣ: паролҳо дар DB ҳамчун **Argon2id-ҳосс** (яктарафа,
+    64 MB) нигоҳ дошта мешаванд → бозхонидани матни аслӣ техникӣ номумкин
+    аст. Ҷойгузини амалии талаби соҳиб: админ пароли нав мегузорад → онро
+    худаш медонад, метавонад ҳамчун он корбар вуруд кунад ё ба соҳибаш бигӯяд.
+
+    • Ҳамон сиёсати пароли қайд (`_weak_password`): ≥8 ҳарф, танҳо рақам не,
+      «password»/«qwertyui»/рақами телефон не
+    • Баъди ивазкунӣ ҲАМАИ токенҳои кӯҳнаи он корбар беэътибор мешавад
+      (`token_version` +1) → сеансҳои кушодаи кӯҳна кор намекунанд
+    • Худро аз ин ҷо иваз кардан мумкин нест → 400 (профил истифода бурда мешавад)
+    """
+    if user_id == admin.id:
+        raise HTTPException(
+            status_code=400,
+            detail="Пароли худро аз профил иваз кунед",
+        )
+    user = db.get(User, user_id)
+    if user is None:
+        raise HTTPException(status_code=404, detail="Корбар ёфт нашуд")
+
+    weak = _weak_password(payload.password or "", user.phone or "")
+    if weak:
+        raise HTTPException(status_code=422, detail=weak)
+
+    user.password_hash = hash_password(payload.password)
+    db.commit()
+    # 🚫 Ҳамаи токенҳои кӯҳнаи ин корбар (сеансҳои кушода) беэътибор
+    bump_token_version(db, user)
+    return PasswordSetOut(id=user_id, has_password=True)
