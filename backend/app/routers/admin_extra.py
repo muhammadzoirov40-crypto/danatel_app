@@ -7,6 +7,11 @@
   · GET /api/admin/stats/profit       — ФОИДА = даромад − нархи харид
       (танҳо аз фармоишҳои маҳсулотҳои бо cost_tjs > 0; боқимонда ҳисоб
        намешавад — 0 = ворид нашудааст, на «фоидаи баробар»)
+  · GET /api/admin/users/secrets      — Кодҳои даъват + вазъияти пароли
+      ҳар корбар (парол АСЛӢ дидан номумкин — Argon2id ҳосс; танҳо ҳаст/нест)
+  · DELETE /api/admin/users/{id}      — Нест кардани корбар: фармоишҳо
+      МЕМОНАНД (FK SET NULL → даромад/фоида вайрон намешавад); тарихи
+      баланс/танга/назар/чеҳра аз рӯи FK-ҳои CASCADE нест мешавад
 
 ⚠️ admin.py ҳамчун файл ҳифз аст (кори агенти дигар) — ҳамаи тафсилот
    дар ин фоидаи нав аст.
@@ -18,13 +23,14 @@ from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from sqlalchemy import func, select
+from sqlalchemy import delete as sa_delete, func, select
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Game, Order, OrderStatus, Product
+from app.models import Game, Order, OrderStatus, Product, User
 from app.schemas import GameOut
 from app.security import require_admin
+from app.services import coins
 
 router = APIRouter(
     prefix="/api/admin",
@@ -201,4 +207,90 @@ def stats_profit(db: Session = Depends(get_db)):
         costed_orders=int(cnt),
         uncosted_revenue_tjs=float(uncosted),
         costed_products=int(costed_products),
+    )
+
+
+# =====================================================================
+# 👥 КОРБАРОН: кодҳои даъват + вазъияти парол (талаби соҳиб, 06.11.2026)
+# =====================================================================
+
+
+class UserSecretOut(BaseModel):
+    id: int
+    referral_code: str = ""
+    has_password: bool = False
+
+
+@router.get("/users/secrets", response_model=list[UserSecretOut])
+def admin_user_secrets(db: Session = Depends(get_db)):
+    """Кодҳои даъват ва вазъияти пароли ҳар корбар барои панели админ.
+
+    ⚠️ Паролҳо ТАНҲО ҳосс мешаванд (Argon2id) → матни аслӣ дидан ва
+    нишон додан НОМУМКИН аст — инҷо танҳо вазъият бармегардад:
+    `has_password` = «парол дорад» / «парол надорад».
+    Коди холӣ = автоматӣ сохта мешавад (ҳамон раванди coins.ensure,
+    ягонаӣ санҷида мешавад) — барои ҳамаи 72 корбар як бор.
+    """
+    out: list[UserSecretOut] = []
+    users = db.scalars(select(User).order_by(User.id.desc())).all()
+    for u in users:
+        code = coins.ensure_referral_code(db, u)
+        out.append(
+            UserSecretOut(
+                id=u.id,
+                referral_code=code,
+                has_password=bool((u.password_hash or "").strip()),
+            )
+        )
+    return out
+
+
+# =====================================================================
+# ❌ НЕСТ КАРДАНИ КОРБАР (талаби соҳиб, 06.11.2026)
+# =====================================================================
+
+
+class UserDeletedOut(BaseModel):
+    ok: bool = True
+    id: int
+    orders_kept: int = 0
+
+
+@router.delete("/users/{user_id}", response_model=UserDeletedOut)
+def admin_delete_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    """❌ Нест кардани корбар аз ҷадвали админ.
+
+    Семантика аз FK-ҳои воқеии PostgreSQL:
+      · `orders.user_id`        = ON DELETE SET NULL → **фармоишҳо мемонанд**
+        (даромад/фоида/статистика вайрон НАМЕШАВАД)
+      · `balance_requests`      = ON DELETE SET NULL → дархостҳо мемонанд
+      · `balance_transactions`  = ON DELETE CASCADE → тарихи баланс нест
+      · `coin_transactions`     = ON DELETE CASCADE → тангаҳо нест
+      · `reviews`               = ON DELETE CASCADE → назарҳо нест
+      · `face_credentials`      = ON DELETE CASCADE → чеҳра нест
+      · коди даъват → бо сатр нест мешавад
+
+    Амният: админ ХУДРО нест карда наметавонад.
+    Токенҳои корбар баъди несткунӣ беэътибор мешаванд (калид дар DB ёфт
+    намешавад).
+    """
+    if user_id == admin.id:
+        raise HTTPException(
+            status_code=400, detail="Худро нест кардан мумкин нест"
+        )
+    if db.get(User, user_id) is None:
+        raise HTTPException(status_code=404, detail="Корбар ёфт нашуд")
+
+    orders_kept = (
+        db.scalar(select(func.count()).where(Order.user_id == user_id)) or 0
+    )
+    # Як DELETE-и оддӣ → ҳамаи ON DELETE-*ҳои ҷадвал худкор иҷро мешаванд
+    db.execute(sa_delete(User).where(User.id == user_id))
+    db.commit()
+    return UserDeletedOut(
+        id=user_id, orders_kept=int(orders_kept), ok=True
     )

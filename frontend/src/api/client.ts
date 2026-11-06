@@ -25,6 +25,7 @@ import type {
   Topup,
   TopupPrepare,
   User,
+  UserSecret,
   WheelData,
   WheelSpin,
 } from "../types";
@@ -429,6 +430,14 @@ export const api = {
   stats: () => request<AdminStats>("/admin/stats"),
   /** 💲 Фоида = даромад − нархи харид (танҳо маҳсулотҳои бо cost_tjs) */
   profitStats: () => request<ProfitStats>("/admin/stats/profit"),
+  /** 🔑 Кодҳои даъват + вазъияти пароли ҳар корбар (пароли аслӣ намешавад) */
+  adminUserSecrets: () => request<UserSecret[]>("/admin/users/secrets"),
+  /** ❌ Нест кардани корбар — фармоишҳо мемонанд (FK SET NULL) */
+  adminDeleteUser: (id: number) =>
+    request<{ ok: boolean; id: number; orders_kept: number }>(
+      `/admin/users/${id}`,
+      { method: "DELETE" },
+    ),
   adminOrders: (status?: string) =>
     request<Order[]>(`/admin/orders${status ? `?status=${status}` : ""}`),
   /** 🔍 Кодҳои махфияши фармоиш (ник, fl_ref, транзаксия, ҳисоби DC …) */

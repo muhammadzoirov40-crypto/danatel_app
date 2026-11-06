@@ -322,6 +322,13 @@ export interface ProfitStats {
   costed_products: number;
 }
 
+/** 🔑 Коди даъват + вазъияти пароли корбар (админ; пароли аслӣ НОМУМКИН) */
+export interface UserSecret {
+  id: number;
+  referral_code: string;
+  has_password: boolean;
+}
+
 /** Рангҳои статус + иконкаи касбӣ + калиди тарҷума */
 export const STATUS_META: Record<
   OrderStatus,

@@ -7,6 +7,9 @@
   · POST /api/admin/products/adjust-prices mode="cost" — пойдор (такрорӣ
     ҳамон нархро медиҳад) + mode="current" қаблан чун буд
   · POST /api/admin/products/fill-costs — FireLOOT хомӯш → 400 (бе дастрасӣ)
+  · GET  /api/admin/users/secrets       — кодҳои даъват + вазъияти парол
+  · DELETE /api/admin/users/{id}        — несткунӣ: фармоиш МЕМОНАД,
+      худро нест кардан → 400
 """
 from __future__ import annotations
 
@@ -17,7 +20,7 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.database import SessionLocal
-from app.models import Game, Order, OrderStatus, Product
+from app.models import Game, Order, OrderStatus, Product, User
 
 
 def auth(token: str) -> dict:
@@ -349,3 +352,119 @@ def test_fill_costs_validation(client: TestClient):
         headers=auth(token),
     )
     assert r.status_code == 422
+
+
+def test_admin_users_secrets(client: TestClient):
+    """Корбарон: кодҳои даъват + вазъияти парол (танҳо Admin)."""
+    # 👤 Қайди корбар бо парол → `has_password=true` бояд баргардад
+    # (админ аз .env бе password_hash месозад — ба тартиби тестҳо вобаста нест)
+    r0 = client.post(
+        "/api/auth/register",
+        json={
+            "phone": "992" + str(uuid.uuid4().int % 1_000_000_000).zfill(9),
+            "password": "TestPassw0rd!",
+            "language": "tj",
+        },
+    )
+    assert r0.status_code == 200, r0.text
+
+    token = admin_token(client)
+    r = client.get("/api/admin/users/secrets", headers=auth(token))
+    assert r.status_code == 200, r.text
+    data = r.json()
+    assert data, "рӯйхати корбарон холӣ"
+    assert {"id", "referral_code", "has_password"} <= set(data[0])
+    # кодҳо холӣ нестанд (ensure_referral_code дар холӣ месозад)
+    assert all(x["referral_code"] for x in data)
+    # ягонаӣ
+    codes = [x["referral_code"] for x in data]
+    assert len(codes) == len(set(codes))
+    # вазъияти парол — boolean; дар тест-DB админ парол дорад
+    assert all(isinstance(x["has_password"], bool) for x in data)
+    assert any(x["has_password"] for x in data)
+
+
+def test_admin_users_secrets_requires_admin(client: TestClient):
+    r = client.get("/api/admin/users/secrets")
+    assert r.status_code in (401, 403)
+
+
+# =====================================================================
+# 7. ❌ НЕСТ КАРДАНИ КОРБАР (талаби соҳиб, 06.11.2026)
+# =====================================================================
+
+
+def _register(client: TestClient) -> tuple[str, str]:
+    """Қайди корбар → (phone, token)."""
+    phone = "992" + str(uuid.uuid4().int % 1_000_000_000).zfill(9)
+    r = client.post(
+        "/api/auth/register",
+        json={"phone": phone, "password": "TestPassw0rd!", "language": "tj"},
+    )
+    assert r.status_code == 200, r.text
+    return phone, r.json()["access_token"]
+
+
+def test_admin_delete_user(client: TestClient):
+    """❌ Корбар нест мешавад — ФАРМОИШ МЕМОНАД (даромад вайрон намешавад)."""
+    phone, user_token = _register(client)
+
+    # Фармоиши корбар (user_id пур карда мешавад)
+    db = SessionLocal()
+    try:
+        uid = db.query(User).filter_by(phone=phone).first().id
+        order = _mk_order(db)
+        order.user_id = uid
+        db.commit()
+        oid = order.id
+    finally:
+        db.close()
+
+    # Вуруди корбар қабл аз несткунӣ — кор мекунад
+    assert client.post(
+        "/api/auth/login", json={"phone": phone, "password": "TestPassw0rd!"}
+    ).status_code == 200
+
+    token = admin_token(client)
+    r = client.delete(f"/api/admin/users/{uid}", headers=auth(token))
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["ok"] is True and body["id"] == uid
+    assert body["orders_kept"] == 1  # фармоишҳо бояд мемонанд!
+
+    # Фармоиш вуҷуд дорад, корбар нопадид
+    db = SessionLocal()
+    try:
+        assert db.get(Order, oid) is not None
+        assert db.query(User).filter_by(phone=phone).first() is None
+    finally:
+        db.close()
+
+    # Аз рӯйхат нопадид
+    users = client.get("/api/admin/users", headers=auth(token)).json()
+    assert all(u["id"] != uid for u in users)
+
+    # Вуруд → 401 + токени кӯҳна беэътибор
+    assert client.post(
+        "/api/auth/login", json={"phone": phone, "password": "TestPassw0rd!"}
+    ).status_code == 401
+    assert client.get("/api/auth/me", headers=auth(user_token)).status_code == 401
+
+
+def test_admin_delete_user_guards(client: TestClient):
+    token = admin_token(client)
+    # 404 — номаълум
+    assert (
+        client.delete("/api/admin/users/99999999", headers=auth(token)).status_code
+        == 404
+    )
+    # ХУДРО нест кардан → 400
+    db = SessionLocal()
+    try:
+        admin_id = db.query(User).filter_by(is_admin=True).first().id
+    finally:
+        db.close()
+    r = client.delete(f"/api/admin/users/{admin_id}", headers=auth(token))
+    assert r.status_code == 400, r.text
+    # бе токен → 401/403
+    assert client.delete("/api/admin/users/1").status_code in (401, 403)

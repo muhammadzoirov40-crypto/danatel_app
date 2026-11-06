@@ -3,23 +3,28 @@ import {
   Bot,
   CircleCheck,
   CircleX,
+  Copy,
   History,
+  KeyRound,
   Loader2,
+  Lock,
   Minus,
   Package,
   Plus,
   Search,
   Smartphone,
+  Trash2,
   User,
   Users as UsersIcon,
   Wallet,
   X,
 } from "lucide-react";
 import { api } from "../../api/client";
-import type { AdminUser, BalanceTx, TxKind } from "../../types";
+import type { AdminUser, BalanceTx, TxKind, UserSecret } from "../../types";
 import { TX_META } from "../../types";
 import { useApp } from "../../context/AppContext";
 import { Ic } from "../../components/Icons";
+import { copyText } from "../../utils/clipboard";
 
 /**
  * 👥 Идоракунии баланси корбарон.
@@ -38,6 +43,25 @@ export default function Users() {
   // Корбари кушодашуда барои идоракунӣ
   const [openId, setOpenId] = useState<number | null>(null);
   const [history, setHistory] = useState<{ user: AdminUser; txs: BalanceTx[] } | null>(null);
+  // 🔑 Кодҳои даъват + вазъияти парол (як бор ҳангоми кушодан)
+  const [secrets, setSecrets] = useState<Record<number, UserSecret>>({});
+  const [copiedId, setCopiedId] = useState<number | null>(null);
+  // ❌ Ду-қадама несткунӣ: аввал «Ҳазф» → баъд «Тасдиқ» (то тугмаи тасодуфӣ)
+  const [delId, setDelId] = useState<number | null>(null);
+  const [delBusy, setDelBusy] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    api
+      .adminUserSecrets()
+      .then((list) => {
+        if (alive) setSecrets(Object.fromEntries(list.map((s) => [s.id, s])));
+      })
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -66,6 +90,27 @@ export default function Users() {
       setHistory({ user: u, txs });
     } catch (e) {
       setErr((e as Error)?.message ?? t("error"));
+    }
+  };
+
+  // ❌ Нест кардани корбар (ду қадам: Ҳазф → Тасдиқ; такрорӣ = имкон нест)
+  const doDelete = async (u: AdminUser) => {
+    if (delBusy) return;
+    setDelBusy(true);
+    try {
+      await api.adminDeleteUser(u.id);
+      setDelId(null);
+      setSecrets((prev) => {
+        const next = { ...prev };
+        delete next[u.id];
+        return next;
+      });
+      flash(t("userDeleted"));
+      await load();
+    } catch (e) {
+      setErr((e as Error)?.message ?? t("error"));
+    } finally {
+      setDelBusy(false);
     }
   };
 
@@ -122,7 +167,9 @@ export default function Users() {
           <div className="p-8 text-center text-slate-500">{t("notFound")}</div>
         ) : (
           <div className="divide-y divide-slate-100">
-            {filtered.map((u) => (
+            {filtered.map((u) => {
+              const sec = secrets[u.id];
+              return (
               <div key={u.id} className="px-4 py-3">
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="flex-1 min-w-[160px]">
@@ -143,6 +190,53 @@ export default function Users() {
                         <Ic icon={Package} size="xs" className="text-slate-400" />
                         {u.orders_count}
                       </span>
+                    </div>
+
+                    {/* 🔑 Коди даъват + вазъияти парол (талаби соҳиб) */}
+                    <div className="mt-1.5 flex items-center gap-2 flex-wrap text-[11px]">
+                      {sec ? (
+                        <>
+                          <span className="inline-flex items-center gap-1 text-slate-500">
+                            <Ic icon={KeyRound} size="xs" className="text-slate-400" />
+                            {t("refCodeLabel")}:
+                            <code className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-mono">
+                              {sec.referral_code}
+                            </code>
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                const ok = await copyText(sec.referral_code);
+                                if (ok) {
+                                  setCopiedId(u.id);
+                                  window.setTimeout(
+                                    () => setCopiedId((v) => (v === u.id ? null : v)),
+                                    1500,
+                                  );
+                                }
+                              }}
+                              aria-label={`${t("copy")}: ${sec.referral_code}`}
+                              title={t("copy")}
+                              className="p-1 rounded text-slate-400 hover:text-slate-600 hover:bg-slate-100 active:bg-slate-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500"
+                            >
+                              <Ic icon={copiedId === u.id ? CircleCheck : Copy} size="xs" />
+                            </button>
+                          </span>
+                          <span
+                            className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full ${
+                              sec.has_password
+                                ? "bg-emerald-50 text-emerald-700"
+                                : "bg-slate-100 text-slate-500"
+                            }`}
+                          >
+                            <Ic icon={Lock} size="xs" />
+                            {sec.has_password ? t("pwdSet") : t("pwdNotSet")}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-slate-300" aria-hidden="true">
+                          …
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -174,6 +268,41 @@ export default function Users() {
                       <Ic icon={History} size="xs" />
                       {t("history")}
                     </button>
+                    {/* ❌ Несткунӣ: қадами 1 «Ҳазф» → қадами 2 «Тасдиқ/Бекор» */}
+                    {delId === u.id ? (
+                      <div className="flex gap-1.5 w-full sm:w-auto">
+                        <button
+                          onClick={() => void doDelete(u)}
+                          disabled={delBusy}
+                          aria-label={`${t("deleteUser")}: ${u.full_name || u.phone || `#${u.id}`}`}
+                          className="btn-danger text-xs px-3 py-1.5 justify-center flex-1 sm:w-auto whitespace-nowrap"
+                        >
+                          {delBusy ? (
+                            <Ic icon={Loader2} className="animate-spin" />
+                          ) : (
+                            <Ic icon={Trash2} size="xs" />
+                          )}
+                          {t("confirm")}
+                        </button>
+                        <button
+                          onClick={() => setDelId(null)}
+                          disabled={delBusy}
+                          className="btn-ghost text-xs px-3 py-1.5 justify-center flex-1 sm:w-auto whitespace-nowrap"
+                        >
+                          {t("cancel")}
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setDelId(u.id)}
+                        aria-label={`${t("deleteUser")}: ${u.full_name || u.phone || `#${u.id}`}`}
+                        title={t("deleteUser")}
+                        className="btn-ghost text-rose-600 hover:text-rose-700 text-xs px-3 py-1.5 justify-center w-full sm:w-auto whitespace-nowrap"
+                      >
+                        <Ic icon={Trash2} size="xs" />
+                        {t("delete")}
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -190,7 +319,8 @@ export default function Users() {
                   />
                 )}
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
