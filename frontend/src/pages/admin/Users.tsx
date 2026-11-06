@@ -147,12 +147,21 @@ export default function Users() {
   };
 
   const q = search.trim().toLowerCase();
+  // Рақамҳои ҷустҷӯ
+  const qd = q.replace(/\D/g, "");
+  // «Танҳо рақам» (бо фосила/+/() ҳам) → №id ё телефон ҷустҷӯ мешавад;
+  // агар ҲАРФ дошта бошад (масалан коди даъват «OG6F4DER» бо 64) → танҳо
+  // ном/номер/код — то коди даъват бо №id-ҳои тасодуфӣ омехта нашавад
+  const digitsOnly = qd !== "" && q.replace(/[\s()+\-.\/]/g, "") === qd;
+  const qLast9 = qd.slice(-9);
   const filtered = users.filter(
     (u) =>
       !q ||
-      (u.phone ?? "").includes(q) ||
+      (digitsOnly && qd.length >= 3 && (u.phone ?? "").includes(qLast9)) ||
       (u.full_name ?? "").toLowerCase().includes(q) ||
-      (u.username ?? "").toLowerCase().includes(q),
+      (u.username ?? "").toLowerCase().includes(q) ||
+      (digitsOnly && String(u.id).includes(qd)) ||
+      (secrets[u.id]?.referral_code ?? "").toLowerCase().includes(q),
   );
 
   if (loading) return <div className="card h-40 animate-pulse bg-slate-100" />;

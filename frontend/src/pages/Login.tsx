@@ -165,6 +165,17 @@ export default function Login() {
         </div>
 
         <form onSubmit={submit} className="space-y-3">
+          {/* 🔗 Линки даъват (?ref=… / `danatel_ref`) — коди даъвати
+              даъваткунанда дар форма нишон дода мешавад, то корбар бидонад
+              кадом код ҳангоми қайд истифода мешавад (талаби соҳиб) */}
+          {mode === "register" && refCode && (
+            <div className="flex items-center gap-2 flex-wrap rounded-xl border border-brand-100 bg-brand-50 px-3 py-2 text-xs text-brand-700">
+              <span>{t("refCodeLabel")}:</span>
+              <code className="rounded bg-white px-1.5 py-0.5 font-mono text-slate-700">
+                {refCode}
+              </code>
+            </div>
+          )}
           <div>
             <label className="label">{t("phone")} *</label>
             {/* 🌍 Коди кишвар ИНТИХОБ мешавад → корбар танҳо рақами
