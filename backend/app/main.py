@@ -15,6 +15,7 @@ from app.database import init_db
 from app.models import User
 from app.routers import (
     admin,
+    admin_extra,
     auth,
     coins,
     face,
@@ -88,6 +89,7 @@ app.include_router(orders.router)
 app.include_router(webhook.router)
 app.include_router(lookup.router)
 app.include_router(admin.router)
+app.include_router(admin_extra.router)
 app.include_router(pricing.router)
 app.include_router(reviews.router)
 app.include_router(coins.router)

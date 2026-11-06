@@ -5,7 +5,6 @@ import {
   LayoutDashboard,
   Loader2,
   LogIn,
-  LogOut,
   Package,
   Settings,
   Star,
@@ -29,7 +28,7 @@ type Tab = "dashboard" | "orders" | "products" | "users" | "reviews" | "topups" 
 
 /** Панели идора — танҳо бо вуруди админ */
 export default function Admin() {
-  const { t, isAdmin, logout } = useApp();
+  const { t, isAdmin } = useApp();
   const [tab, setTab] = useState<Tab>("dashboard");
   const [pendingTopups, setPendingTopups] = useState(0);
 
@@ -69,10 +68,9 @@ export default function Admin() {
     /* 📱 `-mb-20 md:mb-0` → padding-и `pb-20`-и main (ҷои navbar-и поёнӣ,
        ки дар /admin ПИНҲОН аст) — барқарории 80px дар мобилӣ. */
     <div className="mx-auto max-w-6xl px-4 py-6 -mb-20 md:mb-0">
-      {/* 🔧 Сарлавҳа + Баромад — ДАР ЯК сатр (мобилӣ 320px):
-          қаблан матни калон (text-xl) + тугма дар 320px ҷой накард →
-          «Баромад» ба қатори дуюм мепечид (3 қатор ≈130px). Ҳоло матни
-          хурд (text-base) + justify-between → як сатр, Баромад намепечад. */}
+      {/* 🔧 Сарлавҳа — ДАР ЯК сатр (мобилӣ 320px):
+          Тугмаи «Баромад» АЗ ИН ҶО НАСТ (талаби соҳиб 06.11.2026) —
+          баромад танҳо аз Сайдбар («Баромад») сурат мегирад. */}
       <div className="flex items-center justify-between gap-2 mb-3">
         {/* ⬅️ [←] [ном] ДАР ЯК САТР — ҳамон тавр мисли саҳифаҳои корбар
             (талаби соҳиб «dar admin ham doshta boshad») */}
@@ -83,10 +81,6 @@ export default function Admin() {
             {t("adminPanel")}
           </h1>
         </div>
-        <button onClick={logout} className="btn-ghost text-sm shrink-0">
-          <Ic icon={LogOut} />
-          {t("logout")}
-        </button>
       </div>
 
       {/* Табҳо — қатори пурра, уфуқӣ мезанад (дар мобилӣ) */}

@@ -262,6 +262,11 @@ class Product(Base):
     name_uz: Mapped[str] = mapped_column(String(128), default="")
     # Нарх ТАНО бо сомонӣ (TJS) — ҳамчун роҳнамо
     price_tjs: Mapped[float] = mapped_column(Numeric(12, 2))
+    # 💲 Нархи харид (FireLoot, TJS) — барои ҳисоби ФОИДА.
+    #    0 = ворид нашудааст. Миграцияи худкори database.py сутунро илова мекунад.
+    cost_tjs: Mapped[float] = mapped_column(
+        Numeric(12, 2), default=0, server_default=text("0")
+    )
     # Миқдори аслӣ дар дохили бозӣ
     amount: Mapped[int] = mapped_column(Integer, default=0)
     # Нарх дар сомонӣ барои ҳисоб (захира)

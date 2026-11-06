@@ -252,7 +252,7 @@ function AddBalanceForm({
   return (
     <form
       onSubmit={submit}
-      className="mt-3 rounded-xl border border-brand-200 bg-brand-50/40 p-3"
+      className="mt-3 rounded-2xl border border-brand-200 bg-gradient-to-b from-brand-50 to-white p-3.5"
     >
       <div className="text-xs font-semibold text-brand-800 mb-2 inline-flex items-center gap-1.5">
         <Ic icon={Wallet} size="xs" />
@@ -288,24 +288,43 @@ function AddBalanceForm({
         </div>
       </div>
 
-      {/* Пешнамоиш — ҳам илова ҳам буриш */}
+      {/* Пешнамоиш — ҳам илова ҳам буриш (духӯра дар 320px, намебурад) */}
       {amount && !Number.isNaN(Number(amount)) && Number(amount) > 0 && (
-        <div className="mt-2 text-xs text-slate-600">
-          {t("currentBalance")}: <b>{Number(u.balance).toFixed(2)}</b> · +{" "}
-          {Number(amount).toFixed(2)} →{" "}
-          <b className="text-emerald-600">
-            {(Number(u.balance) + Number(amount)).toFixed(2)}
-          </b>{" "}
-          · − {Number(amount).toFixed(2)} →{" "}
-          <b className="text-rose-600">
-            {(Number(u.balance) - Number(amount)).toFixed(2)}
-          </b>{" "}
-          {t("somoni")}
+        <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600">
+          <span>
+            {t("currentBalance")}:{" "}
+            <b className="text-slate-800">{Number(u.balance).toFixed(2)}</b>
+          </span>
+          <span className="text-slate-300" aria-hidden>
+            ·
+          </span>
+          <span>
+            + {Number(amount).toFixed(2)} →{" "}
+            <b className="text-emerald-600">
+              {(Number(u.balance) + Number(amount)).toFixed(2)}
+            </b>
+          </span>
+          <span className="text-slate-300" aria-hidden>
+            ·
+          </span>
+          <span>
+            − {Number(amount).toFixed(2)} →{" "}
+            <b className="text-rose-600">
+              {(Number(u.balance) - Number(amount)).toFixed(2)}
+            </b>
+          </span>
+          <span className="text-slate-400">{t("somoni")}</span>
         </div>
       )}
 
-      <div className="mt-2 flex gap-2">
-        <button type="submit" disabled={busy} className="btn-primary text-xs px-4 py-2">
+      {/* 📱 320px: Илова = сатри пурра, Буриш + Бекор = 2 ҷуфт — ҳеҷ
+          тугма намебурад («Бекор кардан» қаблан аз рости корт хориҷ буд) */}
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:flex sm:gap-2">
+        <button
+          type="submit"
+          disabled={busy}
+          className="btn-primary col-span-2 justify-center text-xs px-4 py-2.5 leading-tight sm:py-2"
+        >
           {busy ? (
             <>
               <Ic icon={Loader2} className="animate-spin" /> {t("loading")}
@@ -321,7 +340,7 @@ function AddBalanceForm({
           type="button"
           disabled={busy}
           onClick={() => void run("deduct")}
-          className="btn bg-rose-600 text-xs px-4 py-2 text-white hover:bg-rose-700 disabled:opacity-50"
+          className="btn bg-rose-600 text-xs px-3 py-2.5 text-center leading-tight text-white hover:bg-rose-700 disabled:opacity-50 sm:px-4 sm:py-2"
           aria-label={t("deductBalance")}
         >
           <Ic icon={Minus} size="xs" />
@@ -330,7 +349,7 @@ function AddBalanceForm({
         <button
           type="button"
           onClick={() => onDone("")}
-          className="btn-ghost text-xs px-3 py-2"
+          className="btn-ghost justify-center text-xs px-3 py-2.5 leading-tight sm:py-2"
         >
           {t("cancel")}
         </button>

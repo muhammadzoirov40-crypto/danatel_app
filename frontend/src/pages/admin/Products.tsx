@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { CircleCheck, Gamepad2, Gem, Loader2, Percent, Plus, Save, Trash2 } from "lucide-react";
+import { CircleCheck, DollarSign, Gamepad2, Gem, Loader2, Percent, Plus, Save, Trash2 } from "lucide-react";
 import { api } from "../../api/client";
 import type { Game, Product } from "../../types";
 import { useApp } from "../../context/AppContext";
@@ -50,7 +50,8 @@ export default function Products() {
   const loadDetail = useCallback(async () => {
     if (!active) return;
     try {
-      setDetail(await api.adminGame(active));
+      // 📚 Версияи КОМИЛ: + sku + cost_tjs (нархи харид барои фоида)
+      setDetail(await api.adminGameFull(active));
     } catch (e) {
       setErr((e as Error)?.message ?? t("error"));
     }
@@ -63,26 +64,64 @@ export default function Products() {
     loadDetail();
   }, [loadDetail]);
 
+  /** 🔥 Нархи FireLoot ($) барои ҳамаи sku — як дафъа аз каталоги воқеӣ */
+  const [flUsd, setFlUsd] = useState<Record<string, number>>({});
+  useEffect(() => {
+    let alive = true;
+    api
+      .flCatalog()
+      .then((c) => {
+        if (!alive) return;
+        const m: Record<string, number> = {};
+        for (const it of c.items) if (it.usd > 0) m[it.sku] = it.usd;
+        setFlUsd(m);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   const flash = (m: string) => {
     setMsg(m);
     setTimeout(() => setMsg(""), 3000);
   };
 
-  /** 💱 Як рақам (%) → ҳамаи нархҳои ҳамаи маҳсулотҳо иваз мешаванд */
+  /** 💱 Як рақам (%) → ҳамаи нархҳо иваз мешаванд:
+   *  mode="current" аз нархи ҷорӣ · mode="cost" аз НАРХИ ХАРИД (пойдор) */
   const [pct, setPct] = useState("");
+  const [pctMode, setPctMode] = useState<"current" | "cost">("current");
   const [pctBusy, setPctBusy] = useState(false);
   const applyPercent = async () => {
     const v = parseFloat(pct.replace(",", "."));
     if (!Number.isFinite(v) || v < -95 || v > 1000 || pctBusy) return;
     setPctBusy(true);
     try {
-      const r = await api.adjustPrices(v);
+      const r = await api.adjustPrices(v, pctMode);
       flash(t("priceBulkDone").replace("{n}", String(r.updated)));
       await loadDetail();
     } catch (e) {
       setErr((e as Error)?.message ?? t("error"));
     } finally {
       setPctBusy(false);
+    }
+  };
+
+  /** 💲 Нархи харид = FireLoot $ × курс — як рақам → ҳамаи sku-дорҳо */
+  const [rate, setRate] = useState("");
+  const [rateBusy, setRateBusy] = useState(false);
+  const fillFromFl = async () => {
+    const r = parseFloat(rate.replace(",", "."));
+    if (!Number.isFinite(r) || r <= 0 || r > 10000 || rateBusy) return;
+    setRateBusy(true);
+    try {
+      const res = await api.fillCosts(r);
+      flash(t("fillCostsDone").replace("{n}", String(res.updated)));
+      await loadDetail();
+    } catch (e) {
+      setErr((e as Error)?.message ?? t("error"));
+    } finally {
+      setRateBusy(false);
     }
   };
 
@@ -99,13 +138,44 @@ export default function Products() {
         </div>
       )}
 
-      {/* 💱 Як рақам (%) → ҳамаи нархҳои ҳамаи маҳсулотҳо иваз мешаванд */}
+      {/* 💱 Як рақам (%) → асос: ҷорӣ ё ХАРИД + 💲 пуркуниҳо аз FireLoot $ */}
       <div className="card p-4">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm font-semibold text-slate-700 inline-flex items-center gap-2">
             <Ic icon={Percent} className="text-brand-600" />
             {t("priceBulkLabel")}
           </span>
+          {/* Ҳолат: аз нархи ҷорӣ | аз нархи харид (0% фоиз — пойдор) */}
+          <div
+            className="flex rounded-lg border border-slate-200 overflow-hidden"
+            role="group"
+            aria-label={t("priceBulkLabel")}
+          >
+            <button
+              type="button"
+              onClick={() => setPctMode("current")}
+              aria-pressed={pctMode === "current"}
+              className={`px-2.5 py-1.5 text-[11px] font-semibold ${
+                pctMode === "current"
+                  ? "bg-brand-600 text-white"
+                  : "bg-white text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              {t("priceModeCurrent")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setPctMode("cost")}
+              aria-pressed={pctMode === "cost"}
+              className={`px-2.5 py-1.5 text-[11px] font-semibold border-l border-slate-200 ${
+                pctMode === "cost"
+                  ? "bg-brand-600 text-white"
+                  : "bg-white text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              {t("priceModeCost")}
+            </button>
+          </div>
           <input
             type="number"
             inputMode="decimal"
@@ -132,7 +202,44 @@ export default function Products() {
             {t("priceBulkApply")}
           </button>
           <span className="text-xs text-slate-500 basis-full sm:basis-auto">
-            {t("priceBulkHint")}
+            {pctMode === "cost" ? t("priceBulkCostHint") : t("priceBulkHint")}
+          </span>
+        </div>
+
+        {/* 💲 Нархи харид = FireLoot $ × курс (барои фоида + «аз харид») */}
+        <div className="mt-3 pt-3 border-t border-slate-100 flex flex-wrap items-end gap-2">
+          <div>
+            <label htmlFor="fl-rate" className="label !mb-1 block">
+              {t("fillRate")}
+            </label>
+            <input
+              id="fl-rate"
+              type="number"
+              inputMode="decimal"
+              step="0.01"
+              min={0.01}
+              max={10000}
+              value={rate}
+              onChange={(e) => setRate(e.target.value)}
+              placeholder="0.00"
+              className="input !w-28 !py-2 text-sm font-semibold"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => void fillFromFl()}
+            disabled={rate === "" || rateBusy}
+            className="btn text-xs bg-emerald-600 text-white disabled:opacity-50"
+          >
+            {rateBusy ? (
+              <Loader2 className="w-4 h-4 animate-spin" aria-hidden />
+            ) : (
+              <Ic icon={DollarSign} size="xs" />
+            )}
+            {t("fillCosts")}
+          </button>
+          <span className="text-xs text-slate-500 basis-full">
+            {t("costLabel")} = FireLoot $ × {t("fillRate").toLowerCase()}
           </span>
         </div>
       </div>
@@ -170,9 +277,12 @@ export default function Products() {
             <div className="divide-y divide-slate-100">
               {(detail.products ?? []).map((p) => (
                 <ProductRow
-                  key={p.id}
+                  /* key бо нархҳо → баъд аз bulk-ивазкунии берунӣ input-ҳо
+                     нав мешаванд (қаблан кӯҳна мемонид) */
+                  key={`${p.id}-${p.price_tjs}-${p.cost_tjs ?? 0}`}
                   product={p}
                   currency={t("currency")}
+                  flUsd={p.sku ? flUsd[p.sku] : undefined}
                   onChange={async (patch) => {
                     try {
                       await api.updateProduct(p.id, patch);
@@ -208,18 +318,25 @@ export default function Products() {
 function ProductRow({
   product: p,
   currency,
+  flUsd,
   onChange,
   onDelete,
 }: {
   product: Product;
   currency: string;
+  /** 💲 Нархи воқеии FireLoot ($) барои ин sku (аз каталоги воқеӣ) */
+  flUsd?: number;
   onChange: (patch: Record<string, unknown>) => void | Promise<void>;
   onDelete: () => void | Promise<void>;
 }) {
   const [price, setPrice] = useState(String(p.price_tjs));
+  /** 💲 Нархи харид — 0/холӣ = ворид нашудааст (фаида ҳисоб намешавад) */
+  const [cost, setCost] = useState(p.cost_tjs ? String(p.cost_tjs) : "");
   const [busy, setBusy] = useState<"save" | "del" | null>(null);
   const { t } = useApp();
-  const dirty = Number(price) !== Number(p.price_tjs);
+  const dirty =
+    Number(price) !== Number(p.price_tjs) ||
+    Number(cost || 0) !== Number(p.cost_tjs || 0);
 
   /** Амал бо ҳолати busy → аз фиристодани дархости такрорӣ пешгирӣ мекунад */
   const run = async (kind: "save" | "del", fn: () => void | Promise<void>) => {
@@ -233,26 +350,69 @@ function ProductRow({
   };
 
   return (
-    <div className="px-4 py-3 flex flex-wrap items-center gap-3">
+    <div className="px-4 py-3 flex flex-wrap items-end gap-3">
       <div className="flex-1 min-w-[140px]">
         <div className="font-medium text-sm">{p.name}</div>
-        <div className="text-xs text-slate-500">ID: {p.amount}</div>
+        <div className="text-xs text-slate-500">
+          ID: {p.amount}
+          {p.sku && (
+            <span className="ml-1.5 inline-block rounded-md border border-orange-200 bg-orange-50 px-1.5 py-0.5 font-semibold text-orange-600">
+              FireLoot: {flUsd !== undefined ? `$${flUsd}` : p.sku}
+            </span>
+          )}
+        </div>
       </div>
 
-      <div className="flex items-center gap-2">
-        <input
-          className="input !w-28 !py-2 text-sm font-semibold"
-          inputMode="decimal"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-        />
-        <span className="text-xs text-slate-500 whitespace-nowrap">{currency}</span>
+      {/* Фурӯш + Харид (нархи харид → фоида ва %-и «аз харид») */}
+      <div className="flex items-end gap-2">
+        <div>
+          <span className="mb-1 block text-[10px] leading-none text-slate-500">
+            {t("sellLabel")}
+          </span>
+          <div className="flex items-center gap-1">
+            <input
+              className="input !w-24 !py-2 text-sm font-semibold"
+              inputMode="decimal"
+              aria-label={`${t("sellLabel")} — ${p.name}`}
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+            />
+            <span className="text-xs text-slate-500 whitespace-nowrap">
+              {currency}
+            </span>
+          </div>
+        </div>
+        <div>
+          <span className="mb-1 block text-[10px] leading-none text-slate-500">
+            {t("costLabel")}
+          </span>
+          <div className="flex items-center gap-1">
+            <input
+              className="input !w-24 !py-2 text-sm"
+              inputMode="decimal"
+              aria-label={`${t("costLabel")} — ${p.name}`}
+              value={cost}
+              placeholder="0"
+              onChange={(e) => setCost(e.target.value)}
+            />
+            <span className="text-xs text-slate-500 whitespace-nowrap">
+              {currency}
+            </span>
+          </div>
+        </div>
       </div>
 
       <div className="flex gap-1.5 ml-auto">
         <button
           disabled={!dirty || busy !== null}
-          onClick={() => void run("save", () => onChange({ price_tjs: Number(price) }))}
+          onClick={() =>
+            void run("save", () =>
+              onChange({
+                price_tjs: Number(price),
+                cost_tjs: Number(cost || 0),
+              }),
+            )
+          }
           aria-label={t("save")}
           title={t("save")}
           className="btn-primary text-xs px-3 py-1.5"

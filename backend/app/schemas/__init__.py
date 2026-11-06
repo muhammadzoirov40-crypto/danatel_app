@@ -114,6 +114,9 @@ class ProductOut(BaseModel):
     is_active: bool = True
     # 🌍 Минтақа (FireLoot): "CIS", "BANGLADESH" …; "" = барои ҳама
     region: str = ""
+    # 🔥 sku дар каталоги FireLoot (пайваст барои намоиши $) + 💲 нархи харид
+    sku: str | None = None
+    cost_tjs: Decimal = Decimal("0")
 
 
 class PublicStats(BaseModel):
@@ -548,6 +551,8 @@ class ProductUpdate(BaseModel):
     name_en: str | None = None
     name_uz: str | None = None
     price_tjs: Decimal | None = Field(default=None, gt=0)
+    # 💲 Нархи харид (0 = пок кардан / ворид нашудааст)
+    cost_tjs: Decimal | None = Field(default=None, ge=0)
     amount: int | None = None
     is_active: bool | None = None
     is_popular: bool | None = None

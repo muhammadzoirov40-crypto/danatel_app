@@ -10,6 +10,10 @@ export interface Product {
   is_active?: boolean;
   /** 🌍 Минтақа (FireLoot): "CIS", "BANGLADESH" …; "" = барои ҳама */
   region?: string;
+  /** 🔥 sku дар каталоги FireLoot (барои намоиши $) */
+  sku?: string | null;
+  /** 💲 Нархи харид (TJS) — 0 = ворид нашудааст */
+  cost_tjs?: number | null;
 }
 
 /** 🔥 Баланси ҳисоби FireLoot (воқеӣ аз API партнёрӣ) */
@@ -291,6 +295,31 @@ export interface AdminStats {
   revenue_today_tjs: number;
   users_total: number;
   games_active: number;
+}
+
+/** 🔍 Кодҳои махфияши фармоиш (админ — тафсилот) */
+export interface OrderDetail {
+  id: number;
+  player_nickname?: string | null;
+  quantity: number;
+  /** 🔥 Истиноди FireLoot: '' | 'WIP' | 'ref:<id>' | 'ERR:<code>' */
+  fl_ref: string;
+  transaction_id?: string | null;
+  dc_invoice_id?: string | null;
+  language: string;
+  payment_method: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+/** 💲 Фоида = даромад − нархи харид (админ) */
+export interface ProfitStats {
+  profit_total_tjs: number;
+  profit_today_tjs: number;
+  revenue_costed_tjs: number;
+  costed_orders: number;
+  uncosted_revenue_tjs: number;
+  costed_products: number;
 }
 
 /** Рангҳои статус + иконкаи касбӣ + калиди тарҷума */

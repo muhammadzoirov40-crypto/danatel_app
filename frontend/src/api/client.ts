@@ -16,8 +16,10 @@ import type {
   FirelootCatalog,
   Game,
   Order,
+  OrderDetail,
   PaymentInit,
   PlayerLookupResponse,
+  ProfitStats,
   Review,
   ReviewSummary,
   Topup,
@@ -425,8 +427,12 @@ export const api = {
 
   // ========================== АДМИН ==========================
   stats: () => request<AdminStats>("/admin/stats"),
+  /** 💲 Фоида = даромад − нархи харид (танҳо маҳсулотҳои бо cost_tjs) */
+  profitStats: () => request<ProfitStats>("/admin/stats/profit"),
   adminOrders: (status?: string) =>
     request<Order[]>(`/admin/orders${status ? `?status=${status}` : ""}`),
+  /** 🔍 Кодҳои махфияши фармоиш (ник, fl_ref, транзаксия, ҳисоби DC …) */
+  orderDetail: (id: number) => request<OrderDetail>(`/admin/orders/${id}/detail`),
   updateOrder: (id: number, status: string) =>
     request<Order>(`/admin/orders/${id}`, {
       method: "PATCH",
@@ -457,6 +463,8 @@ export const api = {
     request<BalanceTx[]>(`/admin/users/${userId}/transactions`),
   adminGames: () => request<Game[]>("/admin/games"),
   adminGame: (slug: string) => request<Game>(`/admin/games/${slug}`),
+  /** 📚 Нархҳои КОМИЛ: + sku + cost_tjs (барои $ ва фоида) */
+  adminGameFull: (slug: string) => request<Game>(`/admin/games/${slug}/full`),
   createGame: (data: Record<string, unknown>) =>
     request<Game>("/admin/games", { method: "POST", body: JSON.stringify(data) }),
   createProduct: (data: Record<string, unknown>) =>
@@ -471,11 +479,20 @@ export const api = {
     }),
   deleteProduct: (id: number) =>
     request<{ ok: boolean }>(`/admin/products/${id}`, { method: "DELETE" }),
-  /** 💱 Як рақам (%): ҳамаи нархҳои маҳсулотҳо × (1 + percent/100) */
-  adjustPrices: (percent: number) =>
-    request<{ updated: number; percent: number }>("/admin/products/adjust-prices", {
+  /** 💱 Як рақам (%): mode="current" аз нархи ҷорӣ · "cost" аз нархи харид */
+  adjustPrices: (percent: number, mode: "current" | "cost" = "current") =>
+    request<{ updated: number; percent: number; mode: string }>(
+      "/admin/products/adjust-prices",
+      {
+        method: "POST",
+        body: JSON.stringify({ percent, mode }),
+      },
+    ),
+  /** 💲 Нархи харид = FireLoot $ × курс — барои ҳамаи sku-дорҳо */
+  fillCosts: (rate: number) =>
+    request<{ updated: number; rate: number }>("/admin/products/fill-costs", {
       method: "POST",
-      body: JSON.stringify({ percent }),
+      body: JSON.stringify({ rate }),
     }),
   // 🔥 FireLoot — баланс, каталоги воқеӣ, ҳамоҳангсозӣ (танҳо админ)
   flBalance: () => request<FirelootBalance>("/admin/fireloot/balance"),
