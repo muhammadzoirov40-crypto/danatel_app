@@ -4,6 +4,8 @@ import {
   CircleCheck,
   CircleX,
   Copy,
+  Eye,
+  EyeOff,
   History,
   KeyRound,
   Loader2,
@@ -55,6 +57,10 @@ export default function Users() {
   const [pwdVal, setPwdVal] = useState("");
   const [pwdBusy, setPwdBusy] = useState(false);
   const [pwdErr, setPwdErr] = useState("");
+  // 👁 Намоиш/пинҳони парол ҳангоми навиштан + нишондодани пароли гузошташуда
+  const [pwdShow, setPwdShow] = useState(false);
+  const [pwdShown, setPwdShown] = useState<{ id: number; val: string } | null>(null);
+  const [copiedPwd, setCopiedPwd] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -131,6 +137,10 @@ export default function Users() {
     setPwdErr("");
     try {
       await api.adminSetUserPassword(u.id, pwdVal);
+      // Пароли гузошташуда нишон дода мешавад (танҳо ҳамон чизе, ки худатон
+      // навиштед — пароли кӯҳна ҳосс танҳо дорад, бозхонидан номумкин)
+      setPwdShown({ id: u.id, val: pwdVal });
+      setPwdShow(false);
       setPwdId(null);
       setPwdVal("");
       setSecrets((prev) => {
@@ -278,6 +288,7 @@ export default function Users() {
                               setPwdId(pwdId === u.id ? null : u.id);
                               setPwdVal("");
                               setPwdErr("");
+                              setPwdShow(false);
                             }}
                             aria-expanded={pwdId === u.id}
                             aria-label={`${t("setPwd")}: ${u.full_name || u.phone || `#${u.id}`}`}
@@ -303,19 +314,33 @@ export default function Users() {
                         }}
                         className="mt-2 flex flex-col sm:flex-row gap-1.5"
                       >
-                        <input
-                          type="password"
-                          value={pwdVal}
-                          onChange={(e) => {
-                            setPwdVal(e.target.value);
-                            setPwdErr("");
-                          }}
-                          placeholder={t("newPwd")}
-                          aria-label={`${t("newPwd")}: ${u.full_name || u.phone || `#${u.id}`}`}
-                          autoComplete="new-password"
-                          autoFocus
-                          className="input flex-1 !py-2 text-xs"
-                        />
+                        <div className="relative flex-1">
+                          <input
+                            type={pwdShow ? "text" : "password"}
+                            value={pwdVal}
+                            onChange={(e) => {
+                              setPwdVal(e.target.value);
+                              setPwdErr("");
+                            }}
+                            placeholder={t("newPwd")}
+                            aria-label={`${t("newPwd")}: ${u.full_name || u.phone || `#${u.id}`}`}
+                            autoComplete="new-password"
+                            autoFocus
+                            className="input w-full !py-2 !pr-9 text-xs"
+                          />
+                          {/* 👁 Нишон додан/пинҳон — то корбин бидонад чӣ менависад */}
+                          <button
+                            type="button"
+                            onClick={() => setPwdShow((v) => !v)}
+                            aria-label={pwdShow ? t("hidePwd") : t("showPwd")}
+                            aria-pressed={pwdShow}
+                            title={pwdShow ? t("hidePwd") : t("showPwd")}
+                            disabled={pwdBusy}
+                            className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded text-slate-400 hover:text-brand-600 hover:bg-brand-50 active:bg-brand-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500"
+                          >
+                            <Ic icon={pwdShow ? EyeOff : Eye} size="xs" />
+                          </button>
+                        </div>
                         <div className="flex gap-1.5">
                           <button
                             type="submit"
@@ -335,6 +360,7 @@ export default function Users() {
                               setPwdId(null);
                               setPwdVal("");
                               setPwdErr("");
+                              setPwdShow(false);
                             }}
                             disabled={pwdBusy}
                             className="btn-ghost text-xs px-3 py-2 whitespace-nowrap"
@@ -348,6 +374,44 @@ export default function Users() {
                           </p>
                         )}
                       </form>
+                    )}
+
+                    {/* 👁 Пароли гузошташуда нишон дода мешавад — танҳо ҳамон чизе,
+                        ки худатон навиштед (пароли кӯҳнаи корбар: ҳосс танҳо,
+                        бозхонидан номумкин). Нусха барои додан ба корбар. */}
+                    {pwdShown?.id === u.id && (
+                      <div className="mt-2 flex flex-wrap items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs">
+                        <span className="text-emerald-700 font-medium">
+                          {t("password")}:
+                        </span>
+                        <code className="rounded bg-white px-1.5 py-0.5 font-mono text-slate-800 select-all">
+                          {pwdShown.val}
+                        </code>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const ok = await copyText(pwdShown.val);
+                            if (ok) {
+                              setCopiedPwd(true);
+                              window.setTimeout(() => setCopiedPwd(false), 1500);
+                            }
+                          }}
+                          aria-label={`${t("copy")}: ${pwdShown.val}`}
+                          title={t("copy")}
+                          className="p-1 rounded text-slate-500 hover:text-emerald-700 hover:bg-white active:bg-emerald-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500"
+                        >
+                          <Ic icon={copiedPwd ? CircleCheck : Copy} size="xs" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPwdShown(null)}
+                          aria-label={t("close")}
+                          title={t("close")}
+                          className="p-1 rounded text-slate-400 hover:text-slate-600 hover:bg-white active:bg-slate-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500"
+                        >
+                          <Ic icon={X} size="xs" />
+                        </button>
+                      </div>
                     )}
                   </div>
 
