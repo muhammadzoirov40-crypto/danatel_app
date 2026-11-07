@@ -288,7 +288,7 @@ class CoinsMeOut(BaseModel):
     """Тангаҳои корбар + қоидаҳои ҳисоб (аз .env, на аз фронт)."""
 
     coins: int = 0
-    coins_per_tjs: int = 5       # ҳар 1 сомонӣ = N танга (cashback)
+    coins_per_tjs: float = 0.1   # ҳар 1 сомонӣ = N танга (cashback) — 0.1 = 10 сомонӣ → 1 танга
     exchange_rate: int = 100     # N танга = 1 сомонӣ
     min_exchange: int = 100      # ҳадди ақал барои ивази танга ба баланс
     # 🎡 Нархи гардиш дар сомонӣ (SPIN_COST_COINS/COINS_TO_TJS) — аз баланс

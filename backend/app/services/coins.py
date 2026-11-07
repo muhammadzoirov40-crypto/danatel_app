@@ -417,10 +417,15 @@ def grant_order_cashback(db: Session, *, order: Order) -> int:
     if order is None or order.user_id is None:
         return 0
 
-    per_tjs = max(0, _to_int(settings.COINS_PER_TJS))
+    # COINS_PER_TJS = float (танзими соҳиб 06.11.2026: 0.1 → 10 сомонӣ = 1 танга)
+    try:
+        per_tjs = Decimal(str(settings.COINS_PER_TJS or 0))
+    except (InvalidOperation, ValueError, TypeError):
+        per_tjs = Decimal("0")
     if per_tjs <= 0:
         return 0
 
+    # int() = тақриб ба поён: 10 × 0.1 = 1 · 9 × 0.1 = 0 танга
     coins = int(_to_money(order.amount_tjs) * per_tjs)
     if coins <= 0:
         return 0

@@ -76,8 +76,12 @@ def balance_of(client: TestClient, token: str) -> float:
     return float(r.json()["balance"])
 
 
-def make_order(user_id: int) -> tuple[int, float]:
-    """Фармоиш дар DB месозад (барои санҷиши cashback)."""
+def make_order(user_id: int, amount_tjs: float | None = None) -> tuple[int, float]:
+    """Фармоиш дар DB месозад (барои санҷиши cashback).
+
+    `amount_tjs` = маблағи фармоиш (пешфарз: нархи маҳсулот) — барои
+    санҷиши дақиқи курси cashback (10 сомонӣ → 1 танга).
+    """
     db = SessionLocal()
     try:
         game = db.query(Game).filter(Game.slug == "free-fire").first()
@@ -95,7 +99,7 @@ def make_order(user_id: int) -> tuple[int, float]:
             product_id=product.id,
             player_id="123456789",
             quantity=1,
-            amount_tjs=product.price_tjs,
+            amount_tjs=amount_tjs if amount_tjs is not None else product.price_tjs,
             payment_method="dc_wallet",
             status=OrderStatus.PENDING,
             language="tj",
@@ -103,7 +107,7 @@ def make_order(user_id: int) -> tuple[int, float]:
         db.add(order)
         db.commit()
         db.refresh(order)
-        return order.id, float(product.price_tjs)
+        return order.id, float(order.amount_tjs)
     finally:
         db.close()
 
@@ -281,7 +285,8 @@ def test_cashback_once_per_order(client: TestClient):
     adm = admin_token(client)
     token, _ = register(client)
     uid = user_id_of(client, token)
-    order_id, amount = make_order(uid)
+    # Маблағи кафолатдодашуда: бо курси 0.1 → 100 × 0.1 = 10 танга (> 0)
+    order_id, amount = make_order(uid, amount_tjs=100)
 
     expected = int(amount * settings.COINS_PER_TJS)
     assert expected > 0
@@ -315,6 +320,52 @@ def test_cashback_once_per_order(client: TestClient):
     finally:
         db.close()
     assert rows == 1
+
+
+def test_cashback_rate_10_tjs_1_coin(client: TestClient):
+    """Курси нави соҳиб (06.11.2026): 10 сомонӣ → 1 танга, на 1:1.
+
+    Шикоят: «9 сомонӣ → 9 коин» → ислоҳ: 10 → 1 танга, 9 → 0 танга
+    (то 10 сомонӣ нарасидагӣ ҳеҷ чиз намедиҳад).
+    """
+    adm = admin_token(client)
+    token, _ = register(client)
+    uid = user_id_of(client, token)
+
+    # 10 сомонӣ → ровости 1 танга
+    oid10, amount10 = make_order(uid, amount_tjs=10)
+    assert amount10 == 10
+    r = client.patch(
+        f"/api/admin/orders/{oid10}",
+        headers=auth(adm),
+        json={"status": OrderStatus.DELIVERED},
+    )
+    assert r.status_code == 200, r.text
+    assert coins_of(client, token)["coins"] == 1
+
+    # 9 сомонӣ → 0 танга — тангаи нав НАМЕОМАД
+    oid9, _ = make_order(uid, amount_tjs=9)
+    r = client.patch(
+        f"/api/admin/orders/{oid9}",
+        headers=auth(adm),
+        json={"status": OrderStatus.DELIVERED},
+    )
+    assert r.status_code == 200, r.text
+    assert coins_of(client, token)["coins"] == 1
+
+    db = SessionLocal()
+    try:
+        rows9 = (
+            db.query(CoinTransaction)
+            .filter(
+                CoinTransaction.order_id == oid9,
+                CoinTransaction.kind == "cashback",
+            )
+            .count()
+        )
+    finally:
+        db.close()
+    assert rows9 == 0  # барои 9 сомонӣ сатр ҳатто навишта нашудааст
 
 
 # =====================================================================

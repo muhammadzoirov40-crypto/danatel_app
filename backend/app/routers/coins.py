@@ -52,6 +52,14 @@ def _safe_int(value) -> int:
         return 0
 
 
+def _safe_float(value) -> float:
+    """Адади бехатар боқисми даҳӣ (NULL/хатогӣ → 0.0)."""
+    try:
+        return float(value or 0)
+    except (TypeError, ValueError):
+        return 0.0
+
+
 # =====================================================================
 # 📖 ТАНГАҲОИ МАН
 # =====================================================================
@@ -75,7 +83,7 @@ def my_coins(
 
     return CoinsMeOut(
         coins=_safe_int(user.coins),
-        coins_per_tjs=max(0, _safe_int(settings.COINS_PER_TJS)),
+        coins_per_tjs=max(0.0, _safe_float(settings.COINS_PER_TJS)),
         exchange_rate=max(1, _safe_int(settings.COINS_TO_TJS)),
         min_exchange=max(0, _safe_int(settings.COINS_MIN_EXCHANGE)),
         spin_cost_tjs=wheel.spin_price_tjs(),
