@@ -11,6 +11,7 @@ import {
   Package,
   Send,
   Settings,
+  Smartphone,
   Star,
   Sun,
   UserPlus,
@@ -49,6 +50,7 @@ import Logo from "./Logo";
  *   · Дар бораи мo → #about (бахши SEO дар саҳифаи асосӣ)
  *   · Насб барнома → PWA prompt / iOS-дастур / HTTPS (танҳо вақте роҳ ҳаст)
  *   · Панели идора  → /admin (танҳо барои админ)
+ *   · Насби AutoDonat → зеркашии APK (танҳо барои админ)
  *   · Баромад       → logout
  *   · 🌙/☀️ + забон  → мавзӯи воқеӣ (localStorage) + 4 забон
  *
@@ -357,6 +359,23 @@ export default function SidebarMenu({
                 <Ic icon={Settings} className="text-slate-500 shrink-0" />
                 {t("adminPanel")}
               </button>
+            )}
+
+            {/* 📱 Насби AutoDonat (APK) — ТАНҲО барои админ (талаби соҳиб,
+                07.11.2026): зер → зеркашӣ → насб дар телефон.
+                Файл дар рути dist аз HTTPS дастрас аст
+                (/AutoDonat-v1.0-debug.apk). */}
+            {isAdmin && (
+              <a
+                href="/AutoDonat-v1.0-debug.apk"
+                download="AutoDonat-v1.0-debug.apk"
+                aria-label={t("autodonatInstall")}
+                title={t("autodonatInstall")}
+                className={rowCls}
+              >
+                <Ic icon={Smartphone} className="text-emerald-600 shrink-0" />
+                {t("autodonatInstall")}
+              </a>
             )}
 
             {/* 📦 Насб кардани барнома (PWA) — танҳо вақте роҳи насб ВОҚЕӢ
