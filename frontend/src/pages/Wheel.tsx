@@ -293,34 +293,30 @@ export default function Wheel() {
   return (
     <div className="profile-soft min-h-[calc(100vh-4rem)]">
       <div className="mx-auto max-w-3xl px-4 py-8 space-y-4">
-        {/* ⬅️🪙 САТРИ БОЛО мисли HEADER: Бозгашт (чап) + Монета (рост),
-            ҳама бо iconka. ⚠️ 30.10.2026: «Таърих» аз ин сатр ХОРИҶ шуд
-            (талаби соҳиб: «na tarux»). */}
-        <div className="flex items-center justify-between gap-2">
-          <BackButton className="mb-0" />
-          {mine && (
-            <div
-              className="inline-flex h-8 items-center gap-1.5 rounded-full bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 px-3 text-xs font-extrabold text-white shadow-md shadow-indigo-500/30"
-              aria-label={`${mine.coins} танга`}
-            >
-              <GoldCoin className="w-4 h-4" />
-              <span className="tabular-nums">{mine.coins}</span>
-              <span className="font-bold opacity-85">танга</span>
-            </div>
-          )}
-        </div>
-
-        {/* ===== САРЛАВҲА ===== */}
-        <header className="flex items-start justify-between gap-3 flex-wrap">
-          <div className="min-w-0">
+        {/* ===== САРЛАВҲА: [← иконка] [ном] [монета рост] ДАР ЯК САТР
+             (талаби соҳиб 07.11.2026: «дар ҳамаи ҷо ҳамин хел бошад —
+             иконкаи назад ва ном»; «Таърих» 30.10.2026 хориҷ шуд) ===== */}
+        <header>
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <BackButton iconOnly />
             <h1 className="text-2xl md:text-3xl font-black tracking-tight inline-flex items-center gap-2">
               <Ic icon={Sparkles} size="md" className="text-brand-600" />
               {t("wheel")}
             </h1>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              {t("wheelHint")}
-            </p>
+            {mine && (
+              <div
+                className="ml-auto inline-flex h-8 items-center gap-1.5 rounded-full bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 px-3 text-xs font-extrabold text-white shadow-md shadow-indigo-500/30"
+                aria-label={`${mine.coins} танга`}
+              >
+                <GoldCoin className="w-4 h-4" />
+                <span className="tabular-nums">{mine.coins}</span>
+                <span className="font-bold opacity-85">танга</span>
+              </div>
+            )}
           </div>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            {t("wheelHint")}
+          </p>
         </header>
 
         {/* ===== 📖 ГАРДИШҲОИ МАН ===== */}

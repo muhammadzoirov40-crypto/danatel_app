@@ -199,8 +199,15 @@ export default function Profile() {
     /* 🌅 Заминаи мулоими кабуди градиентӣ (дар торик — таркиби торик) */
     <div className="profile-soft min-h-[calc(100vh-4rem)] w-full max-w-full overflow-x-clip">
       <div className="mx-auto max-w-3xl px-4 py-6 sm:py-8 grid gap-4 sm:gap-5">
-        {/* ⬅️ Тугмаи бозгашт (услуби якхела дар ҳамаи саҳифаҳо) */}
-        <BackButton />
+        {/* ===== САРЛАВҲА: [← иконка] [ном] ДАР ЯК САТР
+             (талаби соҳиб 07.11.2026: «дар ҳамаи ҷо ҳамин хел бошад —
+             иконкаи назад ва ном», мисли /orders) ===== */}
+        <div className="flex items-center gap-2.5">
+          <BackButton iconOnly />
+          <h1 className="text-2xl md:text-3xl font-black tracking-tight">
+            {t("profile")}
+          </h1>
+        </div>
         {/* ===== 1️⃣ КАРТОЧКАИ ПРОФИЛ ===== */}
         <section className="glass min-w-0 rounded-2xl p-4 sm:p-6" aria-labelledby="profile-name">
           <div className="flex items-start gap-4">

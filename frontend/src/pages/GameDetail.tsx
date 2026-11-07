@@ -151,10 +151,14 @@ export default function GameDetail() {
 
         {/* Мазмуни сарпӯш */}
         <div className="relative p-5 sm:p-8 text-white">
-          {/* ⬅️ САТРИ БОЛО (03.11.2026 — талаби соҳиб «injoro zebo kun, ikon dar injo mon»):
-              иконкаи Бозгашт (←) ДАР ЯК САТР бо бейҷи «ПУР КАРДАН» — якхела, дар болои мазмун. */}
-          <div className="mt-3 mb-3 flex items-center gap-2">
+          {/* ← САРЛАВҲА: [← иконка] [номи бозӣ] [бейҷи ПУР КАРДАН] ДАР ЯК САТР
+               (талаби соҳиб 07.11.2026: «дар ҳамаи ҷо ҳамин хел бошад —
+               иконкаи назад ва ном»; 03.11.2026 икон+бейҷ дар як сатр буд). */}
+          <div className="mt-3 mb-3 flex items-center gap-2.5 flex-wrap">
             <BackButton iconOnly />
+            <h1 className="min-w-0 flex-1 truncate text-2xl sm:text-4xl font-extrabold leading-tight drop-shadow-sm">
+              {game.name}
+            </h1>
             <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-semibold uppercase tracking-wider bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full">
               <Ic icon={Gem} size="xs" />
               {t("topup")}
@@ -165,9 +169,6 @@ export default function GameDetail() {
               <GameLogo game={game} size="hero" />
             </div>
             <div className="min-w-0">
-              <h1 className="text-2xl sm:text-4xl font-extrabold leading-tight drop-shadow-sm">
-                {game.name}
-              </h1>
               <p className="text-white/85 text-sm sm:text-base mt-1.5">
                 {t("gameSubtitle")}
               </p>

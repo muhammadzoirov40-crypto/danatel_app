@@ -55,26 +55,31 @@ export default function ReviewsPage() {
       {/* ===== Header-и саҳифа: ном + бейҷи рейтинги воқеӣ + номи ду бахш ===== */}
       <section className="text-white">
         <div className="mx-auto max-w-6xl px-4 pt-4 pb-5 sm:pt-6">
-          {/* ⬅️ Тугмаи бозгашт (услуби якхела дар ҳамаи саҳифаҳо) */}
-          <BackButton />
-          <div className="flex items-start justify-between gap-3 flex-wrap">
-            <div className="min-w-0">
-              <h1 className="text-xl sm:text-2xl font-black leading-tight">
-                {t("reviewsPageTitle")}
-              </h1>
-              <p className="mt-1 text-sm text-white/75">{t("reviewsPageSub")}</p>
-            </div>
+          {/* ===== САРЛАВҲА: [← иконка] [ном] [рейтинг рост] ДАР ЯК САТР
+               (талаби соҳиб 07.11.2026: «дар ҳамаи ҷо ҳамин хел бошад —
+               иконкаи назад ва ном», мисли /orders) ===== */}
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <BackButton iconOnly />
+            <h1 className="min-w-0 flex-1 text-xl sm:text-2xl font-black leading-tight">
+              {t("reviewsPageTitle")}
+            </h1>
 
-            {/* ⭐ Рейтинги воқеӣ — ҳатто 0 бошад ҳам нишон дода мешавад */}
-            <span className="inline-flex items-center gap-2 rounded-full bg-white/15 ring-1 ring-white/25
-                             px-3 py-1.5 text-sm font-black tabular-nums">
-              <Ic icon={Star} size="xs" className="text-amber-300 fill-current" />
-              {avg.toFixed(1)}
-              <span className="font-semibold text-white/75">
-                ({total} {t("ratedPeople")})
+            {/* ⭐ Рейтинги воқеӣ — ҳатто 0 бошад ҳам нишон дода мешавад.
+                Дар 320px: сатри алоҳида дар рост (мисли шумора дар /orders);
+                дар sm+: дар ҳамон сатр бо ном. flex-1 дар h1 → [←][ном]
+                ҲАМЕША дар як сатр мемонад. */}
+            <div className="basis-full flex justify-end sm:basis-auto sm:ml-auto">
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/15 ring-1 ring-white/25
+                               px-3 py-1.5 text-sm font-black tabular-nums">
+                <Ic icon={Star} size="xs" className="text-amber-300 fill-current" />
+                {avg.toFixed(1)}
+                <span className="font-semibold text-white/75">
+                  ({total} {t("ratedPeople")})
+                </span>
               </span>
-            </span>
+            </div>
           </div>
+          <p className="mt-1 text-sm text-white/75">{t("reviewsPageSub")}</p>
 
           {/* Номҳои ду бахш — дар header-и саҳифа */}
           <div
