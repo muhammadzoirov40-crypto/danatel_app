@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { LANGS } from "../i18n";
-import { httpsUrl } from "./FaceAuthModal";
+import { httpsUrl } from "../utils/https";
 import {
   InstallPromptEvent,
   isIos,

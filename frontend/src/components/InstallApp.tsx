@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Check, Download, Smartphone } from "lucide-react";
 import { useApp } from "../context/AppContext";
-import { httpsUrl } from "./FaceAuthModal";
+import { httpsUrl } from "../utils/https";
 
 /**
  * 📦 Блоки насби барнома (PWA) дар Профил.

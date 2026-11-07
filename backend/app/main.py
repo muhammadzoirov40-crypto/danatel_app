@@ -18,7 +18,6 @@ from app.routers import (
     admin_extra,
     auth,
     coins,
-    face,
     games,
     lookup,
     orders,
@@ -83,7 +82,6 @@ async def security_headers(request, call_next):
 
 # ========================== Роутерҳо ==========================
 app.include_router(auth.router)
-app.include_router(face.router)
 app.include_router(games.router)
 app.include_router(orders.router)
 app.include_router(webhook.router)

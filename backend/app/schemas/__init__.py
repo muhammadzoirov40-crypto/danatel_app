@@ -31,50 +31,6 @@ class ChangePasswordRequest(BaseModel):
     current_password: str = Field(min_length=1, max_length=128)
     new_password: str = Field(min_length=8, max_length=128)
 
-
-# =====================================================================
-# 😶 FACE AUTHENTICATION
-# =====================================================================
-
-
-class FaceChallengeOut(BaseModel):
-    """🎯 Чолиши лайвлес аз сервер (якдафъаӣ, 60 сония)."""
-
-    challenge_id: str
-    action: str  # blink / mouth
-    expires_in: int = 60
-
-
-class FaceRegisterRequest(BaseModel):
-    """😶 Сабти чеҳра (танҳо корбари вурудкарда + розигии возеҳ)."""
-
-    descriptor: list[float] = Field(min_length=128, max_length=128)
-    challenge_id: str = Field(min_length=8, max_length=40)
-    action_done: str = Field(min_length=4, max_length=16)
-    consent: bool = False
-    # 🔑 Тасдики парол (step-up): аз POST /confirm-password гирифта мешавад
-    pw_ticket: str | None = Field(default=None, max_length=200)
-
-
-class FacePasswordRequest(BaseModel):
-    """🔑 Тасдики парол пеш аз сабти чеҳра (дарвозаи парол)."""
-
-    password: str = Field(min_length=1, max_length=128)
-
-
-class FaceLoginRequest(BaseModel):
-    """😶 Вуруд бо чеҳра."""
-
-    descriptor: list[float] = Field(min_length=128, max_length=128)
-    challenge_id: str = Field(min_length=8, max_length=40)
-    action_done: str = Field(min_length=4, max_length=16)
-
-
-class FaceStatusOut(BaseModel):
-    registered: bool = False
-    registered_at: datetime | None = None
-
-
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
