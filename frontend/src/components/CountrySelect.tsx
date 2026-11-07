@@ -11,9 +11,10 @@ import { Ic } from "./Icons";
  *   · Рӯйхат: 49 кишвар, Тоҷикистон аввал;
  *   · 🔍 Ҷустуҷӯ дар боло: ном ба 4 забон / ISO / рақами код
  *     (мисол: «Рус», «russia», «998») → филтр фаврӣ, холӣ → «Ёфт нашод»;
- *   · 🏳️ Парчамҳои REAL (emoji): дар телефонҳои муосир парчам ҳамчун
- *     расм нишон дода мешавад; дар дастгоҳҳои бе фонти парчам ҳамон
- *     ҳарфҳои ISO (TJ/KZ) бармегарданд — ҳеҷ чиз намешканад;
+ *   · 🏳️ Парчамҳои REAL: расми PNG (`/flags/xx.png`, 49 дона) — дар
+ *     ҳамаи дастгоҳҳо (машваратии Honor/Huawei ҳам, ки emoji-и парчамро
+ *     ҳамчун ҳарф бармегаронад) ҳамчун РАСМ нишон дода мешавад;
+ *     агар расм набошад → ҳарфҳои ISO бармегаранд (ҳеҷ чиз намешканад);
  *   · 📐 Ҳангоми кушодан ҷой дар ҷараён (margin) ишғол мешавад →
  *     тугмаи «Вуруд» ҲАМЕША дида мешавад, рӯйхат бар он намепӯшад;
  *   · 📱 КОМПАКТ (талаби соҳиб 07.11.2026: «камтар майдатар кун, ки дар
@@ -151,13 +152,26 @@ export default function CountrySelect({ value, onChange }: Props) {
       >
         <span
           aria-hidden
-          className="grid h-[22px] min-w-[26px] place-items-center rounded-md px-1
-                     text-[15px] leading-none
-                     bg-gradient-to-br from-blue-50 to-indigo-100 text-blue-700
+          className="grid h-[22px] min-w-[28px] place-items-center overflow-hidden rounded-md px-1
+                     bg-gradient-to-br from-blue-50 to-indigo-100
                      ring-1 ring-blue-200/70
-                     dark:from-white/10 dark:to-white/5 dark:text-blue-300 dark:ring-white/15"
+                     dark:from-white/10 dark:to-white/5 dark:ring-white/15"
         >
-          {selected.flag}
+          <img
+            src={`/flags/${selected.code.toLowerCase()}.png`}
+            alt=""
+            width={20}
+            height={14}
+            className="h-[14px] w-[20px] rounded-[2px] object-contain"
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+              const fb = e.currentTarget.nextElementSibling as HTMLElement | null;
+              if (fb) fb.style.display = "";
+            }}
+          />
+          <span className="hidden text-[10px] font-black tracking-wider text-blue-700 dark:text-blue-300">
+            {selected.code}
+          </span>
         </span>
         <span className="tabular-nums">+{selected.dial}</span>
         <Ic
@@ -259,13 +273,31 @@ export default function CountrySelect({ value, onChange }: Props) {
                   >
                     <span
                       aria-hidden
-                      className={`grid h-[20px] min-w-[26px] shrink-0 place-items-center
-                                  rounded-md px-1 text-[15px] leading-none
+                      className={`grid h-[20px] min-w-[28px] shrink-0 place-items-center overflow-hidden
+                                  rounded-md px-1
                                   ${active
-                                    ? "bg-brand-600 text-white"
-                                    : "bg-gradient-to-br from-blue-50 to-indigo-100 text-blue-700 ring-1 ring-blue-200/70 dark:from-white/10 dark:to-white/5 dark:text-blue-300 dark:ring-white/15"}`}
+                                    ? "bg-brand-600"
+                                    : "bg-gradient-to-br from-blue-50 to-indigo-100 ring-1 ring-blue-200/70 dark:from-white/10 dark:to-white/5 dark:ring-white/15"}`}
                     >
-                      {c.flag}
+                      <img
+                        src={`/flags/${c.code.toLowerCase()}.png`}
+                        alt=""
+                        width={19}
+                        height={13}
+                        className="h-[13px] w-[19px] rounded-[2px] object-contain"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                          const fb = e.currentTarget.nextElementSibling as HTMLElement | null;
+                          if (fb) fb.style.display = "";
+                        }}
+                      />
+                      <span
+                        className={`hidden text-[10px] font-black tracking-wider ${
+                          active ? "text-white" : "text-blue-700 dark:text-blue-300"
+                        }`}
+                      >
+                        {c.code}
+                      </span>
                     </span>
                     <span
                       className={`flex-1 min-w-0 truncate font-semibold
