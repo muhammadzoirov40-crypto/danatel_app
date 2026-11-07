@@ -7,14 +7,18 @@ import { Ic } from "./Icons";
 /**
  * 🌍 Интихоби коди кишвар барои шакли телефон (Вуруд / Қайд).
  *
- *   · Тугмаи фишурда: чипи ISO-код + «+992» + стрелка (ҳамон услуби `.input`);
+ *   · Тугмаи фишурда: чипи ПАРЧАМ (real flag) + «+992» + стрелка;
  *   · Рӯйхат: 49 кишвар, Тоҷикистон аввал;
  *   · 🔍 Ҷустуҷӯ дар боло: ном ба 4 забон / ISO / рақами код
  *     (мисол: «Рус», «russia», «998») → филтр фаврӣ, холӣ → «Ёфт нашод»;
- *   · ⚠️ Парчами emoji НЕСТ: дар баъзе телефонҳо (Honor/Huawei) emoji-и
- *     парчам ҳамчун «TJ» букваҳо бармегардад → чипи ISO ҳамеша кор мекунад;
+ *   · 🏳️ Парчамҳои REAL (emoji): дар телефонҳои муосир парчам ҳамчун
+ *     расм нишон дода мешавад; дар дастгоҳҳои бе фонти парчам ҳамон
+ *     ҳарфҳои ISO (TJ/KZ) бармегарданд — ҳеҷ чиз намешканад;
  *   · 📐 Ҳангоми кушодан ҷой дар ҷараён (margin) ишғол мешавад →
  *     тугмаи «Вуруд» ҲАМЕША дида мешавад, рӯйхат бар он намепӯшад;
+ *   · 📱 КОМПАКТ (талаби соҳиб 07.11.2026: «камтар майдатар кун, ки дар
+ *     экран ҷо шавад»): сатрҳо 32px, ҷустуҷӯ пасттар, рӯйхат ≤152px →
+ *     панели пурра дар экрани 320×700 ҷо мешавад;
  *   · Фокус ҳангоми кушодан сӯи ҷустуҷӯ; ↑/↓ ба рӯйхат мебарад,
  *     Enter (аз ҷустуҷӯ) → аввали натиҷа; Escape/клик берун → пӯшад;
  *   · aria: input бо label + listbox/option; дар 320px кор мекунад.
@@ -89,7 +93,7 @@ export default function CountrySelect({ value, onChange }: Props) {
       return;
     }
     const h = panelRef.current?.offsetHeight ?? 0;
-    setPad(h ? h + 12 : 0); // 6px аз тугма + 6px то тугма
+    setPad(h ? h + 8 : 0); // 8px ғафси болои панел (top-[calc(100%+8px)])
   }, [open, q]);
 
   /** ↑/↓ аз ҷустуҷӯ ба рӯйхат ва байни бандҳо; Enter (аз ҷустуҷӯ) → аввалӣ */
@@ -147,13 +151,13 @@ export default function CountrySelect({ value, onChange }: Props) {
       >
         <span
           aria-hidden
-          className="grid h-[22px] min-w-[30px] place-items-center rounded-md px-1
-                     text-[10px] font-black tracking-wider
+          className="grid h-[22px] min-w-[26px] place-items-center rounded-md px-1
+                     text-[15px] leading-none
                      bg-gradient-to-br from-blue-50 to-indigo-100 text-blue-700
                      ring-1 ring-blue-200/70
                      dark:from-white/10 dark:to-white/5 dark:text-blue-300 dark:ring-white/15"
         >
-          {selected.code}
+          {selected.flag}
         </span>
         <span className="tabular-nums">+{selected.dial}</span>
         <Ic
@@ -177,7 +181,7 @@ export default function CountrySelect({ value, onChange }: Props) {
                      dark:shadow-[0_14px_40px_-10px_rgba(0,0,0,0.55)]"
         >
           {/* 🔍 Ҷустуҷӯ — қуттии дохилии pill (ҳамеша дар боло) */}
-          <div className="relative mb-1.5">
+          <div className="relative mb-1">
             <Ic
               icon={Search}
               size="xs"
@@ -194,7 +198,7 @@ export default function CountrySelect({ value, onChange }: Props) {
               spellCheck={false}
               enterKeyHint="search"
               className="w-full rounded-xl border border-transparent bg-slate-100/80
-                         py-2.5 pl-9 pr-9 text-sm text-slate-700 outline-none transition
+                         py-2 pl-9 pr-9 text-[13px] text-slate-700 outline-none transition
                          placeholder:text-slate-400
                          focus:border-brand-400 focus:bg-white focus:ring-2 focus:ring-brand-100
                          dark:bg-white/5 dark:text-[#e3eaff] dark:placeholder:text-slate-500
@@ -209,7 +213,7 @@ export default function CountrySelect({ value, onChange }: Props) {
                   setQ("");
                   searchRef.current?.focus();
                 }}
-                className="absolute right-1.5 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center
+                className="absolute right-1.5 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center
                            rounded-lg text-slate-400 transition
                            hover:bg-white hover:text-slate-600 active:scale-95
                            dark:hover:bg-white/10"
@@ -224,10 +228,10 @@ export default function CountrySelect({ value, onChange }: Props) {
             ref={listRef}
             role="listbox"
             aria-label={t("ccLabel")}
-            className="max-h-[212px] overflow-y-auto overscroll-contain px-0.5 pb-0.5"
+            className="max-h-[152px] overflow-y-auto overscroll-contain px-0.5 pb-0.5"
           >
             {filtered.length === 0 ? (
-              <p className="flex flex-col items-center gap-2 px-3 py-7 text-center text-xs
+              <p className="flex flex-col items-center gap-2 px-3 py-5 text-center text-xs
                             text-slate-500 dark:text-slate-400">
                 <Ic icon={Search} size="sm" className="text-slate-300 dark:text-slate-600" />
                 {t("ccEmpty")}
@@ -245,8 +249,8 @@ export default function CountrySelect({ value, onChange }: Props) {
                       onChange(c);
                       setOpen(false);
                     }}
-                    className={`w-full flex items-center gap-2.5 rounded-xl px-2.5 py-2.5
-                                text-left text-sm transition
+                    className={`w-full flex items-center gap-2 rounded-xl px-2 py-1.5
+                                text-left text-[13px] transition
                                 focus-visible:outline-none focus-visible:ring-2
                                 focus-visible:ring-brand-400
                                 ${active
@@ -255,13 +259,13 @@ export default function CountrySelect({ value, onChange }: Props) {
                   >
                     <span
                       aria-hidden
-                      className={`grid h-[22px] min-w-[30px] shrink-0 place-items-center
-                                  rounded-md px-1 text-[10px] font-black tracking-wider
+                      className={`grid h-[20px] min-w-[26px] shrink-0 place-items-center
+                                  rounded-md px-1 text-[15px] leading-none
                                   ${active
                                     ? "bg-brand-600 text-white"
                                     : "bg-gradient-to-br from-blue-50 to-indigo-100 text-blue-700 ring-1 ring-blue-200/70 dark:from-white/10 dark:to-white/5 dark:text-blue-300 dark:ring-white/15"}`}
                     >
-                      {c.code}
+                      {c.flag}
                     </span>
                     <span
                       className={`flex-1 min-w-0 truncate font-semibold
