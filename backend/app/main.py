@@ -16,6 +16,7 @@ from app.models import User
 from app.routers import (
     admin,
     admin_extra,
+    apk,
     auth,
     coins,
     games,
@@ -88,6 +89,7 @@ app.include_router(webhook.router)
 app.include_router(lookup.router)
 app.include_router(admin.router)
 app.include_router(admin_extra.router)
+app.include_router(apk.router)
 app.include_router(pricing.router)
 app.include_router(reviews.router)
 app.include_router(coins.router)
@@ -191,6 +193,15 @@ async def spa_fallback(full_path: str):
         from fastapi import HTTPException
 
         raise HTTPException(status_code=404, detail="API роут ёфт нашуд")
+
+    # 🔐 APK дар дохил токени webhook-ро дорад → танҳо /api/apk (админ).
+    #    Ҳифзи дуҷониба: nginx аллакай статикӣ =403 медиҳад.
+    if os.path.basename(full_path) == "AutoDonat-v1.0-debug.apk":
+        from fastapi import HTTPException
+
+        raise HTTPException(
+            status_code=403, detail="Боргирӣ танҳо аз менюи админ (рӯи /api/apk)"
+        )
 
     if not _dist:
         from fastapi import HTTPException

@@ -77,6 +77,9 @@ export default function SidebarMenu({
   const [installed, setInstalled] = useState<boolean>(() => isStandalone());
   const [installBusy, setInstallBusy] = useState(false);
   const [iosHint, setIosHint] = useState(false);
+  // 📱 Боргирии APK — тавассути /api/apk (токени админ дар header);
+  //    файли статикӣ дар nginx баста аст (сирри webhook дар дохили APK).
+  const [apkBusy, setApkBusy] = useState(false);
 
   useEffect(() => {
     const onPrompt = (e: Event) => {
@@ -122,6 +125,34 @@ export default function SidebarMenu({
       /* браузер рад кард → ҳолати пешина мемонад */
     } finally {
       setInstallBusy(false);
+    }
+  };
+
+  /** 📱 «Насби AutoDonat» — ба ҷои пайванди статикӣ: дархост ба /api/apk
+      бо токени админ → blob → зеркашӣ. Хато → огоҳиномаи возеҳ (таъмини
+      он ки сирри webhook танҳо аз ҳисоби админ баромада натавонад). */
+  const onApkDownload = async () => {
+    if (apkBusy) return;
+    setApkBusy(true);
+    try {
+      const token = localStorage.getItem("danatel_token") || "";
+      const res = await fetch("/api/apk", {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) throw new Error(String(res.status));
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "AutoDonat-v1.0-debug.apk";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch {
+      window.alert(t("autodonatError"));
+    } finally {
+      setApkBusy(false);
     }
   };
 
@@ -362,20 +393,20 @@ export default function SidebarMenu({
             )}
 
             {/* 📱 Насби AutoDonat (APK) — ТАНҲО барои админ (талаби соҳиб,
-                07.11.2026): зер → зеркашӣ → насб дар телефон.
-                Файл дар рути dist аз HTTPS дастрас аст
-                (/AutoDonat-v1.0-debug.apk). */}
+                07.11.2026; 08.11.2026: боргирӣ тавассути /api/apk бо токени
+                админ — файл дар nginx баста, зеро APK сирри webhook дорад). */}
             {isAdmin && (
-              <a
-                href="/AutoDonat-v1.0-debug.apk"
-                download="AutoDonat-v1.0-debug.apk"
+              <button
+                type="button"
+                onClick={() => void onApkDownload()}
+                disabled={apkBusy}
                 aria-label={t("autodonatInstall")}
                 title={t("autodonatInstall")}
-                className={rowCls}
+                className={`${rowCls} disabled:cursor-wait disabled:opacity-60`}
               >
                 <Ic icon={Smartphone} className="text-emerald-600 shrink-0" />
-                {t("autodonatInstall")}
-              </a>
+                {apkBusy ? "⏳ …" : t("autodonatInstall")}
+              </button>
             )}
 
             {/* 📦 Насб кардани барнома (PWA) — танҳо вақте роҳи насб ВОҚЕӢ
