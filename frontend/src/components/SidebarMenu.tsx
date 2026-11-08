@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Disc3,
   Download,
+  History,
   Info,
   LayoutGrid,
   LogIn,
@@ -407,6 +408,23 @@ export default function SidebarMenu({
                 <Ic icon={Smartphone} className="text-emerald-600 shrink-0" />
                 {apkBusy ? "⏳ …" : t("autodonatInstall")}
               </button>
+            )}
+
+            {/* 📜 Таърихи AutoDonat — саҳифаи сервер /autodonat/history:
+                ҳамаи хабарномаҳо бо нарх/корта барои проверка, чизе
+                пинҳон намешавад (талаби соҳиб, 08.11.2026). */}
+            {isAdmin && (
+              <a
+                href="/autodonat/history"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={t("autodonatHistory")}
+                title={t("autodonatHistory")}
+                className={rowCls}
+              >
+                <Ic icon={History} className="text-amber-600 shrink-0" />
+                {t("autodonatHistory")}
+              </a>
             )}
 
             {/* 📦 Насб кардани барнома (PWA) — танҳо вақте роҳи насб ВОҚЕӢ
