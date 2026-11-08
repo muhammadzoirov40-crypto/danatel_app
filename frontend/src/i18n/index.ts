@@ -152,9 +152,9 @@ const tj: Dict = {
   apkSessionExpired: "Сессия қатъ шуд — лутфан аз нав ворид шавед",
   apkNoPerm: "Иҷозат нест — танҳо админ метавонад боргирӣ кунад",
   apkSavedHelp:
-    "✅ Файл зеркашӣ шуд: AutoDonat-v1.6.apk (1.3 МБ)\n\n" +
+    "✅ Файл зеркашӣ шуд: AutoDonat-v1.7.apk (1.3 МБ)\n\n" +
     "1) Аз Notifications ё Downloads кушода → «Насб».\n" +
-    "2) ТАНҲО файли AutoDonat-v1.6.apk-ро кушоед; файли кӯҳнаи " +
+    "2) ТАНҲО файли AutoDonat-v1.7.apk-ро кушоед; файли кӯҳнаи " +
     "AutoDonat-v1.0-debug НАКУШОЕД — вай насб намешавад.\n" +
     "3) Агар Google «Насби манъ аст» гуфт → Chrome → ⋮ → Таъминот → " +
     "«Насби аз ин манбаъҳо» → иҷозат диҳед → баргардед → «Насб».\n" +
@@ -652,9 +652,9 @@ const ru: Dict = {
   apkSessionExpired: "Сессия истекла — войдите заново",
   apkNoPerm: "Нет доступа — скачивание только для админа",
   apkSavedHelp:
-    "✅ Файл скачан: AutoDonat-v1.6.apk (1.3 МБ)\n\n" +
+    "✅ Файл скачан: AutoDonat-v1.7.apk (1.3 МБ)\n\n" +
     "1) Откройте из Уведомлений или Загрузок → «Установить».\n" +
-    "2) Открывайте ТОЛЬКО AutoDonat-v1.6.apk; старый файл " +
+    "2) Открывайте ТОЛЬКО AutoDonat-v1.7.apk; старый файл " +
     "AutoDonat-v1.0-debug НЕ открывайте — он не установится.\n" +
     "3) Если Google скажет «Установка запрещена» → Chrome → ⋮ → " +
     "Настройки → Установка из неизвестных источников → разрешить → " +
@@ -1154,9 +1154,9 @@ const en: Dict = {
   apkSessionExpired: "Session expired — please log in again",
   apkNoPerm: "No access — download is admin-only",
   apkSavedHelp:
-    "✅ File downloaded: AutoDonat-v1.6.apk (1.3 MB)\n\n" +
+    "✅ File downloaded: AutoDonat-v1.7.apk (1.3 MB)\n\n" +
     "1) Open it from Notifications or Downloads → “Install”.\n" +
-    "2) Open ONLY AutoDonat-v1.6.apk; do NOT open the old " +
+    "2) Open ONLY AutoDonat-v1.7.apk; do NOT open the old " +
     "AutoDonat-v1.0-debug file — it will not install.\n" +
     "3) If Google says “Install blocked” → Chrome → ⋮ → Settings → " +
     "Install unknown apps → allow → go back → “Install”.\n" +
@@ -1655,9 +1655,9 @@ const uz: Dict = {
   apkSessionExpired: "Sessiya tugadi — qaytadan kiring",
   apkNoPerm: "Ruxsat yo'q — faqat admin yuklab oladi",
   apkSavedHelp:
-    "✅ Fayl yuklab olindi: AutoDonat-v1.6.apk (1.3 MB)\n\n" +
+    "✅ Fayl yuklab olindi: AutoDonat-v1.7.apk (1.3 MB)\n\n" +
     "1) Bildirishnomalar yoki Yuklamalardan oching → «O'rnatish».\n" +
-    "2) Faqat AutoDonat-v1.6.apk-ni oching; eski AutoDonat-v1.0-debug " +
+    "2) Faqat AutoDonat-v1.7.apk-ni oching; eski AutoDonat-v1.0-debug " +
     "faylini OCHMANG — u o'rnatilmaydi.\n" +
     "3) Google «O'rnatish taqiqlangan» desa → Chrome → ⋮ → Sozlamalar → " +
     "Noma'lum manbalardan o'rnatish → ruxsat → qayting → «O'rnatish».\n" +
