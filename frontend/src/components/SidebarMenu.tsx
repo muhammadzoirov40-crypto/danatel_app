@@ -131,7 +131,15 @@ export default function SidebarMenu({
 
   /** 📱 «Насби AutoDonat» — ба ҷои пайванди статикӣ: дархост ба /api/apk
       бо токени админ → blob → зеркашӣ. Хато → огоҳиномаи возеҳ (таъмини
-      он ки сирри webhook танҳо аз ҳисоби админ баромада натавонад). */
+      он ки сирри webhook танҳо аз ҳисоби админ баромада натавонад).
+
+      08.11.2026 «насби барнома кор намекунад» (соҳиб): сабаб дар лог —
+      дар Downloads-и ӯ файли КӯҳНА бо ҳамон ном (AutoDonat-v1.0-debug,
+      версияҳои 07.11) мемонад → ӯ файли кӯҳна/нопурра-ро мекушод →
+      «насб намешавад». Ислоҳ: (1) номи файл бо версия = AutoDonat-v1.5.apk;
+      (2) пас аз зеркашӣ дар Android роҳнамои возеҳ (Notifications → танҳо
+      v1.5 → иҷозати Chrome → агар нопурра = аз нав); (3) 401/403 → паёми
+      мушаххас ба ҷои «Хато»-и умумӣ. */
   const onApkDownload = async () => {
     if (apkBusy) return;
     setApkBusy(true);
@@ -140,16 +148,32 @@ export default function SidebarMenu({
       const res = await fetch("/api/apk", {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
+      if (res.status === 401) {
+        window.alert(t("apkSessionExpired"));
+        go("/login");
+        return;
+      }
+      if (res.status === 403) {
+        window.alert(t("apkNoPerm"));
+        return;
+      }
       if (!res.ok) throw new Error(String(res.status));
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "AutoDonat-v1.0-debug.apk";
+      // ⚠️ БО ВЕРСИЯ — ҳаминро ҳангоми баромади версияи нав иваз кунед
+      // (бо build.gradle.kts versionName якхела бошад).
+      a.download = "AutoDonat-v1.5.apk";
       document.body.appendChild(a);
       a.click();
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 60000);
+      // Android: роҳнамо — чаро насб «кор намекунад» = файл-и кӯҳна/нопурра
+      // кушода шуд ё иҷозати Chrome барои насб дода нашудааст.
+      if (/Android/i.test(navigator.userAgent)) {
+        window.alert(t("apkSavedHelp"));
+      }
     } catch {
       window.alert(t("autodonatError"));
     } finally {
