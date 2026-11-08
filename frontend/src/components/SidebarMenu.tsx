@@ -136,7 +136,7 @@ export default function SidebarMenu({
       08.11.2026 «насби барнома кор намекунад» (соҳиб): сабаб дар лог —
       дар Downloads-и ӯ файли КӯҳНА бо ҳамон ном (AutoDonat-v1.0-debug,
       версияҳои 07.11) мемонад → ӯ файли кӯҳна/нопурра-ро мекушод →
-      «насб намешавад». Ислоҳ: (1) номи файл бо версия = AutoDonat-v1.7.apk;
+      «насб намешавад». Ислоҳ: (1) номи файл бо версия = AutoDonat-v1.8.apk;
       (2) пас аз зеркашӣ дар Android роҳнамои возеҳ (Notifications → танҳо
       v1.5 → иҷозати Chrome → агар нопурра = аз нав); (3) 401/403 → паёми
       мушаххас ба ҷои «Хато»-и умумӣ. */
@@ -164,7 +164,7 @@ export default function SidebarMenu({
       a.href = url;
       // ⚠️ БО ВЕРСИЯ — ҳаминро ҳангоми баромади версияи нав иваз кунед
       // (бо build.gradle.kts versionName якхела бошад).
-      a.download = "AutoDonat-v1.7.apk";
+      a.download = "AutoDonat-v1.8.apk";
       document.body.appendChild(a);
       a.click();
       a.remove();
