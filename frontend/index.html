@@ -64,6 +64,36 @@
       }
       html.dark .boot-fallback { color: #aab6d8; }
     </style>
+    <!-- 🔄 Худкор аз нав кушодан (ислоҳи «экран мемонад» — талаби соҳиб
+         09.11.2026): агар JS дар роҳи суст БУРИДА шуда бошад (пурсиш овезон
+         монда, индиcатор то20s мемонад) → ЯК бор бозхонӣ ба таври худкор.
+         sessionStorage = танҳо1 маротиба дар як таб (такрори беҳуда манъ);
+         ҳангоми муваффақият (React .boot-ро иваз кард) → пардохт пок
+         мешавад → дар оянда ҳам имконияти такрор ҳаст. -->
+    <script>
+      (function () {
+        try {
+          var KEY = "boot_retry_done";
+          var mounted = function () { return !document.querySelector(".boot"); };
+          var iv = setInterval(function () {
+            if (mounted()) {
+              clearInterval(iv);
+              try { sessionStorage.removeItem(KEY); } catch (e) {}
+            }
+          }, 1000);
+          setTimeout(function () {
+            if (!mounted()) {
+              var had = false;
+              try { had = sessionStorage.getItem(KEY) === "1"; } catch (e) {}
+              if (!had) {
+                try { sessionStorage.setItem(KEY, "1"); } catch (e) {}
+                location.reload();
+              }
+            }
+          }, 20000);
+        } catch (e) { /* беҳатар */ }
+      })();
+    </script>
     <script>
       // 🌙 Мавзӯи нигоҳдоришуда → ПЕШ аз аввали ранг (бе "флеш"-и сафед)
       //    ?theme=dark | light — пайванди мустақим (масалан барои санҷиш)
