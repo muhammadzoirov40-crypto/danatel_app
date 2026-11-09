@@ -43,7 +43,11 @@ function RefCapture() {
     const q = new URLSearchParams(search);
     const code = (q.get("ref") || "").trim().slice(0, 16);
     if (!code) return;
-    localStorage.setItem("danatel_ref", code);
+    try {
+      localStorage.setItem("danatel_ref", code);
+    } catch {
+      /* localStorage маҳдуд — коди даъват сабт нашуд */
+    }
     q.delete("ref");
     const rest = q.toString();
     window.history.replaceState(

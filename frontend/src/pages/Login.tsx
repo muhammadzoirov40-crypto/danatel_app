@@ -25,9 +25,13 @@ export default function Login() {
   //    Дӯст линкро дар саҳифаи асосӣ кушод → RefCapture онро дар
   //    localStorage нигоҳ дошт → дар ин ҷо хонда мешавад.
   const [searchParams] = useSearchParams();
-  const refCode = (
-    searchParams.get("ref") || localStorage.getItem("danatel_ref") || ""
-  )
+  let savedRef: string | null = null;
+  try {
+    savedRef = localStorage.getItem("danatel_ref");
+  } catch {
+    /* localStorage маҳдуд */
+  }
+  const refCode = (searchParams.get("ref") || savedRef || "")
     .trim()
     .slice(0, 16);
 

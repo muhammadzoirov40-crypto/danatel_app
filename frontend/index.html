@@ -63,33 +63,73 @@
         max-width: 260px;
       }
       html.dark .boot-fallback { color: #aab6d8; }
+      .boot-status {
+        margin-top: 14px;
+        text-align: center;
+        font: 600 12.5px/1.45 system-ui, sans-serif;
+        color: #4a5578;
+        max-width: 250px;
+      }
+      html.dark .boot-status { color: #aab6d8; }
     </style>
-    <!-- 🔄 Худкор аз нав кушодан (ислоҳи «экран мемонад» — талаби соҳиб
-         09.11.2026): агар JS дар роҳи суст БУРИДА шуда бошад (пурсиш овезон
-         монда, индиcатор то20s мемонад) → ЯК бор бозхонӣ ба таври худкор.
-         sessionStorage = танҳо1 маротиба дар як таб (такрори беҳуда манъ);
-         ҳангоми муваффақият (React .boot-ро иваз кард) → пардохт пок
-         мешавад → дар оянда ҳам имконияти такрор ҳаст. -->
+    <!-- 🔄 Худкор бозхонӣ v2 (ислоҳи «экран мемонад» — талаби соҳиб
+         09.11.2026, мӯҳлати дуюм16:35): то3 маротиба, бо нишондоди
+         вазъият дар экран. Ҳар бор:20s интизор → агар React ҳанӯз
+         наномонда → бозхонӣ. sessionStorage = шумораи такрорҳо
+         (такрори беҳуда манъ); ҳангоми муваффақият пардохт пок
+         мешавад → дар оянда ҳам имконияти такрор мемонад. Агар
+         шумора сабт нашавад (маҳдудияти sessionStorage) → бозхонӣ
+         НАМЕКУНАД (ҳалқаи беҳуда манъ) → паёми охирин нишон дода
+         мешавад. -->
     <script>
       (function () {
         try {
-          var KEY = "boot_retry_done";
-          var mounted = function () { return !document.querySelector(".boot"); };
+          var KEY = "boot_retry_n";
+          var MAX = 3;
+          var n = 0;
+          try {
+            n = parseInt(sessionStorage.getItem(KEY) || "0", 10) || 0;
+          } catch (e) {}
+          if (n < 0 || n > MAX) n = 0;
+          var mounted = function () {
+            return !document.querySelector(".boot");
+          };
+          var say = function (text) {
+            var boot = document.querySelector(".boot");
+            if (!boot) return;
+            var s = document.getElementById("boot-status");
+            if (!s) {
+              s = document.createElement("p");
+              s.id = "boot-status";
+              s.className = "boot-status";
+              s.setAttribute("role", "status");
+              boot.appendChild(s);
+            }
+            s.textContent = text;
+          };
+          var said = false;
           var iv = setInterval(function () {
             if (mounted()) {
               clearInterval(iv);
               try { sessionStorage.removeItem(KEY); } catch (e) {}
+              return;
+            }
+            // DOM тайёр аст (1s) → вазъиятро нишон диҳед, агар такрор рафта бошад
+            if (n > 0 && !said) {
+              said = true;
+              say("Такрори боргирӣ " + n + " аз " + MAX + "…");
             }
           }, 1000);
           setTimeout(function () {
-            if (!mounted()) {
-              var had = false;
-              try { had = sessionStorage.getItem(KEY) === "1"; } catch (e) {}
-              if (!had) {
-                try { sessionStorage.setItem(KEY, "1"); } catch (e) {}
-                location.reload();
-              }
+            if (mounted()) return;
+            if (n >= MAX) {
+              say("Боргирӣ қатъ шуд. Лутфан саҳифаро аз нав кунед (F5).");
+              return;
             }
+            var ok = true;
+            try { sessionStorage.setItem(KEY, String(n + 1)); } catch (e) { ok = false; }
+            if (ok) location.reload();
+            else say("Боргирӣ қатъ шуд. Лутфан саҳифаро аз нав кунед (F5).");
           }, 20000);
         } catch (e) { /* беҳатар */ }
       })();

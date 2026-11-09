@@ -59,14 +59,26 @@ const LANG_KEY = "danatel_lang";
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>(() => {
-    const saved = localStorage.getItem(LANG_KEY) as Lang | null;
-    return saved && ["tj", "ru", "en", "uz"].includes(saved) ? saved : "tj";
+    // localStorage маҳдуд буда метавонад → бояд барнома ҲАМОН ВАҚТ кушода шавад
+    let saved: string | null = null;
+    try {
+      saved = localStorage.getItem(LANG_KEY);
+    } catch {
+      /* маҳдуд — бо забони пешфарз */
+    }
+    return saved && ["tj", "ru", "en", "uz"].includes(saved)
+      ? (saved as Lang)
+      : "tj";
   });
 
   const [user, setUser] = useState<User | null>(null);
-  const [isAdmin, setIsAdmin] = useState<boolean>(
-    () => !!localStorage.getItem("danatel_token"),
-  );
+  const [isAdmin, setIsAdmin] = useState<boolean>(() => {
+    try {
+      return !!localStorage.getItem("danatel_token");
+    } catch {
+      return false;
+    }
+  });
   const [balance, setBalance] = useState<number>(0);
   const [search, setSearch] = useState<string>("");
   /** ⏳ Оё боргирии аввалияи сессия анҷом ёфт? (танҳо як маротиба) */
@@ -95,7 +107,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const setLang = useCallback((l: Lang) => {
     setLangState(l);
-    localStorage.setItem(LANG_KEY, l);
+    try {
+      localStorage.setItem(LANG_KEY, l);
+    } catch {
+      /* localStorage маҳдуд — забон дар ҳамин сессия мемонад */
+    }
     document.documentElement.lang = l;
   }, []);
 

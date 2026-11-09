@@ -32,12 +32,43 @@ import type {
 
 const BASE = "/api";
 
-let token: string | null = localStorage.getItem("danatel_token");
+/**
+ * localStorage-и бехатар (ислоҳи «экран мемонад» — талаби соҳиб09.11.2026):
+ * агар браузер дастрасиро маҳдуд карда бошад (iframe, сиёсати cookie,
+ * профили махсус) → `localStorage.getItem` дар сатҳи МОДУЛ хато медод →
+ * тамоми бастаи JS намебаромад → React ҳеҷ гоҳ намерасид → индиcатор
+ * барои ҳамеша мемонд. Акнун ҳама хониш/навишт бехатар аст.
+ */
+function safeGet(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function safeSet(key: string, value: string): void {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    /* маҳдуд — беҳуда нест */
+  }
+}
+
+function safeRemove(key: string): void {
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    /* маҳдуд */
+  }
+}
+
+let token: string | null = safeGet("danatel_token");
 
 export function setToken(v: string | null) {
   token = v;
-  if (v) localStorage.setItem("danatel_token", v);
-  else localStorage.removeItem("danatel_token");
+  if (v) safeSet("danatel_token", v);
+  else safeRemove("danatel_token");
 }
 
 export function getToken(): string | null {

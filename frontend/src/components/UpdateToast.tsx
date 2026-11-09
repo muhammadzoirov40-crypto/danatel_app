@@ -21,9 +21,11 @@ const POLL_MS = 60_000;
 const RETRY_MS = 4_000;
 const DELAY_MS = 2_500;
 
-/** Номи файли JS-и асосӣ аз HTML (масалан `index-C9MDDFs-.js`). */
+/** Номи файли JS-и асосӣ аз HTML (масалан `index-C9MDDFs-.js`) ё бо
+ *  суолиш (`index-C9MDDFs-.js?b=…`) — суолиш ҳам муқоиса мешавад →
+ *  ҳар борборсозӣ URL-и нав = такрори худкори саҳифа (09.11.2026). */
 function pickJsAsset(html: string): string | null {
-  const m = html.match(/assets\/(index-[^"'?]+\.js)/);
+  const m = html.match(/assets\/(index-[^"'?]+\.js(?:\?[^"']*)?)/);
   return m ? m[1] : null;
 }
 
