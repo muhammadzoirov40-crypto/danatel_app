@@ -5,9 +5,7 @@
   • хондани матн: маблағ (TJS/сомонӣ, нуқта ё вергул) + рақам
     («+992…», «992 900…», «900 12 34 56», бе «+»);
   • рақами ҳисоби DC (16 рақам) ҳамчун телефон ҚАБУЛ НАМЕШАВАД;
-  • чек → ХУДКОР қабул (+25 бе пуш, талаби соҳиб: «аз Telegram қабул
-    намекунам»); ҳолатҳои гузарандаи pending/awaiting → пуш қабул мекунад
-    (+25/+40 — фолбек);
+  • қабули pending (бо чек) ва awaiting (бе чек) → баланс +25/+40;
   • такрории пуш → «already», баланс ЯК бор зиёд мешавад;
   • бе мувофиқат → «not_found» + огоҳинома ба админ (мониторинг).
 """
@@ -84,21 +82,6 @@ def push(client: TestClient, title: str, body: str):
     )
 
 
-def set_req_status(request_id: int, status: str) -> None:
-    """Ҳолати дархост танҳо аз DB (ҳолати гузаранда барои санҷиши фолбек)."""
-    from app.database import SessionLocal
-    from app.models import BalanceRequest
-
-    db = SessionLocal()
-    try:
-        row = db.get(BalanceRequest, request_id)
-        assert row is not None
-        row.status = status
-        db.commit()
-    finally:
-        db.close()
-
-
 @pytest.fixture(autouse=True)
 def dc_push_env(monkeypatch):
     """Токен фаол + мониторинги огоҳиномаҳо ба админ (бе Telegram-и воқеӣ)."""
@@ -172,36 +155,19 @@ def test_account_number_is_not_a_phone(client: TestClient, dc_push_env):
 # =====================================================================
 # ✅ ҚАБУЛ — БАЛАНС ЗИЁД МЕШАВАД
 # =====================================================================
-def test_receipt_auto_approves_then_push_already(client: TestClient):
-    """Чек → ХУДКОР қабул (бе админ); пуш такрорӣ → «already», баланс ЯК бор."""
+def test_approves_pending_with_receipt(client: TestClient):
+    """Дархост бо чек (pending) → қабул + баланс +25."""
     token, phone = register(client)
     req = prepare(client, token, "25")
     send_receipt(client, token, req["id"])
-
-    # чек худкор қабул кард → баланс +25 БЕ пуш ва БЕ тасдиқи админ
-    assert balance_of(client, token) == 25.0
-    mine = client.get("/api/balance-requests/mine", headers=auth(token))
-    assert mine.json()[0]["status"] == "approved"
-
-    r = push(client, "Получено", f"25.00 TJS от +{phone}")
-    assert r.status_code == 200, r.text
-    assert r.json()["status"] == "already"
-    assert r.json()["request_id"] == req["id"]
-    assert balance_of(client, token) == 25.0  # дубора намеафзад
-
-
-def test_push_approves_pending_state(client: TestClient):
-    """Ҳолати pending (гузарандаи чек) → пуш қабул мекунад (фолбек)."""
-    token, phone = register(client)
-    req = prepare(client, token, "25")
-    set_req_status(req["id"], "pending")
+    before = balance_of(client, token)
 
     r = push(client, "Получено", f"25.00 TJS от +{phone}")
     assert r.status_code == 200, r.text
     body = r.json()
     assert body["status"] == "success"
     assert body["request_id"] == req["id"]
-    assert balance_of(client, token) == 25.0
+    assert balance_of(client, token) == before + 25
 
     mine = client.get("/api/balance-requests/mine", headers=auth(token))
     assert mine.json()[0]["status"] == "approved"

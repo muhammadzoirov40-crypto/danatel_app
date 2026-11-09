@@ -49,8 +49,10 @@ const STATUS_CLS: Record<Topup["status"], string> = {
 /**
  * 💳 Пур кардани баланс:
  * 1️⃣ маблағ → линки пардохти DC City (pay.dc.tj)
- * 2️⃣ расми чек дар давоми 1 дақиқа → ХУДКОР қабул (талаби соҳиб:
- *    «аз Telegram қабул намекунам») — баланс дар ҳамон лаҳза
+ * 2️⃣ расми чек дар давоми 1 дақиқа → ТАНҲО ДАЛЕЛ (талаби соҳиб:
+ *    «то пул ба корти ман накунад — баланс пур нашавад»): баланс
+ *    танҳо пас аз расидани пули воқеӣ меафзад (пуш DC худкор /
+ *    тасдиқи админ аз панели веб)
  * 3️⃣ Telegram танҳо хабар медиҳад (бе тугмаҳои қабул/рад)
  */
 export default function TopUpModal({ open, onClose }: Props) {
@@ -108,7 +110,7 @@ export default function TopUpModal({ open, onClose }: Props) {
     return () => document.removeEventListener("keydown", onKey);
   }, [open, onClose, loadRequests]);
 
-  // 📡 Зиндаи обновит (WebSocket): қабули худкор / рад / бозгирӣ кард →
+  // 📡 Зиндаи обновит (WebSocket): қабул (пуш DC / админ) / рад / бозгирӣ →
   //    фавран рӯйхат + баланси нав, БЕ ягон refresh ё калидаи дастӣ.
   //    Танҳо ЯК пайваст барои мӯҳлати кушодани модал: тағйири объектҳои
   //    user/loadRequests боиси reconnect намешавад (гум шудани event).
@@ -194,7 +196,7 @@ export default function TopUpModal({ open, onClose }: Props) {
     }
   };
 
-  // 2️⃣ Расми чек → ХУДКОР қабул + хабар ба Telegram (бе тугмаҳо)
+  // 2️⃣ Расми чек → далел (pending) + хабар ба Telegram (бе тугмаҳо)
   const handleSendReceipt = async () => {
     if (!prepared || !file || sending || expired) return;
     setSending(true);

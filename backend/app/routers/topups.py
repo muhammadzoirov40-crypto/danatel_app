@@ -1,15 +1,17 @@
 """
-💳 ДАРХОСТИ ПУР КАРДАНИ БАЛАНС (DC City пардохт → чек → ХУДКОР қабул).
+💳 ДАРХОСТИ ПУР КАРДАНИ БАЛАНС (DC City пардохт → чек → пардохти ВОҚЕӢ).
 
-Тартиби кор:
+Тартиби кор (талаби соҳиб 09.11.2026: «то пул ба корти ман накунад —
+баланс пур нашавад»):
 1. Корбар маблағро интихоб мекунад → дархост сохта мешавад + ЛИНКИ ПАРДОХТИ
    DC City (pay.dc.tj, референс дар f3 — аз коди RentFrow).
 2. Корбар пардохт мекунад ва расми чекро дар давоми **1 дақиқа** мефиристад.
-3. Чек расид → **ХУДКОР ҚАБУЛ** (талаби соҳиб 09.11.2026: «аз Telegram қабул
-   намекунам»): баланс дар ҳамон лаҳза + AuditLog + email + realtime;
-   Telegram танҳо хабар медиҳад (бе тугмаҳои [Қабул]/[Рад]) + «🔄 Боз гирифт».
-4. Фолбек: пуш DC (dc-push) ҳам худкор қабул мекунад; радкунӣ/возвратка
-   танҳо аз панели админ (веб).
+   Чек = ТАНҲО ДАЛЕЛ (ҳолат pending) — баланс НАМЕАФЗАД, скриншотро
+   сервер санҷида наметавонад.
+3. Баланс танҳо вақте меафзад, ки пули ВОҚЕӢ ба корти соҳиб расад:
+   • худкор: пуш DC (dc-push) аз телефони соҳиб → process_push → approve_topup;
+   • дастӣ: соҳиб аз панели админ (веб) мебинад ва тасдиқ мекунад.
+4. Telegram танҳо хабар медиҳад (бе тугмаҳои қабул/рад).
 """
 from __future__ import annotations
 
@@ -30,7 +32,7 @@ from app.models import BalanceRequest, BalanceRequestStatus, User
 from app.schemas import TopupOut, TopupPrepareIn, TopupPrepareOut
 from app.security import get_current_user
 from app.services import telegram_service
-from app.services.topups import TopupError, approve_topup, parse_amount
+from app.services.topups import TopupError, parse_amount
 
 logger = logging.getLogger("topups")
 
@@ -144,7 +146,7 @@ def prepare_topup(
 
 
 # =====================================================================
-# 2️⃣ ЧЕКИ ПАРДОХТ — дар давоми 1 дақиқа → ХУДКОР қабул + хабар ба Telegram
+# 2️⃣ ЧЕКИ ПАРДОХТ — дар давоми 1 дақиқа → далел (pending) + хабар ба Telegram
 # =====================================================================
 @router.post("/{request_id}/receipt", response_model=TopupOut)
 async def upload_topup_receipt(
@@ -154,7 +156,7 @@ async def upload_topup_receipt(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """Расми чек → ХУДКОР қабул (баланс) + танҳо хабар ба Telegram."""
+    """Расми чек → ҳолат pending (далел) + танҳо хабар ба Telegram."""
     ratelimit.enforce(request, "topup_receipt", 10, 600, identifier=str(user.id))
 
     req = db.execute(
@@ -168,24 +170,16 @@ async def upload_topup_receipt(
     if req is None:
         raise HTTPException(status_code=404, detail="Дархост ёфт нашуд")
 
-    # Рад/возвратка/expired → чек қабул нест; AWAITING = аввалин чек;
-    # PENDING = қабули худкор қатъ шудааст (дубора кӯшиш);
-    # APPROVED = чеки иловагӣ (далел) бе ягон амали нав
-    if req.status not in (
-        BalanceRequestStatus.AWAITING,
-        BalanceRequestStatus.PENDING,
-        BalanceRequestStatus.APPROVED,
-    ):
+    # Чек = ТАНҲО ДАЛЕЛ: баланс танҳо аз пардохти воқеӣ (dc-push / админ)
+    # меафзад → ҳолати ғайриAWAITING (pending/approved/rejected/…)
+    # дигар қабул намешавад
+    if req.status != BalanceRequestStatus.AWAITING:
         raise HTTPException(
             status_code=409, detail="Ин дархост аллакай ҳал шудааст"
         )
 
-    # ⏱ Вақти чек гузашт → expired (танҳо барои аввалин чек)
-    if (
-        req.status == BalanceRequestStatus.AWAITING
-        and req.receipt_deadline
-        and datetime.utcnow() > req.receipt_deadline
-    ):
+    # ⏱ Вақти чек гузашт → expired
+    if req.receipt_deadline and datetime.utcnow() > req.receipt_deadline:
         req.status = BalanceRequestStatus.EXPIRED
         db.commit()
         raise HTTPException(
@@ -211,51 +205,27 @@ async def upload_topup_receipt(
         fh.write(raw)
 
     req.receipt_file = f"/uploads/receipts/{name}"
-
-    # ✅ Чеки иловагӣ барои дархости аллакай қабулшуда — далел, бе амал
-    if req.status == BalanceRequestStatus.APPROVED:
-        db.commit()
-        db.refresh(req)
-        logger.info(
-            "💳 Чеки иловагӣ ба дархости #%s (аллакай қабул шудааст)", req.id
-        )
-        return _out(req)
-
+    # Чек = далел: ҳолат pending, баланс НАМЕАФЗАД (талаби соҳиб:
+    # «то пул ба корти ман накунад — баланс пур нашавад»)
     req.status = BalanceRequestStatus.PENDING
     db.commit()
     db.refresh(req)
 
     logger.info(
-        "💳 Чек ба дархости #%s расид (user=%s, %s сомонӣ)",
+        "💳 Чек ба дархости #%s расид (user=%s, %s сомонӣ) — далел, бе қабул",
         req.id, user.id, req.amount_tjs,
     )
 
-    # ✅ ХУДКОР ҚАБУЛ — бе тасдиқи дастӣ (талаби соҳиб 09.11.2026:
-    #    «аз Telegram қабул намекунам»). `approve_topup` = ЯК transaction:
-    #    ҳолат + баланс + AuditLog + realtime + email; такрорӣ (пуш ҳамзамон)
-    #    → TopupAlreadyDecided → баланс ЯК бор меафзад.
-    new_balance: float | None = None
-    try:
-        req, credited = approve_topup(db, req.id, via="receipt_auto")
-        new_balance = float(credited.balance)
-    except TopupError as exc:
-        db.rollback()
-        logger.info(
-            "Дархости #%s дар лаҳзаи қабул ҳал шуд (%s) — чек сабт шуд",
-            req.id, exc,
-        )
-        db.refresh(req)
-
-    # 📩 Ба Telegram-и админ: танҳо хабар (бе тугмаҳои қабул/рад)
+    # 📩 Ба Telegram-и админ: танҳо хабар (бе тугмаҳои қабул/рад) —
+    #    қабул: худкор аз пуш DC (пули воқеӣ) ё аз панели админ
     try:
         # Ҳузвати пурра: Ном · @username · 📞 рақам (танҳо мавҷудбудаҳо)
         label = telegram_service.user_label(user) or f"#{user.id}"
-        await telegram_service.notify_topup_auto(
+        await telegram_service.notify_topup_receipt(
             request_id=req.id,
             user_label=label,
             amount=float(req.amount_tjs),
             receipt_file=req.receipt_file,
-            new_balance=new_balance,
         )
     except Exception:  # noqa: BLE001 — Telegram набояд хатогӣ созад
         logger.exception("Огоҳиномаи Telegram (topup #%s) ноком шуд", req.id)

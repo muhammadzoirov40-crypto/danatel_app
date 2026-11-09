@@ -427,15 +427,14 @@ def test_receipt_idor_blocked(client: TestClient):
     r = client.post(f"/api/orders/{oid}/receipt", data={"text": "9999 1111 2222 3333"})
     assert r.status_code == 404
 
-    # Соҳиби токен → чек қабул + фармоиш худкор «paid» (талаби соҳиб:
-    # «аз Telegram қабул намекунам»)
+    # Соҳиби токен → қабул мешавад
     ok = client.post(
         f"/api/orders/{oid}/receipt",
         headers={"X-Order-Token": order["access_token"]},
         data={"text": "9999 1111 2222 3333"},
     )
     assert ok.status_code == 200, ok.text
-    assert ok.json()["status"] == "paid"
+    assert ok.json()["status"] == "checking"
 
 
 def test_receipt_image_requires_admin(client: TestClient):
@@ -792,8 +791,7 @@ def test_order_flow_regression(client: TestClient):
     assert receipt.status_code == 200
     status = client.get(f"/api/orders/{oid}/status", headers=h)
     assert status.status_code == 200
-    # чек расид → худкор «paid» (бе тасдиқи дастӣ)
-    assert status.json()["status"] == "paid"
+    assert status.json()["status"] == "checking"
 
     # Админ метавонад фармоишро бинад ва қабул кунад
     admin_token = client.post(

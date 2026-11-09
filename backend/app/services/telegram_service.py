@@ -105,15 +105,10 @@ async def notify_order_delivered(order_id: int, chat_id: str | None) -> None:
     await notify_admin(text)
 
 
-def _bot_polling() -> bool:
-    """Оё боти donatshop ҳоло дар Telegram polling мекунад?"""
-    return os.getenv("DISABLE_TELEGRAM", "0") != "1"
-
-
 # =====================================================================
-# 💳 ДАРХОСТИ ПУР КАРДАНИ БАЛАНС — ХУДКОР ҚАБУЛ: танҳо хабар ба админ
-#    (талаби соҳиб 09.11.2026: «аз Telegram қабул намекунам» —
-#    қабул худкор мешавад, Telegram фақат огоҳинома + возвратка)
+# 💳 ДАРХОСТИ ПУР КАРДАНИ БАЛАНС — чек = ДАЛЕЛ, танҳо хабар ба админ
+#    (талаби соҳиб 09.11.2026: «то пул ба корти ман накунад — баланс
+#    пур нашавад» → бе тугмаҳои қабул; қабул аз пуш DC / панели админ)
 # =====================================================================
 
 
@@ -163,18 +158,17 @@ async def send_message_with_buttons(
     return await _send("sendMessage", payload)
 
 
-async def notify_topup_auto(
+async def notify_topup_receipt(
     request_id: int,
     user_label: str,
     amount: float,
     receipt_file: str | None,
-    new_balance: float | None = None,
 ) -> bool:
-    """✅ Чек → худкор қабул: танҳо хабар ба админ (бе тугмаҳои қабул/рад).
+    """🧾 Чек расид → танҳо хабар ба админ: баланс НАМЕАФЗАД (далел).
 
-    Тугмаи «🔄 Боз гирифт» танҳо ҳангоми кори бот боқӣ мемонад —
-    барои бекор кардани ҳолати ғайримустақим (пули барқароршаванда),
-    на барои қабул.
+    Талаби соҳиб (09.11.2026): «то пул ба корти ман накунад — баланс
+    пур нашавад» → қабул: худкор аз пуш DC (пули воқеӣ) ё дастӣ аз
+    панели админ; Telegram тугмаи қабул НАДОРАД.
     """
     if not settings.TELEGRAM_ADMIN_CHAT_ID:
         logger.warning(
@@ -183,42 +177,28 @@ async def notify_topup_auto(
         )
         return False
 
-    bal_line = (
-        f"\n🏦 Баланс: {new_balance:.2f} сомонӣ"
-        if new_balance is not None
-        else ""
-    )
     caption = (
-        f"✅ <b>Чек қабул ШУД (худкор)</b>\n"
+        f"🧾 <b>Чек расид — далел</b>\n"
         f"💳 Дархости пур кардан #{request_id}\n"
         f"👤 {user_label}\n"
-        f"💰 {amount:.2f} сомонӣ → баланс зиёд шуд{bal_line}\n\n"
-        f"Тасдиқи дастӣ лозим нест — тугмаҳои [Қабул]/[Рад] нест."
+        f"💰 {amount:.2f} сомонӣ\n\n"
+        f"⚠️ Баланс НАМЕАФЗАД: танҳо пас аз расидани пули воқеӣ ба корт "
+        f"(пуш DC худкор) ё тасдиқи шумо аз панели админ."
     )
-    buttons: list[list[dict]] = []
-    if _bot_polling():
-        buttons = [
-            [
-                {
-                    "text": "🔄 Боз гирифт",
-                    "callback_data": f"topup:revert:{request_id}",
-                }
-            ]
-        ]
     chat_id = settings.TELEGRAM_ADMIN_CHAT_ID
 
     if receipt_file:
         local = _receipt_local(receipt_file)
         if os.path.isfile(local) and await send_photo_with_buttons(
-            chat_id, local, caption, buttons
+            chat_id, local, caption, []
         ):
             return True
 
-    return await send_message_with_buttons(chat_id, caption, buttons)
+    return await send_message_with_buttons(chat_id, caption, [])
 
 
 # =====================================================================
-# 🧾 ЧЕКИ ФАРМОИШ — ХУДКОР ТАСДИҚ: танҳо хабар ба админ (бе тугмаҳо)
+# 🧾 ЧЕКИ ФАРМОИШ — фармоиш `checking`, танҳо хабар ба админ (бе тугмаҳо)
 # =====================================================================
 
 
@@ -232,7 +212,7 @@ def _receipt_local(receipt_file: str) -> str:
     )
 
 
-async def notify_order_auto(
+async def notify_order_receipt(
     order_id: int,
     game: str = "",
     product: str = "",
@@ -241,11 +221,11 @@ async def notify_order_auto(
     receipt_file: str | None = None,
     buyer: str | None = None,
 ) -> bool:
-    """✅ Чеки фармоиш → худкор тасдиқ: танҳо хабар (бе тугмаҳо).
+    """🧾 Чеки фармоиш расид → танҳо хабар: фармоиш `checking`.
 
-    Талаби соҳиб (09.11.2026): «аз Telegram қабул намекунам» —
-    чек расид → фармоиш худкор `paid` → поллер худкор иҷро мекунад.
-    `buyer` — ҳузвати харидор (ном · @username · рақам), агар мавҷуд бошад.
+    Талаби соҳиб (09.11.2026): «то пул ба корти ман накунад» — тасдиқ
+    танҳо пас аз пардохти воқеӣ аз панели админ (веб), Telegram тугма
+    НАДОРАД. `buyer` — ҳузвати харидор (ном · @username · рақам).
     """
     if not settings.TELEGRAM_ADMIN_CHAT_ID:
         logger.warning(
@@ -256,14 +236,14 @@ async def notify_order_auto(
 
     buyer_line = f"👤 Харидор: {buyer}\n" if buyer else ""
     caption = (
-        f"✅ <b>Фармоиш #{order_id} — пардохт тасдиқ шуд (худкор)</b>\n"
+        f"🧾 <b>Чеки фармоиш #{order_id} расид — далел</b>\n"
         f"{buyer_line}"
         f"🎮 Бозӣ: {game}\n"
         f"💎 Маҳсулот: {product}\n"
         f"🆔 ID: <code>{player_id}</code>\n"
         f"💰 Маблағ: {amount:.2f} сомонӣ\n\n"
-        f"Тасдиқи дастӣ лозим нест — тугмаҳои [Қабул]/[Рад] нест. "
-        f"Маҳсулот худкор иҷро мешавад."
+        f"Фармоиш дар ҳолати «checking» — тасдиқ танҳо пас аз "
+        f"пардохти воқеӣ аз панели админ."
     )
     chat_id = settings.TELEGRAM_ADMIN_CHAT_ID
 

@@ -5,7 +5,7 @@
   1  /api/ws бо токени дуруст → `hello` (user_id)
   2  бе токен → баста мешавад (4401) бе қабул
   3  `realtime.publish()` → ҳамон пайваст фавран паём мегирад
-  4  E2E: чек → ХУДКОР қабул → мизоҷ тавассути WS `topup_updated`
+  4  E2E: чек → тасдики админ → мизоҷ тавассути WS `topup_updated`
      мегирад; баланси ниҳоӣ дуруст
 """
 from __future__ import annotations
@@ -16,6 +16,7 @@ from starlette.websockets import WebSocketDisconnect
 from app.database import SessionLocal
 from app.services import realtime
 from test_topups import (
+    admin_token,
     auth,
     balance_of,
     prepare,
@@ -88,22 +89,26 @@ def test_ws_publish_delivers(client: TestClient):
 
 
 # =====================================================================
-# 4. E2E: ЧЕК → ХУДКОР ҚАБУЛ → WS ДАР МИЗОҶ
+# 4. E2E: ТАСДИҚИ АДМИН → WS ДАР МИЗОҶ
 # =====================================================================
-def test_topup_receipt_auto_pushes_over_ws(client: TestClient):
-    """Чек → ХУДКОР қабул → мизоҷ тавассути WS хабар мегирад."""
+def test_topup_approve_pushes_over_ws(client: TestClient):
+    """Админ тасдиқ мекунад → мизоҷ тавассути WS хабар мегирад."""
     token = register(client)
     prepared = prepare(client, token, amount="30").json()
+    adm = admin_token(client)
+    assert send_receipt(client, token, prepared["id"]).status_code == 200
 
     with client.websocket_connect(f"/api/ws?token={token}") as ws:
         assert ws.receive_json()["type"] == "hello"
-        r = send_receipt(client, token, prepared["id"])
+        r = client.post(
+            f"/api/admin/balance-requests/{prepared['id']}/approve",
+            headers=auth(adm),
+        )
         assert r.status_code == 200, r.text
-        assert r.json()["status"] == "approved"  # худкор бе админ
         msg = ws.receive_json()
         assert msg["type"] == "topup_updated"
         assert msg["request_id"] == prepared["id"]
         assert msg["status"] == "approved"
 
-    # баланс дар ҳамон лаҳза: +30 (сентинҳои ибтидоӣ = 0)
+    # баланс пас аз тасдиқ: +30 (сентинҳои ибтидоӣ = 0)
     assert balance_of(client, token) == 30.0
