@@ -1,4 +1,8 @@
-"""💳 Дархостҳои пур кардан: пардохти DC City → чек (1 дақиқа) → тасдиқ/ради админ."""
+"""💳 Дархостҳои пур кардан: пардохти DC City → чек (1 дақиқа) → ХУДКОР қабул.
+
+Талаби соҳиб (09.11.2026): «аз Telegram қабул намекунам» — чек расид →
+баланс худкор меафзад; рад/возвратка танҳо аз панели админ (веб).
+"""
 from __future__ import annotations
 
 import io
@@ -78,6 +82,22 @@ def expire_deadline(request_id: int) -> None:
         db.close()
 
 
+def set_req_status(request_id: int, status: str) -> None:
+    """Ҳолати дархостро танҳо аз DB мегузорем (ҳолатҳои гузаранда:
+    pending/rejected бе тасдиқи худкор — барои санҷиши роҳҳои дастӣ)."""
+    from app.database import SessionLocal
+    from app.models import BalanceRequest
+
+    db = SessionLocal()
+    try:
+        row = db.get(BalanceRequest, request_id)
+        assert row is not None
+        row.status = status
+        db.commit()
+    finally:
+        db.close()
+
+
 # =====================================================================
 # 🧪 САНҶИШҲО
 # =====================================================================
@@ -139,7 +159,7 @@ def test_second_prepare_expires_first(client: TestClient):
 
 
 def test_receipt_flow_approve(client: TestClient):
-    """Чек → pending → қабул → баланс + маблағ → такрорӣ → 409."""
+    """Чек → ХУДКОР қабул (бе админ): баланс +30 дар ҳамон лаҳза."""
     token = register(client)
     prepared = prepare(client, token, amount="30").json()
     adm = admin_token(client)
@@ -150,25 +170,21 @@ def test_receipt_flow_approve(client: TestClient):
         == 403
     )
 
+    before = balance_of(client, token)
     r = send_receipt(client, token, prepared["id"])
     assert r.status_code == 200, r.text
-    assert r.json()["status"] == "pending"
+    assert r.json()["status"] == "approved"  # худкор, бе тасдиқи дастӣ
     assert r.json()["receipt_file"].startswith("/uploads/receipts/")
+    assert balance_of(client, token) == before + 30.0
 
+    # pending дигар пайдо намешавад → рӯйхати «pending» ин дархостро надорад
     lst = client.get(
         "/api/admin/balance-requests?status=pending", headers=auth(adm)
     )
     assert lst.status_code == 200
-    assert any(x["id"] == prepared["id"] for x in lst.json())
+    assert all(x["id"] != prepared["id"] for x in lst.json())
 
-    before = balance_of(client, token)
-    ok = client.post(
-        f"/api/admin/balance-requests/{prepared['id']}/approve", headers=auth(adm)
-    )
-    assert ok.status_code == 200, ok.text
-    assert ok.json()["status"] == "approved"
-    assert balance_of(client, token) == before + 30.0
-
+    # такрории қабули админ → 409 (баланс дубора намеафзад)
     assert (
         client.post(
             f"/api/admin/balance-requests/{prepared['id']}/approve",
@@ -229,11 +245,11 @@ def test_receipt_validation(client: TestClient):
 
 
 def test_reject_keeps_balance(client: TestClient):
-    """Рад → баланс ҳеҷ гуна тағйир намеёбад → такрорӣ → 409."""
+    """Рад (дархости pending аз DB) → баланс тағйир намеёбад → такрорӣ → 409."""
     token = register(client)
     adm = admin_token(client)
     prepared = prepare(client, token, amount="40").json()
-    send_receipt(client, token, prepared["id"])
+    set_req_status(prepared["id"], "pending")
 
     before = balance_of(client, token)
     r = client.post(
@@ -272,16 +288,16 @@ def test_approve_before_receipt_refused(client: TestClient):
 
 
 def _approve_flow(client: TestClient, amount: str = "25") -> tuple[str, int, float]:
-    """Дархост то ҳолати approved: (user_token, req_id, баланси ПЕШ)."""
+    """Дархост то ҳолати approved: чек → ХУДКОР қабул (бе админ).
+
+    Бармегардонад: (user_token, req_id, баланси ПЕШ).
+    """
     token = register(client)
     before = balance_of(client, token)
     prepared = prepare(client, token, amount=amount).json()
-    send_receipt(client, token, prepared["id"])
-    adm = admin_token(client)
-    r = client.post(
-        f"/api/admin/balance-requests/{prepared['id']}/approve", headers=auth(adm)
-    )
+    r = send_receipt(client, token, prepared["id"])
     assert r.status_code == 200, r.text
+    assert r.json()["status"] == "approved"  # худкор бе тасдиқи дастӣ
     return token, prepared["id"], before
 
 
@@ -387,8 +403,8 @@ def test_revert_only_approved(client: TestClient):
         == 409
     )
 
-    # pending (чек расид, ҳанӯз қабул нашуда)
-    send_receipt(client, token, prepared["id"])
+    # pending (ҳолати гузарандаи чек — то қабули худкор)
+    set_req_status(prepared["id"], "pending")
     assert (
         client.post(
             f"/api/admin/balance-requests/{prepared['id']}/revert",

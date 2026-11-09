@@ -126,7 +126,8 @@ def _unmatched(
         "Рақам: %s\n"
         "Сабаб: %s\n"
         "Матн: %s\n\n"
-        "Тасдиқи дастӣ лозим аст (админ-панел / Telegram)."
+        "Тасдиқи дастӣ лозим НЕСТ — чеки корбар худкор қабул мешавад; "
+        "ин танҳо огоҳинома аст."
         % (
             amount,
             ", ".join(phones) or "—",
@@ -284,19 +285,19 @@ _REPLIES: dict[str, dict[str, str]] = {
     "not_found": {
         "tj": (
             "❌ Дархости мувофиқ ёфт нашуд ({amount} TJS).\n"
-            "Матн дар таърих сабт шуд — тасдиқи дастӣ лозим аст."
+            "Матн дар таърих сабт шуд — чеки корбар худкор қабул мешавад."
         ),
         "ru": (
             "❌ Подходящий запрос не найден ({amount} TJS).\n"
-            "Текст записан в историю — нужно ручное подтверждение."
+            "Текст записан в историю — чек клиента подтверждается автоматически."
         ),
         "en": (
             "❌ No matching request ({amount} TJS).\n"
-            "Text logged — manual confirmation needed."
+            "Text logged — the customer's receipt is confirmed automatically."
         ),
         "uz": (
             "❌ Mos so'rov topilmadi ({amount} TJS).\n"
-            "Matn tarixga yozildi — qo'lda tasdiqlash kerak."
+            "Matn tarixga yozildi — mijoz cheki avtomatik tasdiqlanadi."
         ),
     },
 }

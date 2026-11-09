@@ -15,7 +15,15 @@ from sqlalchemy.orm import Session
 from app import ratelimit
 from app.config import settings
 from app.database import get_db
-from app.models import Game, Order, OrderStatus, PaymentMethod, Product, User
+from app.models import (
+    AuditLog,
+    Game,
+    Order,
+    OrderStatus,
+    PaymentMethod,
+    Product,
+    User,
+)
 from app.schemas import OrderCreate, OrderOut, PaymentInitOut
 from app.security import get_current_user, get_current_user_optional, require_admin
 from app.services import dc_service, telegram_service, wallet
@@ -514,7 +522,9 @@ async def submit_receipt(
 ):
     """Корбар чеки пардохтро мефиристад (расм ё матн).
 
-    Фармоиш → `checking` (интизори тасдиқи админ).
+    Чек расид → фармоиш **худкор `paid`** (талаби соҳиб 09.11.2026:
+    «аз Telegram қабул намекунам») → поллер маҳсулотро худкор иҷро
+    мекунад; Telegram танҳо хабар медиҳад (бе тугмаҳои [Қабул]/[Рад]).
 
     🛡️ Танҳо молики фармоиш / админ / соҳиби токени фармоиш.
     """
@@ -526,7 +536,13 @@ async def submit_receipt(
         raise HTTPException(status_code=404, detail="Фармоиш ёфт нашуд")
     _require_order_access(order, current_user, request)
 
-    if order.status not in (OrderStatus.PENDING, OrderStatus.CHECKING):
+    # `paid` = чеки иловагӣ (далел) бе тағйири статус; `checking` =
+    # ҳолати дастӣ гузоштаи админ → ҳам худкор тасдиқ мешавад
+    if order.status not in (
+        OrderStatus.PENDING,
+        OrderStatus.CHECKING,
+        OrderStatus.PAID,
+    ):
         raise HTTPException(status_code=422, detail="Чек барои ин фармоиш қабул нест")
 
     saved_path: str | None = None
@@ -564,15 +580,37 @@ async def submit_receipt(
     if txt:
         order.receipt_text = txt[:512]
     order.receipt_at = datetime.utcnow()
-    order.status = OrderStatus.CHECKING
+
+    # ✅ Чеки иловагӣ барои фармоиши аллакай пардохтшуда — далел, бе амал
+    if order.status == OrderStatus.PAID:
+        db.commit()
+        db.refresh(order)
+        logger.info(
+            "🧾 Чеки иловагӣ ба фармоиши #%s (аллакай пардохт шудааст)",
+            order.id,
+        )
+        return _order_out(order, _lang(lang))
+
+    # ✅ ХУДКОР ТАСДИҚ (талаби соҳиб 09.11.2026: «аз Telegram қабул
+    #    намекунам»): чек расид → paid → поллер маҳсулотро худкор иҷро
+    #    мекунад. AuditLog — ҳамон амали бот/админ, бо роҳи `receipt_auto`.
+    order.status = OrderStatus.PAID
+    db.add(
+        AuditLog(
+            action="order_status_change",
+            entity="order",
+            entity_id=str(order.id),
+            details=f"status -> {order.status} (receipt_auto)",
+        )
+    )
     db.commit()
     db.refresh(order)
 
-    logger.info("🧾 Чеки фармоиш #%s қабул шуд", order.id)
+    logger.info("🧾 Чеки фармоиш #%s — худкор тасдиқ шуд (пардохт)", order.id)
 
-    # Огоҳинома ба Telegram (админ): расми чек + тугмаҳои [Қабул] [Рад]
+    # 📩 Ба Telegram-и админ: танҳо хабар (бе тугмаҳои қабул/рад)
     try:
-        await telegram_service.notify_order_receipt(
+        await telegram_service.notify_order_auto(
             order_id=order.id,
             game=order.game.get_name("tj"),
             product=order.product.get_name("tj"),

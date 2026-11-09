@@ -460,6 +460,16 @@ async def cb_order(call: CallbackQuery):
             await call.answer("Фармоиш ёфт нашуд", show_alert=True)
             return
 
+        # Ҳифоз аз тугмаҳои кӯҳна: чеки нав худкор тасдиқ мешавад →
+        # тугмаи [Рад] дар паёми таърихӣ фармоиши пардохтшударо бекор
+        # НАКУНАД (статуси дигар → амал манъ)
+        if order.status not in (OrderStatus.PENDING, OrderStatus.CHECKING):
+            await call.answer(
+                "Фармоиш аллакай ҳал шудааст (чек худкор тасдиқ шуд)",
+                show_alert=True,
+            )
+            return
+
         if action == "ok":
             order.status = OrderStatus.PAID
             result = "✅ Қабул шуд — пардохт тасдиқ шуд"

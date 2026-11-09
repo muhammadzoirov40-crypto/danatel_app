@@ -110,31 +110,10 @@ def _bot_polling() -> bool:
     return os.getenv("DISABLE_TELEGRAM", "0") != "1"
 
 
-def _approve_ui(prefix: str, ref_id: int) -> tuple[str, list[list[dict]]]:
-    """Ҳангоми кори бот — тугмаҳои [Қабул][Рад] (callback).
-
-    Агар боти donatshop ғайрифаъол бошад (пулакаи кӯҳна мувофиқ аст),
-    тугмаҳои callback кор намекунанд → ба ҷои он тугмаи URL ба панели админ.
-    """
-    if _bot_polling():
-        return (
-            "Чекро санҷед ва аз ҳамин ҷо қабул ё рад кунед:",
-            [
-                [
-                    {"text": "✅ Қабул", "callback_data": f"{prefix}:ok:{ref_id}"},
-                    {"text": "❌ Рад", "callback_data": f"{prefix}:no:{ref_id}"},
-                ]
-            ],
-        )
-    url = f"{settings.FRONTEND_URL.rstrip('/')}/admin"
-    buttons = (
-        [[{"text": "📂 Панели админ", "url": url}]] if url.startswith("http") else []
-    )
-    return ("Чекро санҷед ва дар панели админ тасдиқ кунед:", buttons)
-
-
 # =====================================================================
-# 💳 ДАРХОСТИ ПУР КАРДАНИ БАЛАНС — расм + тугмаҳои [Қабул] [Рад]
+# 💳 ДАРХОСТИ ПУР КАРДАНИ БАЛАНС — ХУДКОР ҚАБУЛ: танҳо хабар ба админ
+#    (талаби соҳиб 09.11.2026: «аз Telegram қабул намекунам» —
+#    қабул худкор мешавад, Telegram фақат огоҳинома + возвратка)
 # =====================================================================
 
 
@@ -184,13 +163,19 @@ async def send_message_with_buttons(
     return await _send("sendMessage", payload)
 
 
-async def notify_topup_request(
+async def notify_topup_auto(
     request_id: int,
     user_label: str,
     amount: float,
     receipt_file: str | None,
+    new_balance: float | None = None,
 ) -> bool:
-    """💳 Дархости пур кардан → админ: расми чек + [Қабул] [Рад]."""
+    """✅ Чек → худкор қабул: танҳо хабар ба админ (бе тугмаҳои қабул/рад).
+
+    Тугмаи «🔄 Боз гирифт» танҳо ҳангоми кори бот боқӣ мемонад —
+    барои бекор кардани ҳолати ғайримустақим (пули барқароршаванда),
+    на барои қабул.
+    """
     if not settings.TELEGRAM_ADMIN_CHAT_ID:
         logger.warning(
             "TELEGRAM_ADMIN_CHAT_ID холӣ — дархост #%s ба Telegram намеравад",
@@ -198,23 +183,32 @@ async def notify_topup_request(
         )
         return False
 
-    hint, buttons = _approve_ui("topup", request_id)
-    caption = (
-        f"💳 <b>Дархости пур кардан #{request_id}</b>\n"
-        f"👤 {user_label}\n"
-        f"💰 {amount:.2f} сомонӣ\n\n"
-        f"{hint}"
+    bal_line = (
+        f"\n🏦 Баланс: {new_balance:.2f} сомонӣ"
+        if new_balance is not None
+        else ""
     )
+    caption = (
+        f"✅ <b>Чек қабул ШУД (худкор)</b>\n"
+        f"💳 Дархости пур кардан #{request_id}\n"
+        f"👤 {user_label}\n"
+        f"💰 {amount:.2f} сомонӣ → баланс зиёд шуд{bal_line}\n\n"
+        f"Тасдиқи дастӣ лозим нест — тугмаҳои [Қабул]/[Рад] нест."
+    )
+    buttons: list[list[dict]] = []
+    if _bot_polling():
+        buttons = [
+            [
+                {
+                    "text": "🔄 Боз гирифт",
+                    "callback_data": f"topup:revert:{request_id}",
+                }
+            ]
+        ]
     chat_id = settings.TELEGRAM_ADMIN_CHAT_ID
 
     if receipt_file:
-        # "/uploads/receipts/x.png" → backend/uploads/receipts/x.png
-        local = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-            "uploads",
-            "receipts",
-            os.path.basename(receipt_file),
-        )
+        local = _receipt_local(receipt_file)
         if os.path.isfile(local) and await send_photo_with_buttons(
             chat_id, local, caption, buttons
         ):
@@ -224,7 +218,7 @@ async def notify_topup_request(
 
 
 # =====================================================================
-# 🧾 ЧЕКИ ФАРМОИШ — расм + тугмаҳои [Қабул] [Рад] барои админ
+# 🧾 ЧЕКИ ФАРМОИШ — ХУДКОР ТАСДИҚ: танҳо хабар ба админ (бе тугмаҳо)
 # =====================================================================
 
 
@@ -238,7 +232,7 @@ def _receipt_local(receipt_file: str) -> str:
     )
 
 
-async def notify_order_receipt(
+async def notify_order_auto(
     order_id: int,
     game: str = "",
     product: str = "",
@@ -247,8 +241,10 @@ async def notify_order_receipt(
     receipt_file: str | None = None,
     buyer: str | None = None,
 ) -> bool:
-    """🧾 Чеки фармоиш → админ: расми чек + [Қабул] [Рад].
+    """✅ Чеки фармоиш → худкор тасдиқ: танҳо хабар (бе тугмаҳо).
 
+    Талаби соҳиб (09.11.2026): «аз Telegram қабул намекунам» —
+    чек расид → фармоиш худкор `paid` → поллер худкор иҷро мекунад.
     `buyer` — ҳузвати харидор (ном · @username · рақам), агар мавҷуд бошад.
     """
     if not settings.TELEGRAM_ADMIN_CHAT_ID:
@@ -258,24 +254,24 @@ async def notify_order_receipt(
         )
         return False
 
-    hint, buttons = _approve_ui("order", order_id)
     buyer_line = f"👤 Харидор: {buyer}\n" if buyer else ""
     caption = (
-        f"🧾 <b>Чеки фармоиш #{order_id}</b>\n"
+        f"✅ <b>Фармоиш #{order_id} — пардохт тасдиқ шуд (худкор)</b>\n"
         f"{buyer_line}"
         f"🎮 Бозӣ: {game}\n"
         f"💎 Маҳсулот: {product}\n"
         f"🆔 ID: <code>{player_id}</code>\n"
         f"💰 Маблағ: {amount:.2f} сомонӣ\n\n"
-        f"{hint}"
+        f"Тасдиқи дастӣ лозим нест — тугмаҳои [Қабул]/[Рад] нест. "
+        f"Маҳсулот худкор иҷро мешавад."
     )
     chat_id = settings.TELEGRAM_ADMIN_CHAT_ID
 
     if receipt_file:
         local = _receipt_local(receipt_file)
         if os.path.isfile(local) and await send_photo_with_buttons(
-            chat_id, local, caption, buttons
+            chat_id, local, caption, []
         ):
             return True
 
-    return await send_message_with_buttons(chat_id, caption, buttons)
+    return await send_message_with_buttons(chat_id, caption, [])
