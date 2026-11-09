@@ -17,6 +17,53 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <title>donatshop.tj — Донати бозиҳо</title>
+    <!-- ⏳ Индиcатори боргирӣ — то замони пурра бор шудани JS (6-15 сония
+         дар роҳҳои суст; экран сиёҳ/холӣ НАБОЯД бошад). React ҳамонавқт ки
+         аввалин саҳифаро месозад, дохили #root-ро пурра иваз мекунад →
+         индиcатор худкор нест мешавад. Матн надорад → забон умумӣ. -->
+    <style>
+      html, body { margin: 0; padding: 0; }
+      #root { min-height: 100vh; min-height: 100dvh; }
+      .boot {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        min-height: 100vh;
+        min-height: 100dvh;
+        background: linear-gradient(160deg, #eef3ff 0%, #fdf0f6 45%, #e8f4ff 100%);
+      }
+      html.dark .boot {
+        background: linear-gradient(160deg, #0a0f24 0%, #140b1e 55%, #08122b 100%);
+      }
+      .boot-logo { width: 64px; height: 64px; animation: boot-pulse 1.4s ease-in-out infinite; }
+      .boot-dots { display: flex; gap: 8px; }
+      .boot-dots i {
+        width: 9px; height: 9px; border-radius: 50%;
+        background: #1546dd; opacity: .3;
+        animation: boot-blink 1.2s infinite;
+      }
+      .boot-dots i:nth-child(2) { animation-delay: .2s; }
+      .boot-dots i:nth-child(3) { animation-delay: .4s; }
+      html.dark .boot-dots i { background: #6f9bff; }
+      @keyframes boot-blink {
+        0%, 80%, 100% { opacity: .25; transform: translateY(0); }
+        40% { opacity: 1; transform: translateY(-4px); }
+      }
+      @keyframes boot-pulse {
+        0%, 100% { transform: scale(1); opacity: .9; }
+        50% { transform: scale(1.06); opacity: 1; }
+      }
+      .boot-fallback {
+        text-align: center;
+        font-family: system-ui, sans-serif;
+        color: #4a5578;
+        font-size: 14px;
+        max-width: 260px;
+      }
+      html.dark .boot-fallback { color: #aab6d8; }
+    </style>
     <script>
       // 🌙 Мавзӯи нигоҳдоришуда → ПЕШ аз аввали ранг (бе "флеш"-и сафед)
       //    ?theme=dark | light — пайванди мустақим (масалан барои санҷиш)
@@ -30,7 +77,18 @@
     </script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- ⏳ Пеш аз боргирӣ: логотип + нуқтаҳо → React аввалин render-ро
+           гузошта, ин блокро иваз мекунад (сабаби экранҳои сиёҳ/холӣ
+           ҳангоми боргирӣ дар роҳи суст — талаби соҳиб09.11.2026) -->
+      <div class="boot" role="status" aria-label="Боргирӣ">
+        <img class="boot-logo" src="/favicon.svg" alt="donatshop" />
+        <div class="boot-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+        <noscript>
+          <p class="boot-fallback">JavaScript кушода кунед — сайт бе он кор намекунад.</p>
+        </noscript>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
