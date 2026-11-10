@@ -61,6 +61,10 @@ _origins = [
     "http://127.0.0.1:5173",
     "https://danatel.tj",
     "https://www.danatel.tj",
+    # 🔍 Эмуляторҳо/превьюерҳои дастгоҳ (iframe бо sandbox БЕ allow-same-origin)
+    # → opaque origin бо номи «null» → бе ин саҳифа дар онҳо дар splash мемонад.
+    # Амният: auth танҳо Bearer-токен (cookie нест) → «null» чизи шахсиро намегирад.
+    "null",
 ]
 app.add_middleware(
     CORSMiddleware,

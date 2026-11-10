@@ -63,12 +63,19 @@ export default function App() {
   // 📦 PWA Service Worker — танҳо дар HTTPS (secure context) + production
   useEffect(() => {
     if (!import.meta.env.PROD) return;
-    if (!("serviceWorker" in navigator) || !window.isSecureContext) return;
-    navigator.serviceWorker
-      .register("/sw.js", { scope: "/", updateViaCache: "none" })
-      .catch(() => {
-        /* иҷозати насб додан нашуд → бе PWA ҳам кор мекунад */
-      });
+    try {
+      // ⚠️ Дар iframe-и sandbox БЕ allow-same-origin (эмуляторҳои превюи)
+      // хониши `navigator.serviceWorker` худаш SecurityError мепартояд →
+      // бе try/catch эффект мекушад → React тамоми саҳифаро мебарорад.
+      if (!("serviceWorker" in navigator) || !window.isSecureContext) return;
+      navigator.serviceWorker
+        .register("/sw.js", { scope: "/", updateViaCache: "none" })
+        .catch(() => {
+          /* иҷозати насб додан нашуд → бе PWA ҳам кор мекунад */
+        });
+    } catch {
+      /* sandbox-iframe: serviceWorker дастрас нест → бе PWA */
+    }
   }, []);
 
   return (
