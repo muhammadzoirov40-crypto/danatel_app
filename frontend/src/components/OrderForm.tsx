@@ -197,17 +197,19 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
   const [payStep, setPayStep] = useState<"browse" | "form">("browse");
   const payCardRef = useRef<HTMLElement | null>(null);
 
-  // 🙈 10.11.2026 (talabi соҳиб — скриншот: «inro nest kun, dar tagi pardoxt
-  //    ast ... vaqteki pardoxt paydo shavad in nest shavad»): FAB-и марказии
-  //    «Пур кардан» дар BottomNav (-mt-6) аз болои навори пардохт мебаромад →
-  //    ҳангоми нишондани навор навигатсияи поёнӣ ПУРРА пинҳон мешавад
-  //    (ҷои навор = ҷои навигатсия, мисли давр1; пас аз зер кардани навор
-  //    барқарор мешавад — ҳамон тавре ки пешин).
-  const paybarVisible = !!selected && payStep === "browse";
+  // 🙈 10.11.2026 (талаби соҳиб, давр1 — FAB аз болои навор мебаромад:
+  //    «vaqteki pardoxt paydo shavad in nest shavad»; давр2 — «vaqte ki
+  //    yagon chiro intixob nakardaast inro nishon nadihad … tanho in paydo
+  //    shavad, in [nav] nest shavad»): класс = ФАРМОИШ КУШОДА АСТ
+  //    (`!!selected`) — ҳам дар browse (навори пардохт) ва ҳам дар form
+  //    (корт) → навигатсияи поёнӣ (бо FAB-и «Пур кардан») ПУРРА пинҳон;
+  //    бе интихоб → класс нест → nav барқарор. Нав: `order-open`
+  //    (собиқ `paybar-open` — пешин танҳо навор буд, ҳоло корт ҳам).
+  const orderOpen = !!selected;
   useEffect(() => {
-    document.body.classList.toggle("paybar-open", paybarVisible);
-    return () => document.body.classList.remove("paybar-open");
-  }, [paybarVisible]);
+    document.body.classList.toggle("order-open", orderOpen);
+    return () => document.body.classList.remove("order-open");
+  }, [orderOpen]);
 
   // 🗂 Табҳои категорияҳо (талаби соҳиб10.11.2026 «va dar injo ... categoriya
   //    boshad:1 almosho2 vaycherho3 propustho»): дар мобилӣ гурӯҳҳо ҳамчун
@@ -697,11 +699,18 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
           })}
         </div>
 
-        {/* ---------- РОСТ: ФАРМОИШИ ШУМО (БЕ ТАҒЙИРИ МАНТИҚ — ЧИПҲОИ ВОҚЕӢ) ---------- */}
+        {/* ---------- ФАРМОИШИ ШУМО ----------
+            📱 Мобилӣ (талаби соҳиб10.11.2026 «vaqte ki yagon chiro intixob
+            nakardaast inro nishon nadihad … tanho in paydo shavad»): корт
+            ТАНҲО ҳангоми кушодани форма (`selected && payStep="form"`)
+            нишон дода мешавад → корти холии «Фармоиши шумо» (Ҳамагӣ 0)
+            пайдо НАМЕШАВАД; бе интихоб ё дар browse → пинҳон (ҷои кортро
+            навори пардохт мегирад). Дар десктоп ҳамеша нишон (класс
+            танҳо max-[767px] = мобилӣ). */}
         <aside
           ref={payCardRef}
           className={`lg:sticky lg:top-[72px] min-w-0${
-            selected && payStep === "browse" ? " max-[767px]:hidden" : ""
+            selected && payStep === "form" ? "" : " max-[767px]:hidden"
           }`}
         >
           <div className="glass rounded-3xl p-4 sm:p-5">

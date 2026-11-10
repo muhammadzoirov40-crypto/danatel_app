@@ -629,12 +629,13 @@ body::before {
   --tw-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.5);
 }
 
-/* 🙈 Навори пардохт ДАРҶОИ навигатсияи поёнӣ (талаби соҳиб10.11.2026:
-   «inro nest kun, dar tagi pardoxt ast ... vaqteki pardoxt paydo shavad
-   in nest shavad»): FAB-и марказии «Пур кардан» (-mt-6, ring-4 ring-white)
-   аз болои навори пардохт мебаромад → ҳангоми paybar навигатсияи поёнӣ
-   (боҳамаи FAB) пурра пинҳон мешавад; барои фиристодани класс = OrderForm
-   (`body.paybar-open`), тоза кардан худкор (effect cleanup). */
-body.paybar-open nav[data-bottomnav] {
+/* 🙈 Навигатсияи поёнӣ (бо FAB-и «Пур кардан») ҳангоми кушодани ФАРМОИШ
+   пурра пинҳон мешавад (талаби соҳиб10.11.2026, давр1 — «vaqteki pardoxt
+   paydo shavad in nest shavad»; давр2 — «vaqte ki yagon chiro intixob
+   nakardaast inro nishon nadihad … in [nav] nest shavad»): класс =
+   навори пардохт (browse) Ё корти фармоиш (form) кушодааст → nav нест;
+   бе интихоб → nav барқарор. Фиристан = OrderForm (`body.order-open`,
+   собиқ `paybar-open`), тоза кардан худкор (effect cleanup/unmount). */
+body.order-open nav[data-bottomnav] {
   display: none !important;
 }
