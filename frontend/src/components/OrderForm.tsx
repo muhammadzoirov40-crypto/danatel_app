@@ -793,10 +793,9 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
               )}
             </button>
 
-            <div className="mx-auto mt-4 flex max-w-md items-start justify-center gap-2 rounded-2xl border border-slate-100 bg-slate-50/80 px-4 py-3 text-center">
-              <Ic icon={Lock} size="xs" className="mt-0.5 shrink-0 text-slate-400" />
-              <p className="text-xs leading-relaxed text-slate-500">{t("secureNote")}</p>
-            </div>
+            {/*10.11.2026 (talabi соҳиб — скриншот): падпаи secureNote дар ин
+                ҷо НАШАВАД — дар ҷараёни пардохти алмос нодаркор аст; тугмаи
+                пардохт охирин элемент мемонад (сабти Home.tsx даст назадааст). */}
           </div>
         </aside>
       </div>
