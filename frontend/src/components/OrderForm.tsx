@@ -244,6 +244,21 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
     activeGroup && groups[activeGroup].length ? activeGroup : visibleSections[0]?.key;
   /** Табҳо танҳо ҳангоми ≥2 бахш (дар мобилӣ; десктоп = стеки пешин) */
   const tabsOn = visibleSections.length >= 2;
+
+  // 🙈 Навори пардохт ТАНҲО ҳангоми интихоби бахши фаъол (талаби соҳиб
+  //    10.11.2026 «va inro nishon nadihad to inhoro intixob nakunad»):
+  //    агар бастаи интихобшуда дар таби дигар пинҳон бошад → ПАРТОФТА
+  //    мешавад, то корбар дар рӯйхати ҷорӣ баста интихоб накунад.
+  //    Дар десктоп ҳамаи бахшҳо пас-пас намоён → интихоб аз ҳар бахш
+  //    эътибор дорад → тағйир намеёбад (танҳо мобилӣ).
+  useEffect(() => {
+    if (!selected || !activeKey) return;
+    if (!window.matchMedia("(max-width: 767px)").matches) return; // десктоп
+    if (!groups[activeKey].some((p) => p.id === selected.id)) {
+      setSelected(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected, activeKey]);
   /** Номи кӯтоҳи маҳсулоти интихобшуда — барои «Фармоиши шумо» */
   const selView = selected ? packView(selected, game, t) : null;
 
