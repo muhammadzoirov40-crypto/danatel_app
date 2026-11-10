@@ -793,12 +793,63 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
               )}
             </button>
 
+            {/* 📱10.11.2026 — тугмаи пардохт акнун дар ҷои BottomNav ҳам
+                ҳаст (мобилӣ) → тугмаи форма бояд аз навор тоза монад. */}
+            {selected && <div aria-hidden className="h-20 md:hidden" />}
+
             {/*10.11.2026 (talabi соҳиб — скриншот): падпаи secureNote дар ин
                 ҷо НАШАВАД — дар ҷараёни пардохти алмос нодаркор аст; тугмаи
                 пардохт охирин элемент мемонад (сабти Home.tsx даст назадааст). */}
           </div>
         </aside>
       </div>
+
+      {/* 📱10.11.2026 (talabi соҳиб — скриншотҳо [1][2][3]): тугмаи пардохт
+          ДАРҶОИ навигатсияи поёнӣ — ҳангоми интихоби баста BottomNav ҷойи онро
+          мегирад: ҳамон индексҳо (`bottom-3 inset-x-3 max-w-md`) вале
+          `z-[55]` > `z-50`-и BottomNav → навор пӯшида мешавад; клик = ҳамон
+          `submit` (ҳамаи санҷишҳои Player ID/зона/баланс), хато → худкор ба
+          `[role="alert"]` дар форма мебарем. Баъди сохтани фармоиш GameDetail
+          ба `/order/:id` мегузарад → ин блок нопаид → BottomNav барқарор
+          («баъд пардохт пок шавад»). Танҳо мобилӣ — дар десктоп ҳамон тугмаи
+          форма боқӣ. Бе баста → навор оддӣ (BottomNav) ҳамон тавр. */}
+      {selected && (
+        <div className="md:hidden fixed bottom-3 inset-x-3 z-[55] max-w-md mx-auto">
+          <button
+            onClick={() => {
+              submit();
+              // Агар санҷиш ноком шуд (масалан Player ID холӣ) → хато дар
+              //    форма нишон дода мешавад → корбарро ба он барем
+              window.setTimeout(() => {
+                document
+                  .querySelector('[role="alert"]')
+                  ?.scrollIntoView({ block: "center" });
+              }, 80);
+            }}
+            disabled={loading || (method === "balance" && !canUseBalance)}
+            className="btn-primary w-full rounded-2xl py-4 shadow-[0_16px_34px_-14px_rgba(37,99,235,0.95)] transition-transform active:scale-[0.99]"
+          >
+            {loading ? (
+              <span className="inline-flex items-center justify-center gap-2">
+                <Ic icon={Loader2} className="animate-spin" /> {t("loading")}
+              </span>
+            ) : (
+              <span className="flex flex-col items-center justify-center leading-tight">
+                <span className="inline-flex items-center gap-2 text-base font-semibold">
+                  <Ic icon={Lock} />
+                  {method === "balance" ? t("payFromBalance") : t("pay")}
+                </span>
+                {price > 0 && (
+                  <span className="mt-1.5 inline-flex items-baseline gap-1 rounded-lg bg-white/20 px-2.5 py-0.5 text-lg font-extrabold tabular-nums">
+                    {price.toLocaleString("tj-TJ")}
+                    <span className="text-xs font-bold opacity-90">{t("currency")}</span>
+                  </span>
+                )}
+              </span>
+            )}
+          </button>
+        </div>
+      )}
 
       {/* 🏦 Интихоби банк — танҳо барои пардохти DC */}
       {showBank && (
