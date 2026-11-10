@@ -82,8 +82,9 @@ _REDACTED_RE = re.compile(
 _REDACTED_MSG = (
     "🔒 Android матни пардохтро пинҳон кард (SafetyCore) — маблағ дидан "
     "мумкин набуд, қабул НАШУД.\n"
-    "Ислоҳ: AutoDonat v1.10 → Танзимот → Уведомления → Ещё настройки → "
-    "«Улучшенные уведомления» → ХОМӮШ → пардохти воқеӣ дубора."
+    "Ислоҳ: AutoDonat v1.10 → «Настройки» → «Уведомления» → «Общие» "
+    "(ё «Ещё настройки») → «Улучшенные уведомления» → ВЫКЛ → "
+    "пардохти воқеӣ дубора."
 )
 
 
@@ -203,8 +204,10 @@ def process_push(db: Session, *, title: str = "", body: str = "") -> dict:
                     "Ислоҳ дар телефон:\n"
                     "1) AutoDonat v1.10 насб кунед (сарлавҳа бояд "
                     "«AutoDonat v1.10» нишон диҳад);\n"
-                    "2) Танзимот → Уведомления → Ещё настройки → "
-                    "«Улучшенные уведомления» → ХОМӮШ;\n"
+                    "2) «Настройки» → «Уведомления» → «Общие» "
+                    "(ё «Ещё настройки») → «Улучшенные уведомления» → "
+                    "ВЫКЛ (агар ёфт нашавад — дар ҷустуҷӯи танзимот "
+                    "калимаи «улучшенные»-ро нависед);\n"
                     "3) Як пардохти воқеӣ дубора → худкор қабул "
                     "мешавад.\n\n"
                     "Матн: %s" % html.escape(text[:300])
@@ -340,30 +343,30 @@ _REPLIES: dict[str, dict[str, str]] = {
         "tj": (
             "🔒 Android матни пардохтро ПИНҲОН кард (SafetyCore) — маблағ "
             "дидан мумкин набуд, қабул НАШУД.\n"
-            "Ислоҳ: AutoDonat v1.10 → Танзимот → Уведомления → Ещё "
-            "настройки → «Улучшенные уведомления» → ХОМӮШ → пардохти "
+            "Ислоҳ: AutoDonat v1.10 → «Настройки» → «Уведомления» → "
+            "«Общие» → «Улучшенные уведомления» → ВЫКЛ → пардохти "
             "воқеӣ дубора."
         ),
         "ru": (
             "🔒 Android скрыл текст платежа (SafetyCore) — сумма "
             "недоступна, зачисления НЕ БЫЛО.\n"
-            "Исправление: AutoDonat v1.10 → Настройки → Уведомления → Ещё "
-            "настройки → «Улучшенные уведомления» → ВЫКЛ → повторите "
-            "реальный платёж."
+            "Исправление: AutoDonat v1.10 → Настройки → Уведомления → "
+            "Общие (или Ещё настройки) → «Улучшенные уведомления» → "
+            "ВЫКЛ → повторите реальный платёж."
         ),
         "en": (
             "🔒 Android hid the payment text (SafetyCore) — amount "
             "unavailable, NO credit happened.\n"
-            "Fix: AutoDonat v1.10 → Settings → Notifications → More "
-            "settings → «Улучшенные уведомления» (Enhanced notifications) "
-            "→ OFF → retry a real payment."
+            "Fix: AutoDonat v1.10 → Settings → Notifications → General → "
+            "«Улучшенные уведомления» (Enhanced notifications) → OFF → "
+            "retry a real payment."
         ),
         "uz": (
             "🔒 Android to'lov matnini yashirdi (SafetyCore) — summa "
             "ko'rinmaydi, o'tkazma BO'LMADI.\n"
             "Tuzatish: AutoDonat v1.10 → Sozlamalar → Bildirishnomalar → "
-            "Ko'proq sozlamalar → «Улучшенные уведомления» → O'CHIR → "
-            "haqiqiy to'lovni qaytaring."
+            "Umumiy → «Улучшенные уведомления» → O'CHIR → haqiqiy "
+            "to'lovni qaytaring."
         ),
     },
     "not_found": {
