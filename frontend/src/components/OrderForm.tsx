@@ -209,6 +209,15 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
     return () => document.body.classList.remove("paybar-open");
   }, [paybarVisible]);
 
+  // 🗂 Табҳои категорияҳо (талаби соҳиб10.11.2026 «va dar injo ... categoriya
+  //    boshad:1 almosho2 vaycherho3 propustho»): дар мобилӣ гурӯҳҳо ҳамчун
+  //    таб иваз мешаванд (як вақт танҳо як бахш); дар десктоп ҳамон стеки
+  //    пас-пас мемонад (layout танҳо дар мобилӣ иваз мешавад).
+  const [activeGroup, setActiveGroup] = useState<GroupKey | null>(null);
+  useEffect(() => {
+    setActiveGroup(null);
+  }, [game.id]);
+
   // 🌍 Худкор-интихоби минтақа: вақте backend аз рӯи ID минтақаи ҳақиқиро
   //    бармегарронад → dropdown худор иваз мешавад. Ин ref ба effectҳо мегӯяд,
   //    ки ин ТАҒЙИРИ АВТОматист (натиҷаи санҷиш тоза аст, набӯяд).
@@ -228,6 +237,13 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
     packs: [],
   };
   for (const p of products) groups[groupOf(p)].push(p);
+
+  /** Гурӯҳҳои маҳсулотдошта (тартиб аз SECTION_META) + таби фаъол */
+  const visibleSections = SECTION_META.filter((m) => groups[m.key].length > 0);
+  const activeKey: GroupKey | undefined =
+    activeGroup && groups[activeGroup].length ? activeGroup : visibleSections[0]?.key;
+  /** Табҳо танҳо ҳангоми ≥2 бахш (дар мобилӣ; десктоп = стеки пешин) */
+  const tabsOn = visibleSections.length >= 2;
   /** Номи кӯтоҳи маҳсулоти интихобшуда — барои «Фармоиши шумо» */
   const selView = selected ? packView(selected, game, t) : null;
 
@@ -509,12 +525,55 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
 
           </div>
 
+          {/* 🗂 Табҳои категорияҳо — ТАНҲО мобилӣ (талаби соҳиб10.11.2026:
+              «1 Алмосҳо,2 Ваучерҳо,3 Пропускҳо») — як вақт танҳо як бахш;
+              дар десктоп ҳамаи бахшҳо пас-пас мемонанд. Танҳо ≥2 бахш. */}
+          {tabsOn && (
+            <div
+              role="tablist"
+              aria-label={t("categories")}
+              className="md:hidden flex gap-2 overflow-x-auto pb-1 mb-3"
+            >
+              {visibleSections.map((m) => {
+                const on = m.key === activeKey;
+                return (
+                  <button
+                    key={m.key}
+                    type="button"
+                    role="tab"
+                    aria-selected={on}
+                    onClick={() => setActiveGroup(m.key)}
+                    className={`shrink-0 inline-flex items-center gap-1.5 rounded-full border-2 px-3.5 py-2
+                      text-xs font-extrabold transition-all active:scale-95
+                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
+                        on
+                          ? "border-brand-600 bg-brand-600 text-white shadow-[0_8px_18px_-8px_rgba(37,99,235,0.5)]"
+                          : "border-slate-200 bg-white text-slate-600 hover:border-brand-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                      }`}
+                  >
+                    <Ic icon={m.icon} size="xs" />
+                    {t(m.titleKey)}
+                    <span className={`text-[10px] font-bold ${on ? "text-white/85" : "text-slate-400"}`}>
+                      {groups[m.key].length}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
           {SECTION_META.map(({ key, titleKey, icon }) => {
             const items = groups[key];
             if (!items.length) return null;
             return (
-              <section key={key} className="glass rounded-3xl p-4 sm:p-6">
-                <div className="flex items-center gap-3 mb-4">
+              <section
+                key={key}
+                className={`glass rounded-3xl p-4 sm:p-6 ${
+                  tabsOn && key !== activeKey ? "max-[767px]:hidden" : ""
+                }`}
+              >
+                {/* Сарлавҳаи бахш дар мобилӣ аз табҳо пинҳон (дар десктоп мемонад) */}
+                <div className={`flex items-center gap-3 mb-4 ${tabsOn ? "max-[767px]:hidden" : ""}`}>
                   <span
                     className="w-9 h-9 shrink-0 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700
                                text-white flex items-center justify-center
