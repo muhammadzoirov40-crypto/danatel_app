@@ -337,10 +337,10 @@ def test_redacted_push_guides_settings(client: TestClient, dc_push_env):
     # танҳо як огоҳинома ба админ (Telegram), бо қадамҳои ислоҳ
     assert len(dc_push_env) == 1
     assert "Улучшенные уведомления" in dc_push_env[0]
-    assert "AutoDonat v1.9" in dc_push_env[0]
+    assert "AutoDonat v1.10" in dc_push_env[0]
     # ҷавоби бот (формат) барои ҳамаи 4 забон
     from app.services.dc_push import format_reply
 
     for lang in ("tj", "ru", "en", "uz"):
         reply = format_reply({"status": "redacted"}, lang)
-        assert "AutoDonat v1.9" in reply, (lang, reply)
+        assert "AutoDonat v1.10" in reply, (lang, reply)
