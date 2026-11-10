@@ -124,6 +124,7 @@ export default function BottomNav() {
           дар `aria-label` (дастрасӣ). */}
       <nav
         aria-label="Навигатсияи поёнӣ"
+        data-bottomnav=""
         className={`md:hidden fixed bottom-3 inset-x-3 z-50 max-w-md mx-auto
                    bg-white/80 dark:bg-slate-900/70 backdrop-blur-xl
                    border border-white/60 dark:border-slate-700/60

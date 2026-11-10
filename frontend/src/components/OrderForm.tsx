@@ -197,6 +197,18 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
   const [payStep, setPayStep] = useState<"browse" | "form">("browse");
   const payCardRef = useRef<HTMLElement | null>(null);
 
+  // 🙈 10.11.2026 (talabi соҳиб — скриншот: «inro nest kun, dar tagi pardoxt
+  //    ast ... vaqteki pardoxt paydo shavad in nest shavad»): FAB-и марказии
+  //    «Пур кардан» дар BottomNav (-mt-6) аз болои навори пардохт мебаромад →
+  //    ҳангоми нишондани навор навигатсияи поёнӣ ПУРРА пинҳон мешавад
+  //    (ҷои навор = ҷои навигатсия, мисли давр1; пас аз зер кардани навор
+  //    барқарор мешавад — ҳамон тавре ки пешин).
+  const paybarVisible = !!selected && payStep === "browse";
+  useEffect(() => {
+    document.body.classList.toggle("paybar-open", paybarVisible);
+    return () => document.body.classList.remove("paybar-open");
+  }, [paybarVisible]);
+
   // 🌍 Худкор-интихоби минтақа: вақте backend аз рӯи ID минтақаи ҳақиқиро
   //    бармегарронад → dropdown худор иваз мешавад. Ин ref ба effectҳо мегӯяд,
   //    ки ин ТАҒЙИРИ АВТОматист (натиҷаи санҷиш тоза аст, набӯяд).

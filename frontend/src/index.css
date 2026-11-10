@@ -628,3 +628,13 @@ body::before {
 .dark .shadow-sm {
   --tw-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.5);
 }
+
+/* 🙈 Навори пардохт ДАРҶОИ навигатсияи поёнӣ (талаби соҳиб10.11.2026:
+   «inro nest kun, dar tagi pardoxt ast ... vaqteki pardoxt paydo shavad
+   in nest shavad»): FAB-и марказии «Пур кардан» (-mt-6, ring-4 ring-white)
+   аз болои навори пардохт мебаромад → ҳангоми paybar навигатсияи поёнӣ
+   (боҳамаи FAB) пурра пинҳон мешавад; барои фиристодани класс = OrderForm
+   (`body.paybar-open`), тоза кардан худкор (effect cleanup). */
+body.paybar-open nav[data-bottomnav] {
+  display: none !important;
+}
