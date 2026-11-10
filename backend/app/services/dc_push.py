@@ -61,6 +61,31 @@ _PHONE_RE = re.compile(r"(?<!\d)\+?\d[\d\s\-()]{6,22}\d(?!\d)")
 
 _MAX_AMOUNT = Decimal("100000")
 
+# Android15+ SafetyCore (Google) барномаҳо-шунавандаҳо матни
+# огоҳиномаҳои молиявиро ПИНҲОН мекунад — мушоҳидаи воқеӣ 09.11.2026:
+# «Конфиденциальные данные скрыты.» → маблағ дар матн нест → худкор
+# қабул НАМЕШАВАД (пул бе далел ҳисоб намешавад — қоидаи соҳиб).
+# Чунин пушро аз «маблағ ёфт нашуд»-и умумӣ ҷудо мекунем ва роҳнамоии
+# дақиқ медиҳем (талаби соҳиб: дар истифодаи воқеӣ хатогӣ дод — ислоҳ кун).
+_REDACTED_RE = re.compile(
+    r"конфиденциальн\w*\s+данны\w*\s+скры|"
+    r"данны\w*\s+скрыты|"
+    r"hidden\s+for\s+your\s+privacy|"
+    r"content\s+hidden|"
+    r"hidden\s+to\s+protect|"
+    r"sensitive\s+content|"
+    r"ANDROID\s+ПИНҲОН",
+    re.IGNORECASE,
+)
+
+# Ҷавоби кӯтоҳ барои таърихи барнома (JSON `message`) — ҳамон роҳнамоӣ.
+_REDACTED_MSG = (
+    "🔒 Android матни пардохтро пинҳон кард (SafetyCore) — маблағ дидан "
+    "мумкин набуд, қабул НАШУД.\n"
+    "Ислоҳ: AutoDonat v1.9 → Танзимот → Уведомления → Ещё настройки → "
+    "«Улучшенные уведомления» → ХОМӮШ → пардохти воқеӣ дубора."
+)
+
 
 # =====================================================================
 # 🔍 Хондани матни пуш
@@ -147,15 +172,44 @@ def _unmatched(
 # 🔔 Коркарди пуш
 # =====================================================================
 def process_push(db: Session, *, title: str = "", body: str = "") -> dict:
-    """Як пуш → қабули дархост / такрорӣ / бе мувофиқат / нодида.
+    """Як пуш → қабули дархост / такрорӣ / бе мувофиқат / пинҳон / нодида.
 
-    Бармегардонад: {"status": "success"|"already"|"not_found"|"ignored", ...}
-    барои `not_found` — калиди `admin_text` (Telegram ба админ дар endpoint).
+    Бармегардонад: {"status": "success"|"already"|"not_found"|
+    "redacted"|"ignored", ...} — барои `not_found` ва `redacted` калиди
+    `admin_text` (Telegram ба админ дар endpoint).
     """
     text = f"{title or ''} {body or ''}".strip()
 
     amount = extract_amount(text)
     if amount is None:
+        if _REDACTED_RE.search(text):
+            # Android матнро пинҳон кард → ҲЕҶ гоҳ бе маблағ қабул
+            # намекунем, ВАЛЕ ба соҳиб роҳи ислоҳро возеҳ менамоем
+            # (ҷавоби барнома + огоҳинома ба админ дар Telegram).
+            logger.warning(
+                "DC push: матн аз Android пинҳон шуд (SafetyCore) — %s",
+                text[:160],
+            )
+            return {
+                "status": "redacted",
+                "reason": "redacted_by_android",
+                "message": _REDACTED_MSG,
+                "admin_text": (
+                    "🔒 <b>Пардохти DC: матн аз Android пинҳон шуд</b>\n"
+                    "SafetyCore (Android15+) матни огоҳиномаро барои "
+                    "барнома-шунаванда пинҳон кард → маблағ дидан мумкин "
+                    "набуд → худкор қабул НАШУД (пул ҳисоб нашуд — "
+                    "бехатар).\n\n"
+                    "Ислоҳ дар телефон:\n"
+                    "1) AutoDonat v1.9 насб кунед (сарлавҳа бояд "
+                    "«AutoDonat v1.9» нишон диҳад);\n"
+                    "2) Танзимот → Уведомления → Ещё настройки → "
+                    "«Улучшенные уведомления» → ХОМӮШ;\n"
+                    "3) Як пардохти воқеӣ дубора → худкор қабул "
+                    "мешавад.\n\n"
+                    "Матн: %s" % html.escape(text[:300])
+                ),
+            }
         logger.info("DC push: маблағ ёфт нашуд — %s", text[:120])
         return {"status": "ignored", "reason": "amount_not_found"}
 
@@ -280,6 +334,36 @@ _REPLIES: dict[str, dict[str, str]] = {
             "⚠️ Summa matndan topilmadi.\n"
             "Format: <code>25.00 TJS</code> yoki <code>25 somoni</code> "
             "+ yuboruvchi raqami."
+        ),
+    },
+    "redacted": {
+        "tj": (
+            "🔒 Android матни пардохтро ПИНҲОН кард (SafetyCore) — маблағ "
+            "дидан мумкин набуд, қабул НАШУД.\n"
+            "Ислоҳ: AutoDonat v1.9 → Танзимот → Уведомления → Ещё "
+            "настройки → «Улучшенные уведомления» → ХОМӮШ → пардохти "
+            "воқеӣ дубора."
+        ),
+        "ru": (
+            "🔒 Android скрыл текст платежа (SafetyCore) — сумма "
+            "недоступна, зачисления НЕ БЫЛО.\n"
+            "Исправление: AutoDonat v1.9 → Настройки → Уведомления → Ещё "
+            "настройки → «Улучшенные уведомления» → ВЫКЛ → повторите "
+            "реальный платёж."
+        ),
+        "en": (
+            "🔒 Android hid the payment text (SafetyCore) — amount "
+            "unavailable, NO credit happened.\n"
+            "Fix: AutoDonat v1.9 → Settings → Notifications → More "
+            "settings → «Улучшенные уведомления» (Enhanced notifications) "
+            "→ OFF → retry a real payment."
+        ),
+        "uz": (
+            "🔒 Android to'lov matnini yashirdi (SafetyCore) — summa "
+            "ko'rinmaydi, o'tkazma BO'LMADI.\n"
+            "Tuzatish: AutoDonat v1.9 → Sozlamalar → Bildirishnomalar → "
+            "Ko'proq sozlamalar → «Улучшенные уведомления» → O'CHIR → "
+            "haqiqiy to'lovni qaytaring."
         ),
     },
     "not_found": {

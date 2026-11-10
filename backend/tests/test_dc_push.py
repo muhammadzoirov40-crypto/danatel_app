@@ -7,7 +7,9 @@
   • рақами ҳисоби DC (16 рақам) ҳамчун телефон ҚАБУЛ НАМЕШАВАД;
   • қабули pending (бо чек) ва awaiting (бе чек) → баланс +25/+40;
   • такрории пуш → «already», баланс ЯК бор зиёд мешавад;
-  • бе мувофиқат → «not_found» + огоҳинома ба админ (мониторинг).
+  • бе мувофиқат → «not_found» + огоҳинома ба админ (мониторинг);
+  • Android SafetyCore матнро пинҳон кард → «redacted» + роҳнамоии
+    танзим («Улучшенные уведомления» → ХОМӮШ) дар ҷавоб ва админ.
 """
 from __future__ import annotations
 
@@ -315,3 +317,30 @@ def test_bot_forwarded_without_amount_gets_hint(client, bot_mod, monkeypatch):
     monkeypatch.setattr(settings, "TELEGRAM_ADMIN_CHAT_ID", "777001")
     reply = _run(bot_mod.on_text, _msg(777001, "hello", forwarded=True))
     assert "⚠️" in reply, reply
+
+
+# =====================================================================
+# 🔒 ANDROID SAFETYCORE МАТНРО ПИНҲОН КАРД → «REDACTED» + РОҲНАМОӢ
+# =====================================================================
+def test_redacted_push_guides_settings(client: TestClient, dc_push_env):
+    """Пуш бо матни пинҳоншуда → «redacted» + роҳнамоии танзим.
+
+    Маблағ вуҷуд надорад → ҲЕҶ гоҳ қабул намешавад (пул бе далел),
+    ВАЛЕ ҷавоб ва огоҳиномаи админ роҳи ислоҳро нишон медиҳанд.
+    """
+    r = push(client, "DC Next", "Конфиденциальные данные скрыты.")
+    assert r.status_code == 200, r.text
+    data = r.json()
+    assert data["status"] == "redacted"
+    assert data["reason"] == "redacted_by_android"
+    assert "Улучшенные уведомления" in data["message"]
+    # танҳо як огоҳинома ба админ (Telegram), бо қадамҳои ислоҳ
+    assert len(dc_push_env) == 1
+    assert "Улучшенные уведомления" in dc_push_env[0]
+    assert "AutoDonat v1.9" in dc_push_env[0]
+    # ҷавоби бот (формат) барои ҳамаи 4 забон
+    from app.services.dc_push import format_reply
+
+    for lang in ("tj", "ru", "en", "uz"):
+        reply = format_reply({"status": "redacted"}, lang)
+        assert "AutoDonat v1.9" in reply, (lang, reply)
