@@ -203,7 +203,12 @@ def test_comma_amount_and_spaced_phone(client: TestClient):
 def test_duplicate_push_no_double_credit(
     client: TestClient, dc_push_env
 ):
-    """Пуш такрорӣ → «already», баланс ЯК бор, админ огоҳ НАШАВАД."""
+    """Пуш такрорӣ → «already», баланс ЯК бор.
+
+    Талаби соҳиб10.11.2026 («dar injo az telegramham ydemlrniya oyad»):
+    қабули ЯКОМ → 1 огоҳиномаи админ дар Telegram; такрорӣ («already») →
+    бе огоҳинома (бе спам) ва баланс тағйир намеёбад.
+    """
     token, phone = register(client)
     req = prepare(client, token, "25")
 
@@ -215,7 +220,9 @@ def test_duplicate_push_no_double_credit(
     assert second.json()["status"] == "already"
     assert second.json()["request_id"] == req["id"]
     assert balance_of(client, token) == bal
-    assert dc_push_env == []
+    # Ягона огоҳинома = муваффақияти якум; такрорӣ огоҳинома намедиҳад
+    assert len(dc_push_env) == 1
+    assert "Авто-кредит" in dc_push_env[0]
 
 
 # =====================================================================
@@ -337,10 +344,10 @@ def test_redacted_push_guides_settings(client: TestClient, dc_push_env):
     # танҳо як огоҳинома ба админ (Telegram), бо қадамҳои ислоҳ
     assert len(dc_push_env) == 1
     assert "Улучшенные уведомления" in dc_push_env[0]
-    assert "AutoDonat v1.10" in dc_push_env[0]
+    assert "ВЫКЛ" in dc_push_env[0]
     # ҷавоби бот (формат) барои ҳамаи 4 забон
     from app.services.dc_push import format_reply
 
     for lang in ("tj", "ru", "en", "uz"):
         reply = format_reply({"status": "redacted"}, lang)
-        assert "AutoDonat v1.10" in reply, (lang, reply)
+        assert "Улучшенные уведомления" in reply, (lang, reply)

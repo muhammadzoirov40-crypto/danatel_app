@@ -164,11 +164,14 @@ async def notify_topup_receipt(
     amount: float,
     receipt_file: str | None,
 ) -> bool:
-    """🧾 Чек расид → танҳо хабар ба админ: баланс НАМЕАФЗАД (далел).
+    """🧾 Чек расид → хабар ба админ + ТУГМАҲОи қабул/рад.
 
     Талаби соҳиб (09.11.2026): «то пул ба корти ман накунад — баланс
-    пур нашавад» → қабул: худкор аз пуш DC (пули воқеӣ) ё дастӣ аз
-    панели админ; Telegram тугмаи қабул НАДОРАД.
+    пур нашавад» → қабул танҳо: худкор аз пуш DC (пули воқеӣ) ё тасдиқи
+    ДАСТИИ админ. Талаби нави соҳиб (11.11.2026 «чаро қабул/рад нест»):
+    тугмаҳои ✅ Қабул / ❌ Рад дар ҳамон паёми Telegram → аз инҷо ростқавл
+    қабул/рад мешавад (бот `topup:ok` / `topup:reject` → ҳамон
+    `approve_topup` / `reject_topup`, audit + `via="telegram"`).
     """
     if not settings.TELEGRAM_ADMIN_CHAT_ID:
         logger.warning(
@@ -183,22 +186,31 @@ async def notify_topup_receipt(
         f"👤 {user_label}\n"
         f"💰 {amount:.2f} сомонӣ\n\n"
         f"⚠️ Баланс НАМЕАФЗАД: танҳо пас аз расидани пули воқеӣ ба корт "
-        f"(пуш DC худкор) ё тасдиқи шумо аз панели админ."
+        f"(пуш DC худкор) ё тасдиқи ДАСТИИ шумо — тугмаҳо дар ҳамин "
+        f"ҷо ё панели админ."
     )
+    # ✅/❌ тугмаҳои inline → боти админ ҳамон `approve_topup` /
+    # `reject_topup`-ро иҷро мекунад (тҳано чати админ; ғайриадмин ⛔).
+    buttons: list[list[dict]] = [
+        [
+            {"text": "✅ Қабул", "callback_data": f"topup:ok:{request_id}"},
+            {"text": "❌ Рад", "callback_data": f"topup:reject:{request_id}"},
+        ]
+    ]
     chat_id = settings.TELEGRAM_ADMIN_CHAT_ID
 
     if receipt_file:
         local = _receipt_local(receipt_file)
         if os.path.isfile(local) and await send_photo_with_buttons(
-            chat_id, local, caption, []
+            chat_id, local, caption, buttons
         ):
             return True
 
-    return await send_message_with_buttons(chat_id, caption, [])
+    return await send_message_with_buttons(chat_id, caption, buttons)
 
 
 # =====================================================================
-# 🧾 ЧЕКИ ФАРМОИШ — фармоиш `checking`, танҳо хабар ба админ (бе тугмаҳо)
+# 🧾 ЧЕКИ ФАРМОИШ — фармоиш `checking` + тугмаҳои ✅/❌ барои админ
 # =====================================================================
 
 
@@ -221,11 +233,14 @@ async def notify_order_receipt(
     receipt_file: str | None = None,
     buyer: str | None = None,
 ) -> bool:
-    """🧾 Чеки фармоиш расид → танҳо хабар: фармоиш `checking`.
+    """🧾 Чеки фармоиш расид → хабар + ТУГМАҲОи қабул/рад.
 
     Талаби соҳиб (09.11.2026): «то пул ба корти ман накунад» — тасдиқ
-    танҳо пас аз пардохти воқеӣ аз панели админ (веб), Telegram тугма
-    НАДОРАД. `buyer` — ҳузвати харидор (ном · @username · рақам).
+    танҳо ДАСТИӢ (панели админ). Талаби нави соҳиб (11.11.2026 «дар инҷо
+    ҳам қабул/рад бошад»): тугмаҳои ✅/❌ дар ҳамон паёми Telegram →
+    бот `order:ok` / `order:reject` → ҳамон тасдиқи дастӣ: `paid` ё
+    `failed` + audit (бе ягон худкорӣ; танҳо чати админ).
+    `buyer` — ҳузвати харидор (ном · @username · рақам).
     """
     if not settings.TELEGRAM_ADMIN_CHAT_ID:
         logger.warning(
@@ -242,16 +257,24 @@ async def notify_order_receipt(
         f"💎 Маҳсулот: {product}\n"
         f"🆔 ID: <code>{player_id}</code>\n"
         f"💰 Маблағ: {amount:.2f} сомонӣ\n\n"
-        f"Фармоиш дар ҳолати «checking» — тасдиқ танҳо пас аз "
-        f"пардохти воқеӣ аз панели админ."
+        f"Фармоиш дар ҳолати «checking» — тасдиқ танҳо пас аз пардохти "
+        f"воқеӣ: тугмаҳо дар ҳамин ҷо ё панели админ."
     )
+    # ✅/❌ inline → боти админ (`cb_order`) фармоишро `paid`/`failed`
+    # мекунад (тҳано чати админ; ғайриадмин ⛔; ҳалшуда → манъ).
+    buttons: list[list[dict]] = [
+        [
+            {"text": "✅ Қабул", "callback_data": f"order:ok:{order_id}"},
+            {"text": "❌ Рад", "callback_data": f"order:reject:{order_id}"},
+        ]
+    ]
     chat_id = settings.TELEGRAM_ADMIN_CHAT_ID
 
     if receipt_file:
         local = _receipt_local(receipt_file)
         if os.path.isfile(local) and await send_photo_with_buttons(
-            chat_id, local, caption, []
+            chat_id, local, caption, buttons
         ):
             return True
 
-    return await send_message_with_buttons(chat_id, caption, [])
+    return await send_message_with_buttons(chat_id, caption, buttons)

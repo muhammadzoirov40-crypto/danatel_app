@@ -81,10 +81,11 @@ _REDACTED_RE = re.compile(
 # Ҷавоби кӯтоҳ барои таърихи барнома (JSON `message`) — ҳамон роҳнамоӣ.
 _REDACTED_MSG = (
     "🔒 Android матни пардохтро пинҳон кард (SafetyCore) — маблағ дидан "
-    "мумкин набуд, қабул НАШУД.\n"
-    "Ислоҳ: AutoDonat v1.10 → «Настройки» → «Уведомления» → «Общие» "
-    "(ё «Ещё настройки») → «Улучшенные уведомления» → ВЫКЛ → "
-    "пардохти воқеӣ дубора."
+    "мумкин набуд, қабул НАШУД (дархости кушода pending мемонад).\n"
+    "Ислоҳ дар ТЕЛЕФОН: «Настройки» → «Уведомления» → «Общие» "
+    "(ё «Ещё настройки») → «Улучшенные уведомления» → ВЫКЛ "
+    "(агар ёфт нашавад — дар ҷустуҷӯи танзимот «улучшенные» нависед) → "
+    "пардохти воқеии НАВ кунед."
 )
 
 
@@ -200,15 +201,14 @@ def process_push(db: Session, *, title: str = "", body: str = "") -> dict:
                     "SafetyCore (Android15+) матни огоҳиномаро барои "
                     "барнома-шунаванда пинҳон кард → маблағ дидан мумкин "
                     "набуд → худкор қабул НАШУД (пул ҳисоб нашуд — "
-                    "бехатар).\n\n"
-                    "Ислоҳ дар телефон:\n"
-                    "1) AutoDonat v1.10 насб кунед (сарлавҳа бояд "
-                    "«AutoDonat v1.10» нишон диҳад);\n"
-                    "2) «Настройки» → «Уведомления» → «Общие» "
+                    "бехатар; дархости кушода pending мемонад).\n\n"
+                    "Ислоҳ дар ТЕЛЕФОН (барнома онро намехонад — Android "
+                    "аз ҳамаи барнома-шунавандаҳо пинҳон мекунад):\n"
+                    "1) «Настройки» → «Уведомления» → «Общие» "
                     "(ё «Ещё настройки») → «Улучшенные уведомления» → "
                     "ВЫКЛ (агар ёфт нашавад — дар ҷустуҷӯи танзимот "
                     "калимаи «улучшенные»-ро нависед);\n"
-                    "3) Як пардохти воқеӣ дубора → худкор қабул "
+                    "2) Пардохти воқеии НАВ кунед → худкор қабул "
                     "мешавад.\n\n"
                     "Матн: %s" % html.escape(text[:300])
                 ),
@@ -292,6 +292,16 @@ def process_push(db: Session, *, title: str = "", body: str = "") -> dict:
         "user_id": user.id,
         "amount": float(decided.amount_tjs),
         "balance": float(updated_user.balance),
+        # 📨 v1.13 (talabi соҳиб10.11.2026 «dar injo az telegramham
+        #    ydemlrniya oyad»): ҳангоми қабули ХУДКОР ҳам маълумот ба
+        #    админ дар Telegram меравад (пешин танҳо хатогӣ/пинҳон мерафт).
+        "admin_text": (
+            "✅ <b>Авто-кредит: пардохти DC худкор қабул шуд</b>\n"
+            "Дархости #%s | корбар ID %s | +%s TJS\n"
+            "Баланс: %s TJS\n\n"
+            "Пардохт аз хабарномаи DC худкор ҳисоб шуд."
+            % (decided.id, user.id, decided.amount_tjs, updated_user.balance)
+        ),
     }
 
 
@@ -342,31 +352,30 @@ _REPLIES: dict[str, dict[str, str]] = {
     "redacted": {
         "tj": (
             "🔒 Android матни пардохтро ПИНҲОН кард (SafetyCore) — маблағ "
-            "дидан мумкин набуд, қабул НАШУД.\n"
-            "Ислоҳ: AutoDonat v1.10 → «Настройки» → «Уведомления» → "
-            "«Общие» → «Улучшенные уведомления» → ВЫКЛ → пардохти "
-            "воқеӣ дубора."
+            "дидан мумкин набуд, қабул НАШУД (дархости кушода pending мемонад).\n"
+            "Ислоҳ дар телефон: «Настройки» → «Уведомления» → «Общие» → "
+            "«Улучшенные уведомления» → ВЫКЛ → пардохти воқеии нав."
         ),
         "ru": (
             "🔒 Android скрыл текст платежа (SafetyCore) — сумма "
-            "недоступна, зачисления НЕ БЫЛО.\n"
-            "Исправление: AutoDonat v1.10 → Настройки → Уведомления → "
+            "недоступна, зачисления НЕ БЫЛО (запрос остаётся pending).\n"
+            "Исправление в телефоне: Настройки → Уведомления → "
             "Общие (или Ещё настройки) → «Улучшенные уведомления» → "
-            "ВЫКЛ → повторите реальный платёж."
+            "ВЫКЛ → новый реальный платёж."
         ),
         "en": (
             "🔒 Android hid the payment text (SafetyCore) — amount "
-            "unavailable, NO credit happened.\n"
-            "Fix: AutoDonat v1.10 → Settings → Notifications → General → "
+            "unavailable, NO credit (request stays pending).\n"
+            "Phone fix: Settings → Notifications → General → "
             "«Улучшенные уведомления» (Enhanced notifications) → OFF → "
-            "retry a real payment."
+            "make a new real payment."
         ),
         "uz": (
             "🔒 Android to'lov matnini yashirdi (SafetyCore) — summa "
-            "ko'rinmaydi, o'tkazma BO'LMADI.\n"
-            "Tuzatish: AutoDonat v1.10 → Sozlamalar → Bildirishnomalar → "
-            "Umumiy → «Улучшенные уведомления» → O'CHIR → haqiqiy "
-            "to'lovni qaytaring."
+            "ko'rinmaydi, o'tkazma BO'LMADI (so'rov pending qoladi).\n"
+            "Telefonda tuzatish: Sozlamalar → Bildirishnomalar → "
+            "Umumiy → «Улучшенные уведомления» → O'CHIR → yangi "
+            "haqiqiy to'lov qiling."
         ),
     },
     "not_found": {

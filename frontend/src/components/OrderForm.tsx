@@ -143,6 +143,53 @@ function groupOf(p: Product): GroupKey {
   return "packs";
 }
 
+/*🖼️ Расмҳои воқеии маҳсулотҳои Free Fire (талаби соҳиб 11.11.2026:
+   «va dar vaycherho inro mon … inhoro … tanho suratho va almazhoro») —
+   расмҳо аз скриншоти соҳиб бурида шуданд: узвиятҳои FF (кортҳои W/M)
+   + бастаҳои алмос. Танҳо барои `free-fire`; бозии дигар → иконкаи ҳозира.
+   Нархи $ аз скриншот НОГИРИФТА шуд (нархи мо TJS воқеӣ мемонад). */
+const FF_DIA_TIERS: Record<number, string> = {
+  100: "dia-100", 110: "dia-100",
+  310: "dia-310", 341: "dia-310",
+  520: "dia-520", 572: "dia-520",
+  1060: "dia-1060", 1166: "dia-1060",
+  2180: "dia-2180", 2398: "dia-2180",
+  5600: "dia-5600", 6160: "dia-5600",
+};
+
+/** Расми воқеии маҳсулоти FFё null (танҳо FF; минтақаҳои дигар ҳамон тирёка). */
+function ffArt(game: Game, p: Product): string | null {
+  if (game.slug !== "free-fire") return null;
+  const sku = (p.sku || "").toLowerCase();
+  const name = p.name.toLowerCase();
+  if (sku.startsWith("voucher") || name.includes("voucher")) {
+    if (sku.includes("week_lite") || name.includes("lite")) {
+      return "/images/ff/voucher-lite.webp";
+    }
+    if (sku.includes("month") || name.includes("month")) {
+      return "/images/ff/voucher-month.webp";
+    }
+    if (sku.includes("week") || name.includes("week")) {
+      return "/images/ff/voucher-week.webp";
+    }
+    return null;
+  }
+  const tier = FF_DIA_TIERS[Number(p.amount || 0)];
+  return tier ? `/images/ff/${tier}.webp` : null;
+}
+
+/** 💎 Арзиши алмази узвият — аз скриншоти соҳиб11.11.2026 (воқеии FF):
+ *   Weekly Lite =90 · Weekly =450 · Monthly =2600 (танҳо нишондод,
+ *   ба `amount` НАМЕНАВИСЕМ — гурӯҳбандӣ «vouchers» ҳифз мешавад). */
+function ffVoucherDia(p: Product): number | null {
+  const sku = (p.sku || "").toLowerCase();
+  const name = p.name.toLowerCase();
+  if (sku.includes("week_lite") || name.includes("lite")) return 90;
+  if (sku.includes("month") || name.includes("month")) return 2600;
+  if (sku.includes("week") || name.includes("week")) return 450;
+  return null;
+}
+
 /** Тартиб + иконкаи бахшҳо — танҳо онҳое нишон мешаванд, ки маҳсулот доранд */
 const SECTION_META: { key: GroupKey; titleKey: string; icon: LucideIcon }[] = [
   { key: "diamonds", titleKey: "secDiamonds", icon: Gem },
@@ -612,6 +659,8 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                   {items.map((p) => {
                     const active = selected?.id === p.id;
                     const view = packView(p, game, t);
+                    const art = ffArt(game, p);
+                    const dia = art ? ffVoucherDia(p) : null;
                     return (
                       <button
                         key={p.id}
@@ -633,28 +682,55 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                           </span>
                         )}
 
-                        {/* 🎯 Иконкаи асъор ДАР БОЛОИ корт:
-                            Free Fire → 💎 алмос · PUBG → 🪙 UC (аз номи воқеӣ) */}
-                        <span
-                          aria-hidden
-                          className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border
+                        {/* 💎 Узвият: шумораи алмаз дар болои рост (манобеъ:
+                            скриншоти соҳиб11.11.2026) — бастаҳои алмос аллакай
+                            дар матн «110 алмос» доранд → тугма илова НАМЕШАВАД */}
+                        {dia !== null && (
+                          <span
+                            aria-hidden
+                            className={`absolute -top-2.5 ${
+                              p.is_popular ? "left-2" : "right-2"
+                            } inline-flex items-center gap-1 rounded-full border border-brand-100
+                               bg-white px-1.5 py-0.5 shadow-sm`}
+                          >
+                            <DiamondArt className="h-3 w-3" />
+                            <span className="text-[10px] font-extrabold tabular-nums text-brand-600">
+                              {dia.toLocaleString("tj-TJ")}
+                            </span>
+                          </span>
+                        )}
+
+                        {/* 🖼️ Расми воқеии маҳсулоти FF (талаби соҳиб 11.11.2026
+                            «танҳо суратҳо ва алмазҳо»); бозии дигар → иконка */}
+                        {art ? (
+                          <img
+                            src={art}
+                            alt=""
+                            aria-hidden
+                            className="inline-flex h-10 w-12 shrink-0 rounded-xl object-contain sm:h-9 sm:w-9"
+                          />
+                        ) : (
+                          <span
+                            aria-hidden
+                            className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border
                             ${
                               active
                                 ? "border-brand-200 bg-white"
                                 : "border-brand-100 bg-gradient-to-br from-brand-50 to-blue-50"
                             }`}
-                        >
-                          {view.diamond ? (
-                            /* 💎 Алмос → тасвири воқеии алмос (танҳо барои алмосҳо) */
-                            <DiamondArt className="h-5 w-5" />
-                          ) : (
-                            <Ic
-                              icon={view.icon}
-                              size="sm"
-                              className={active ? "text-brand-700" : "text-brand-600"}
-                            />
-                          )}
-                        </span>
+                          >
+                            {view.diamond ? (
+                              /* 💎 Алмос → тасвири воқеии алмос (танҳо барои алмосҳо) */
+                              <DiamondArt className="h-5 w-5" />
+                            ) : (
+                              <Ic
+                                icon={view.icon}
+                                size="sm"
+                                className={active ? "text-brand-700" : "text-brand-600"}
+                              />
+                            )}
+                          </span>
+                        )}
 
                         {/* Ном/рақам — ҳеҷ гоҳ берун намебарояд */}
                         <span
@@ -730,10 +806,24 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
 
             {/* Маҳсулоти интихобшуда */}
             {selected && selView ? (
-              <div className="rounded-2xl border border-brand-200 bg-brand-50 p-3.5 flex items-center gap-3">
-                <span className="w-10 h-10 shrink-0 rounded-xl bg-white border border-brand-100 flex items-center justify-center">
-                  <Ic icon={selView.icon} className="text-brand-600" />
-                </span>
+              <div
+                className="rounded-2xl border border-brand-200 bg-brand-50 p-3.5 flex items-center gap-3"
+                title={selected.name}
+              >
+                {/* 🖼️ Ҳамон расми воқеии маҳсулот (талаби соҳиб 11.11.2026
+                    «injoro kame zobo tar kun») — бо кортҳои бахш мутобиқат */}
+                {ffArt(game, selected) ? (
+                  <img
+                    src={ffArt(game, selected) as string}
+                    alt=""
+                    aria-hidden
+                    className="h-10 w-12 shrink-0 rounded-xl object-contain"
+                  />
+                ) : (
+                  <span className="w-10 h-10 shrink-0 rounded-xl bg-white border border-brand-100 flex items-center justify-center">
+                    <Ic icon={selView.icon} className="text-brand-600" />
+                  </span>
+                )}
                 <div className="min-w-0 flex-1">
                   <p className="font-bold text-slate-800 text-sm truncate">
                     {selView.text}
@@ -741,9 +831,10 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                       <span className="ml-1 font-medium text-slate-400">{selView.sub}</span>
                     )}
                   </p>
-                  <p className="text-xs text-slate-500 truncate" title={selected.name}>
-                    {selected.name}
-                  </p>
+                  {/* Номи пурра танҳо барои скринридер/тултип — дар сатр
+                      НАМЕОМАД («572 алмос» + «FF 572 Diamonds» такрорӣ буд,
+                      «зобо» кардан лозим) */}
+                  <span className="sr-only">{selected.name}</span>
                 </div>
               </div>
             ) : (
