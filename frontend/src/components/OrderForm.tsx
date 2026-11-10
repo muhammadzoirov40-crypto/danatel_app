@@ -189,6 +189,13 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
   });
   // 🏦 Кушодани интихоби банк (марҳилаи 2-юм пардохти DC)
   const [showBank, setShowBank] = useState(false);
+  // 📱10.11.2026 (talabi соҳиб — скриншотҳо [1][2]: «tanho bardoxtro nishon
+  //    dihad tamom narxro nishon nadihad» + «inro nishon nadihad to vaqteki
+  //    pardoxtro zer nakunad»): дар мобилӣ корти «Фармоиши шумо» то зер
+  //    кардани навори пардохт НИШОН НАМЕШАВАД; навор танҳо «Пардохт кардан»
+  //    (бе нарх) дорад ва танҳо кортро мекушояд — пардохт аз тугмаи форма.
+  const [payStep, setPayStep] = useState<"browse" | "form">("browse");
+  const payCardRef = useRef<HTMLElement | null>(null);
 
   // 🌍 Худкор-интихоби минтақа: вақте backend аз рӯи ID минтақаи ҳақиқиро
   //    бармегарронад → dropdown худор иваз мешавад. Ин ref ба effectҳо мегӯяд,
@@ -291,6 +298,12 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [region]);
+
+  // Ивази баста (ё нопадид шудани интихоб) → қадам ба «browse»: корт дар
+  // мобилӣ дубора пинҳон, навор боз пайдо мешавад.
+  useEffect(() => {
+    setPayStep("browse");
+  }, [selected?.id]);
 
   /** Сохтани фармоиш дар сервер (муштарак барои баланс ва DC). */
   const createOrder = async (): Promise<boolean> => {
@@ -599,7 +612,12 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
         </div>
 
         {/* ---------- РОСТ: ФАРМОИШИ ШУМО (БЕ ТАҒЙИРИ МАНТИҚ — ЧИПҲОИ ВОҚЕӢ) ---------- */}
-        <aside className="lg:sticky lg:top-[72px] min-w-0">
+        <aside
+          ref={payCardRef}
+          className={`lg:sticky lg:top-[72px] min-w-0${
+            selected && payStep === "browse" ? " max-[767px]:hidden" : ""
+          }`}
+        >
           <div className="glass rounded-3xl p-4 sm:p-5">
             {/* Сарлавҳаи фармоиш */}
             <div className="flex items-center gap-2.5 mb-3.5">
@@ -793,10 +811,6 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
               )}
             </button>
 
-            {/* 📱10.11.2026 — тугмаи пардохт акнун дар ҷои BottomNav ҳам
-                ҳаст (мобилӣ) → тугмаи форма бояд аз навор тоза монад. */}
-            {selected && <div aria-hidden className="h-20 md:hidden" />}
-
             {/*10.11.2026 (talabi соҳиб — скриншот): падпаи secureNote дар ин
                 ҷо НАШАВАД — дар ҷараёни пардохти алмос нодаркор аст; тугмаи
                 пардохт охирин элемент мемонад (сабти Home.tsx даст назадааст). */}
@@ -804,29 +818,29 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
         </aside>
       </div>
 
-      {/* 📱10.11.2026 (talabi соҳиб — скриншотҳо [1][2][3]): тугмаи пардохт
-          ДАРҶОИ навигатсияи поёнӣ — ҳангоми интихоби баста BottomNav ҷойи онро
-          мегирад: ҳамон индексҳо (`bottom-3 inset-x-3 max-w-md`) вале
-          `z-[55]` > `z-50`-и BottomNav → навор пӯшида мешавад; клик = ҳамон
-          `submit` (ҳамаи санҷишҳои Player ID/зона/баланс), хато → худкор ба
-          `[role="alert"]` дар форма мебарем. Баъди сохтани фармоиш GameDetail
-          ба `/order/:id` мегузарад → ин блок нопаид → BottomNav барқарор
-          («баъд пардохт пок шавад»). Танҳо мобилӣ — дар десктоп ҳамон тугмаи
-          форма боқӣ. Бе баста → навор оддӣ (BottomNav) ҳамон тавр. */}
-      {selected && (
+      {/* 📱10.11.2026 (talabi соҳиб — скриншотҳо [1][2] — ивази мантиқи давр):
+          (1) навор ТАНҲО «Пардохт кардан» — НАРХ дар навор НЕСТ;
+          (2) корти «Фармоиши шумо» дар мобилӣ то зер кардани навор нишон
+          НАМЕШАВАД → навор зер → корт пайдо мешавад ва ба он мебарад.
+          Навор ҳоло submit НАМЕКУНАД — танҳо `payStep="form"` + скролл;
+          пардохт ва ҳама санҷишҳо (Player ID/зона/баланс) аз тугмаи форма.
+          Баъди сохтани фармоиш GameDetail ба `/order/:id` мегузарад → ин
+          блок нопаид → BottomNav барқарор («баъд пардохт пок шавад»).
+          Танҳо мобилӣ (md:hidden); дар десктоп корт ҳамеша нишон. */}
+      {selected && payStep === "browse" && (
         <div className="md:hidden fixed bottom-3 inset-x-3 z-[55] max-w-md mx-auto">
           <button
             onClick={() => {
-              submit();
-              // Агар санҷиш ноком шуд (масалан Player ID холӣ) → хато дар
-              //    форма нишон дода мешавад → корбарро ба он барем
+              setPayStep("form");
+              // Корт пас аз render пайдо мешавад → ба он мебарем
               window.setTimeout(() => {
-                document
-                  .querySelector('[role="alert"]')
-                  ?.scrollIntoView({ block: "center" });
-              }, 80);
+                payCardRef.current?.scrollIntoView({
+                  behavior: "smooth",
+                  block: "start",
+                });
+              }, 100);
             }}
-            disabled={loading || (method === "balance" && !canUseBalance)}
+            disabled={loading}
             className="btn-primary w-full rounded-2xl py-4 shadow-[0_16px_34px_-14px_rgba(37,99,235,0.95)] transition-transform active:scale-[0.99]"
           >
             {loading ? (
@@ -834,17 +848,9 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                 <Ic icon={Loader2} className="animate-spin" /> {t("loading")}
               </span>
             ) : (
-              <span className="flex flex-col items-center justify-center leading-tight">
-                <span className="inline-flex items-center gap-2 text-base font-semibold">
-                  <Ic icon={Lock} />
-                  {method === "balance" ? t("payFromBalance") : t("pay")}
-                </span>
-                {price > 0 && (
-                  <span className="mt-1.5 inline-flex items-baseline gap-1 rounded-lg bg-white/20 px-2.5 py-0.5 text-lg font-extrabold tabular-nums">
-                    {price.toLocaleString("tj-TJ")}
-                    <span className="text-xs font-bold opacity-90">{t("currency")}</span>
-                  </span>
-                )}
+              <span className="inline-flex items-center gap-2 text-base font-semibold">
+                <Ic icon={Lock} />
+                {t("pay")}
               </span>
             )}
           </button>
