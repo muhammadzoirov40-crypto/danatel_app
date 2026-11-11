@@ -16,6 +16,7 @@ import { api } from "../../api/client";
 import { useApp } from "../../context/AppContext";
 import { Ic } from "../../components/Icons";
 import BackButton from "../../components/BackButton";
+import StickyHeader from "../../components/StickyHeader";
 import Dashboard from "./Dashboard";
 import Orders from "./Orders";
 import Products from "./Products";
@@ -68,6 +69,8 @@ export default function Admin() {
     /* 📱 `-mb-20 md:mb-0` → padding-и `pb-20`-и main (ҷои navbar-и поёнӣ,
        ки дар /admin ПИНҲОН аст) — барқарории 80px дар мобилӣ. */
     <div className="mx-auto max-w-6xl px-4 py-6 -mb-20 md:mb-0">
+      {/* 📌 Сари саҳифаи часпак (талаби соҳиб 11.11.2026: «dar hamash haminxel») */}
+      <StickyHeader title={t("adminPanel")} />
       {/* 🔧 Сарлавҳа — ДАР ЯК сатр (мобилӣ 320px):
           Тугмаи «Баромад» АЗ ИН ҶО НАСТ (талаби соҳиб 06.11.2026) —
           баромад танҳо аз Сайдбар («Баромад») сурат мегирад. */}

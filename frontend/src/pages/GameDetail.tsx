@@ -7,6 +7,7 @@ import type { Game, Product } from "../types";
 import OrderForm from "../components/OrderForm";
 import GameLogo from "../components/GameLogo";
 import BackButton from "../components/BackButton";
+import StickyHeader from "../components/StickyHeader";
 import { useApp } from "../context/AppContext";
 import { Ic } from "../components/Icons";
 
@@ -110,6 +111,8 @@ export default function GameDetail() {
 
   return (
     <div className="mx-auto max-w-6xl px-3 sm:px-4 py-5 sm:py-8">
+      {/* 📌 Сари саҳифаи часпак (талаби соҳиб 11.11.2026: «dar hamash haminxel») */}
+      <StickyHeader title={game.name} />
       {/* ============ САРПӯШИ БОЗӢ (COVER) ============ */}
       <div
         className="relative rounded-3xl overflow-hidden shadow-[0_22px_50px_-25px_rgba(37,99,235,0.7)] mb-5"

@@ -30,6 +30,7 @@ import { Ic } from "../components/Icons";
 import TopUpModal from "../components/TopUpModal";
 import InstallApp from "../components/InstallApp";
 import BackButton from "../components/BackButton";
+import StickyHeader from "../components/StickyHeader";
 import { copyText } from "../utils/clipboard";
 
 /**
@@ -198,6 +199,8 @@ export default function Profile() {
   return (
     /* 🌅 Заминаи мулоими кабуди градиентӣ (дар торик — таркиби торик) */
     <div className="profile-soft min-h-[calc(100vh-4rem)] w-full max-w-full overflow-x-clip">
+      {/* 📌 Сари саҳифаи часпак (талаби соҳиб 11.11.2026: «dar hamash haminxel») */}
+      <StickyHeader title={t("profile")} />
       <div className="mx-auto max-w-3xl px-4 py-6 sm:py-8 grid gap-4 sm:gap-5">
         {/* ===== САРЛАВҲА: [← иконка] [ном] ДАР ЯК САТР
              (талаби соҳиб 07.11.2026: «дар ҳамаи ҷо ҳамин хел бошад —

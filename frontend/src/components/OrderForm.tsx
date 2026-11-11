@@ -157,8 +157,29 @@ const FF_DIA_TIERS: Record<number, string> = {
   5600: "dia-5600", 6160: "dia-5600",
 };
 
-/** Расми воқеии маҳсулоти FFё null (танҳо FF; минтақаҳои дигар ҳамон тирёка). */
+/*🖼️ Расмҳои воқеии бастаҳои UCи PUBG (талаби соҳиб 11.11.2026
+   «inhoro mon dar pugj») — расмҳои воқеии мағозаи UC (buffbuff.com):
+   танҳо онҳое, ки бо маълумоти мо мутобиқанд: 60/325/660/1800/3850/8100.
+   16200+ (расми мутобиқ дар мағозаҳо ёфт нашуд) → иконкаи ҳозира;
+   WOW Coins ва бастаҳои махсус → иконка. Нархҳо НАБУРИДА шуд. */
+const PUBG_UC_TIERS: Record<number, string> = {
+  60: "uc-60",
+  325: "uc-325",
+  660: "uc-660",
+  1800: "uc-1800",
+  3850: "uc-3850",
+  8100: "uc-8100",
+};
+
+/** Расми воқеии маҳсулоти FF/PUBGё null (бозии дигар → иконкаи ҳозира). */
 function ffArt(game: Game, p: Product): string | null {
+  if (game.slug === "pubg-mobile") {
+    // API-и оммавӣ `sku` НАМЕДИҲАД → аз рӯи номи 4 забонӣ (ҳама «PUBG 60 UC»):
+    // «PUBG 60 WOW Coins» / бастаҳои махсус → иконка.
+    if (!/^PUBG \d+ UC$/.test(p.name.trim())) return null;
+    const uc = PUBG_UC_TIERS[Number(p.amount || 0)];
+    return uc ? `/images/pubg/${uc}.webp` : null;
+  }
   if (game.slug !== "free-fire") return null;
   const sku = (p.sku || "").toLowerCase();
   const name = p.name.toLowerCase();

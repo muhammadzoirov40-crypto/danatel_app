@@ -19,6 +19,7 @@ import { api, ApiError } from "../api/client";
 import { useApp } from "../context/AppContext";
 import type { CoinsInfo, CoinTx, Game, WheelData, WheelSpin } from "../types";
 import BackButton from "../components/BackButton";
+import StickyHeader from "../components/StickyHeader";
 import { GoldCoin, Ic } from "../components/Icons";
 import { copyText } from "../utils/clipboard";
 
@@ -292,6 +293,8 @@ export default function Wheel() {
 
   return (
     <div className="profile-soft min-h-[calc(100vh-4rem)]">
+      {/* 📌 Сари саҳифаи часпак (талаби соҳиб 11.11.2026: «dar hamash haminxel») */}
+      <StickyHeader title={t("wheel")} />
       <div className="mx-auto max-w-3xl px-4 py-8 space-y-4">
         {/* ===== САРЛАВҲА: [← иконка] [ном] [монета рост] ДАР ЯК САТР
              (талаби соҳиб 07.11.2026: «дар ҳамаи ҷо ҳамин хел бошад —

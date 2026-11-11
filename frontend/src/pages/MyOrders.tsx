@@ -7,6 +7,7 @@ import { copyText } from "../utils/clipboard";
 import type { Order } from "../types";
 import StatusBadge from "../components/StatusBadge";
 import BackButton from "../components/BackButton";
+import StickyHeader from "../components/StickyHeader";
 import GameLogo from "../components/GameLogo";
 import { Ic } from "../components/Icons";
 
@@ -79,6 +80,8 @@ export default function MyOrders() {
 
   return (
     <div className="profile-soft min-h-[calc(100vh-4rem)]">
+      {/* 📌 Сари саҳифаи часпак (талаби соҳиб 11.11.2026: «dar hamash haminxel») */}
+      <StickyHeader title={t("myOrders")} />
       <div className="mx-auto max-w-3xl px-4 py-8 space-y-4">
         {/* ⬅️ Тугмаи бозгашт (услуби якхела дар ҳамаи саҳифаҳо) */}
         {/* ===== САРЛАВҲА: [← иконка] [ном] ДАР ЯК САТР

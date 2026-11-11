@@ -5,6 +5,7 @@ import { useApp } from "../context/AppContext";
 import Customers from "../components/Customers";
 import Reviews from "../components/Reviews";
 import BackButton from "../components/BackButton";
+import StickyHeader from "../components/StickyHeader";
 import { Ic } from "../components/Icons";
 
 type TabId = "customers" | "reviews";
@@ -52,6 +53,8 @@ export default function ReviewsPage() {
 
   return (
     <div>
+      {/* 📌 Сари саҳифаи часпак (талаби соҳиб 11.11.2026: «dar hamash haminxel») */}
+      <StickyHeader title={t("reviewsPageTitle")} />
       {/* ===== Header-и саҳифа: ном + бейҷи рейтинги воқеӣ + номи ду бахш ===== */}
       <section className="text-white">
         <div className="mx-auto max-w-6xl px-4 pt-4 pb-5 sm:pt-6">
