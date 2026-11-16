@@ -62,7 +62,9 @@ export default function SidebarMenu({
   onClose,
 }: {
   open: boolean;
-  onClose: () => void;
+  /** Пӯшидан; `after` — кори баъдӣ (навигатсия) → аввал маркери таърих
+   *  бардошта мешавад, баъд иҷро мешавад (ислоҳи 17.11.2026). */
+  onClose: (after?: () => void) => void;
 }) {
   const { lang, setLang, t, user, isAdmin, logout, theme, toggleTheme } =
     useApp();
@@ -199,24 +201,26 @@ export default function SidebarMenu({
 
   // 🚪 Баромад
   const onLogout = () => {
-    logout();
-    onClose();
-    nav("/");
+    onClose(() => {
+      logout();
+      nav("/");
+    });
   };
 
   /** ➡️ «Дар бораи мo» — ба бахши SEO дар саҳифаи асосӣ */
   const goAbout = () => {
-    onClose();
-    const scroll = () => {
-      const el = document.getElementById("about");
-      if (el) el.scrollIntoView({ behavior: "smooth" });
-    };
-    if (pathname !== "/") {
-      nav("/");
-      setTimeout(scroll, 150);
-    } else {
-      scroll();
-    }
+    onClose(() => {
+      const scroll = () => {
+        const el = document.getElementById("about");
+        if (el) el.scrollIntoView({ behavior: "smooth" });
+      };
+      if (pathname !== "/") {
+        nav("/");
+        setTimeout(scroll, 150);
+      } else {
+        scroll();
+      }
+    });
   };
 
   /** 🎁 «Линки даъват» — ба бахши даъват дар саҳифаи Чарҳ (#invite).
@@ -224,18 +228,19 @@ export default function SidebarMenu({
       ⚠️ Маълумот (games/coins) баъд аз нав бор мешавад → scroll ду маротиба
       (баъди 250мс + 900мс), то ҷойи ниҳоии корт дуруст ба назар гирифта шавад. */
   const goInvite = () => {
-    onClose();
-    const scroll = () => {
-      const el = document.getElementById("invite");
-      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
-    };
-    if (pathname !== "/wheel") {
-      nav("/wheel");
-      setTimeout(scroll, 300);
-      setTimeout(scroll, 1000);
-    } else {
-      scroll();
-    }
+    onClose(() => {
+      const scroll = () => {
+        const el = document.getElementById("invite");
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+      };
+      if (pathname !== "/wheel") {
+        nav("/wheel");
+        setTimeout(scroll, 300);
+        setTimeout(scroll, 1000);
+      } else {
+        scroll();
+      }
+    });
   };
 
   /** 🚩 Ростшавии флаг барои забон */
@@ -252,8 +257,7 @@ export default function SidebarMenu({
 
   /** Ҳамон равиши клик барои ҳамаи бандҳои меню */
   const go = (to: string) => {
-    onClose();
-    nav(to);
+    onClose(() => nav(to));
   };
 
   const rowCls =
@@ -265,7 +269,7 @@ export default function SidebarMenu({
     <>
       {/* 🌫️ Overlay — клик берун мепӯшад */}
       <div
-        onClick={onClose}
+        onClick={() => onClose()}
         aria-hidden
         className={`fixed inset-0 z-[60] bg-slate-950/50 backdrop-blur-sm transition-opacity duration-300 ${
           open ? "opacity-100" : "pointer-events-none opacity-0"
@@ -294,7 +298,7 @@ export default function SidebarMenu({
           <button
             ref={closeRef}
             type="button"
-            onClick={onClose}
+            onClick={() => onClose()}
             aria-label={t("close")}
             className="grid place-items-center w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800
                        text-slate-500 dark:text-slate-300 ring-1 ring-slate-200 dark:ring-slate-700

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Coins, Disc3, Info, LayoutGrid, Menu, Package, Send, Star } from "lucide-react";
 import { api } from "../api/client";
@@ -30,8 +30,99 @@ import SidebarMenu from "./SidebarMenu";
 export default function Navbar() {
   const { t, user, balance } = useApp();
   const nav = useNavigate();
-  const { pathname } = useLocation();
+  const { pathname, key: locKey } = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  // 🛡️ 17.11.2026 (талаби соҳиб: «бозгашт ҳамон пагеро нишон медиҳад» +
+  //    скриншотҳои менюи кушод): меню ҳангоми ҲАР навигатсия (бозгашт/пеш/
+  //    клики меню) пӯшида мешавад → бозгашт саҳифаи ДИГАРО нишон медиҳад,
+  //    на менюи кушодаро. `key` ҳар навигатсияро (аз ҷумла баргашт ба ҳамон
+  //    path) алоҳида нишон медиҳад.
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [locKey]);
+
+  // 🛡️ 17.11.2026 — МАРКЕРИ ТАЪРИХ барои меню (шикояти соҳиб: «бозгашт ҳамон
+  //    пагеро нишон медиҳад» + скриншотҳои менюи кушод): дар мобилӣ саҳифаи
+  //    асосӣ аввалин entry аст (idx=0) → бозгашти браузер ҲЕЧ ЧИРО намекунад
+  //    (ҳодиса рух намедиҳад!) ва меню кушода мемонад. Ҳангоми кушодани меню
+  //    entry-и иловагӣ (бо рамзи `menuMarker`) илова мешавад → бозгашт ҳатман
+  //    рӯйдод медиҳад → меню пӯшида мешавад (равиши стандартии Android:
+  //    бозгашт аввал менюро мепӯшад). Пӯшидан бо ✕/клик/Escape: аввал маркер
+  //    бардошта мешавад (`history.back()`), баъд навигатсия → таърих пок
+  //    [асосӣ, саҳифаи нав] мемонад (entry-и маркер боқӣ намемонад).
+  const markerRef = useRef(false);
+  const closingRef = useRef(false);
+  const pendingRef = useRef<(() => void) | null>(null);
+
+  /** Кушодани меню → entry-и маркер (агар ҳанӯз набошад) */
+  const openMenu = () => {
+    if (closingRef.current) return; // дар ҳоли пӯшидан → нигоҳ дор
+    if (!markerRef.current) {
+      const s = (window.history.state || {}) as Record<string, unknown>;
+      const idx = typeof s.idx === "number" ? s.idx : 0;
+      try {
+        window.history.pushState(
+          { ...s, idx: idx + 1, key: Math.random().toString(36).slice(2, 10), menuMarker: true },
+          "",
+        );
+        markerRef.current = true;
+      } catch {
+        /* history дастрас нест → меню оддӣ кор мекунад */
+      }
+    }
+    setMenuOpen(true);
+  };
+
+  /**
+   * Пӯшиди меню. `after` — кори баъдӣ (масалан навигатсия): аввал маркер
+   * бардошта мешавад (`history.back()` → popstate), баъд `after()` иҷро
+   * мешавад → таърихро маркер пас аз худ намегузорад (entry-и фишурда намемонад).
+   */
+  const menuAction = (after?: () => void) => {
+    setMenuOpen(false);
+    if (!markerRef.current) {
+      after?.();
+      return;
+    }
+    markerRef.current = false;
+    if (closingRef.current) {
+      if (after) pendingRef.current = after;
+      return;
+    }
+    closingRef.current = true;
+    let finished = false;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      window.removeEventListener("popstate", finish);
+      closingRef.current = false;
+      const fn = pendingRef.current ?? after;
+      pendingRef.current = null;
+      fn?.();
+    };
+    window.addEventListener("popstate", finish);
+    window.history.back();
+    window.setTimeout(finish, 400); // эҳтиёт: агар popstate нашуд
+  };
+
+  // Пас аз reload (маркер дар таърих мемонад) → бардоред; ҳамчунин ҳангоми
+  // бозгашти худи корбар → `markerRef` нав мешавад.
+  // ⚠️ Меню ҳангоми бозгашт/пеш ҲАМАНҶО пӯшида мешавад: `popstate` — ягона
+  //    ҳодисаи бозгашт (маркер- entry ҳатман рӯйдод медиҳад). Вобастагии
+  //    `locKey` кофӣ НЕСТ: React Router дар бораи pushState-и дастӣ намедонад
+  //    → key-и location иваз намешавад (ислоҳи 17.11.2026, санҷиши T1).
+  useEffect(() => {
+    const st = window.history.state as { menuMarker?: boolean } | null;
+    if (st?.menuMarker) window.history.back();
+    const onPop = () => {
+      const cur = window.history.state as { menuMarker?: boolean } | null;
+      if (!cur?.menuMarker) markerRef.current = false;
+      setMenuOpen(false);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
 
   /** 🪙 Pers Coins (тангаҳо) — барои таблочаи сарлавҳа (3 қисм: icon/balans/coin) */
   const [coins, setCoins] = useState<number | null>(null);
@@ -227,7 +318,7 @@ export default function Navbar() {
             (чап→рост): забон, мавзӯ, баланс, профил, баромад — ҳама дар он ҷост */}
         <button
           type="button"
-          onClick={() => setMenuOpen(true)}
+          onClick={openMenu}
           aria-label={t("menu")}
           aria-haspopup="dialog"
           aria-expanded={menuOpen}
@@ -241,7 +332,7 @@ export default function Navbar() {
 
       {/* 📚 SIDEBAR-MENЮ (чап → рост) — ҷудо аз <header> → overlay аз
           болои ҳамаи муҳтавои саҳифа мебарояд (з-[60] > z-40) */}
-      <SidebarMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <SidebarMenu open={menuOpen} onClose={menuAction} />
     </>
   );
 }
