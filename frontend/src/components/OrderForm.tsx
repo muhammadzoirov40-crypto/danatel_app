@@ -887,13 +887,15 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                           </span>
                         )}
 
-                        {/* 💎/🔢 Бейҷ дар болои рост (манобеъ: скриншоти
+                        {/* 💎 Бейҷ дар болои рост (манобеъ: скриншоти
                             соҳиб 11.11.2026): вouchер = алмос (Weekly Lite=90
-                            · Weekly=450 · Monthly=2600); ПРОПУСК = рақами
-                            сатр БЕ алмос-иконка (соҳиб16.11.2026 «dar propust
-                            ham haminxel nishon dihad») — иконкаи ҷамъи
-                            (Layers) бо «passes»-бахш якхела; бастаҳои алмос
-                            дар матн «110 алмос» доранд → бейҷ намегиранд */}
+                            · Weekly=450 · Monthly=2600); ПРОПУСК = ҳамон 💎 +
+                            рақами сатр — иловаи соҳиб16.11.2026 «dar propust
+                            ham haminxel nishon dihad», таҳрири ҳамон рӯз
+                            «ne almaz horo nishon dihad» → иконкаи алмос ҲАМ
+                            дар пропуск; рақам = сатри воқеӣ 6…30, ягон рақам
+                            сохта НАШУД; бастаҳои алмос дар матн «110 алмос»
+                            доранд → бейҷ намегиранд */}
                         {pill !== null && (
                           <span
                             aria-hidden
@@ -902,11 +904,7 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                             } inline-flex items-center gap-1 rounded-full border border-brand-100
                                bg-white px-1.5 py-0.5 shadow-sm`}
                           >
-                            {dia !== null ? (
-                              <DiamondArt className="h-3 w-3" />
-                            ) : (
-                              <Layers className="h-3 w-3 shrink-0 text-brand-600" />
-                            )}
+                            <DiamondArt className="h-3 w-3" />
                             <span className="text-[10px] font-extrabold tabular-nums text-brand-600">
                               {pill.toLocaleString("tj-TJ")}
                             </span>
