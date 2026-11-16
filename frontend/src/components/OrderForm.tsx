@@ -377,6 +377,18 @@ function ffVoucherDia(p: Product): number | null {
   return null;
 }
 
+/** 🔢 Рaqами сатри пропуск — талаби соҳиб 16.11.2026
+ *   («dar propust ham haminxel nishon dihad»): ҳамон шакли бейҷи
+ *   voucher, вале БЕ 💎 — пропуск алмос НАМЕДИҲАД; рақам = сатри воқеӣ
+ *   аз ном: «FF Level Up Pass 6/10/15/20/25/30» (тест: танҳо инҳо
+ *   match мешаванд — дар дигар бозиҳо «Pass N» маҳсулот нест). */
+function ffPassLevel(p: Product): number | null {
+  const m = p.name.match(/pass[\s_-]+(\d{1,3})/i);
+  if (!m) return null;
+  const n = Number(m[1]);
+  return n >= 1 && n <= 100 ? n : null;
+}
+
 /** Тартиб + иконкаи бахшҳо — танҳо онҳое нишон мешаванд, ки маҳсулот доранд */
 const SECTION_META: { key: GroupKey; titleKey: string; icon: LucideIcon }[] = [
   { key: "diamonds", titleKey: "secDiamonds", icon: Gem },
@@ -850,6 +862,10 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                     // 💎 Ҷамъи алмази узвият — ТАНҲО FF (бақияи бозиҳо номи
                     // «Weekly…» доранд → баҷои 450 ғалат намешавад)
                     const dia = art && game.slug === "free-fire" ? ffVoucherDia(p) : null;
+                    // 🔢 Пропуск: ҳамон бейҷ бо рақами сатр (соҳиб16.11.2026)
+                    const passLv =
+                      dia === null && art && game.slug === "free-fire" ? ffPassLevel(p) : null;
+                    const pill = dia ?? passLv;
                     return (
                       <button
                         key={p.id}
@@ -871,10 +887,14 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                           </span>
                         )}
 
-                        {/* 💎 Узвият: шумораи алмаз дар болои рост (манобеъ:
-                            скриншоти соҳиб11.11.2026) — бастаҳои алмос аллакай
-                            дар матн «110 алмос» доранд → тугма илова НАМЕШАВАД */}
-                        {dia !== null && (
+                        {/* 💎/🔢 Бейҷ дар болои рост (манобеъ: скриншоти
+                            соҳиб 11.11.2026): вouchер = алмос (Weekly Lite=90
+                            · Weekly=450 · Monthly=2600); ПРОПУСК = рақами
+                            сатр БЕ алмос-иконка (соҳиб16.11.2026 «dar propust
+                            ham haminxel nishon dihad») — иконкаи ҷамъи
+                            (Layers) бо «passes»-бахш якхела; бастаҳои алмос
+                            дар матн «110 алмос» доранд → бейҷ намегиранд */}
+                        {pill !== null && (
                           <span
                             aria-hidden
                             className={`absolute -top-2.5 ${
@@ -882,9 +902,13 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                             } inline-flex items-center gap-1 rounded-full border border-brand-100
                                bg-white px-1.5 py-0.5 shadow-sm`}
                           >
-                            <DiamondArt className="h-3 w-3" />
+                            {dia !== null ? (
+                              <DiamondArt className="h-3 w-3" />
+                            ) : (
+                              <Layers className="h-3 w-3 shrink-0 text-brand-600" />
+                            )}
                             <span className="text-[10px] font-extrabold tabular-nums text-brand-600">
-                              {dia.toLocaleString("tj-TJ")}
+                              {pill.toLocaleString("tj-TJ")}
                             </span>
                           </span>
                         )}
