@@ -377,16 +377,24 @@ function ffVoucherDia(p: Product): number | null {
   return null;
 }
 
-/** 🔢 Рaqами сатри пропуск — талаби соҳиб 16.11.2026
- *   («dar propust ham haminxel nishon dihad»): ҳамон шакли бейҷи
- *   voucher, вале БЕ 💎 — пропуск алмос НАМЕДИҲАД; рақам = сатри воқеӣ
- *   аз ном: «FF Level Up Pass 6/10/15/20/25/30» (тест: танҳо инҳо
- *   match мешаванд — дар дигар бозиҳо «Pass N» маҳсулот нест). */
-function ffPassLevel(p: Product): number | null {
+/** 💎 Чанд алмос медиҳад — Level Up Package/Pass (Garena), ҷадвали
+ *   воқеии фурӯшандаи ин маҳсулот (unibazar.net, «Level Up Package» —
+ *   ҳамон Level Up Pass-и Garena бо номи нав):
+ *     6→120 · 10→200 · 15→200 · 20→200 · 25→200 · 30→350
+ *   Ҷамъ = 1270 = «All Packages»-и ҳамон ҷадвал (санҷиши дохилӣ ✓).
+ *   Таҳрири соҳиб 16.11.2026 «level 6 minsol 120 almos» — рақами 6=120
+ *   аз ҷониби соҳиб худаш тасдиқ шуд ва бо ҷадвал мувофиқ афтод
+ *   (лангар/anchor ✓); рақамҳои боқимонда аз ҳамон ҷадвол.
+ *   FireLoot (таъминкунанда) механикоро тасдиқ мекунад
+ *   («бонусные алмазы за достижение уровней»), вале рақам надорад;
+ *   роҳнамоҳои кӯҳна (2020/2024) версияҳои кӯҳнаанд (50/40).
+ *   Сатр ёфт нашуд (tw/vn «Level Up Pass» бе рақам, ё сатри номаълум)
+ *   → null → бейҷ намемонад (рақам сохта НАМЕШАВАД). */
+const FF_PASS_DIA: Record<number, number> = { 6: 120, 10: 200, 15: 200, 20: 200, 25: 200, 30: 350 };
+function ffPassDia(p: Product): number | null {
   const m = p.name.match(/pass[\s_-]+(\d{1,3})/i);
   if (!m) return null;
-  const n = Number(m[1]);
-  return n >= 1 && n <= 100 ? n : null;
+  return FF_PASS_DIA[Number(m[1])] ?? null;
 }
 
 /** Тартиб + иконкаи бахшҳо — танҳо онҳое нишон мешаванд, ки маҳсулот доранд */
@@ -862,10 +870,11 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                     // 💎 Ҷамъи алмази узвият — ТАНҲО FF (бақияи бозиҳо номи
                     // «Weekly…» доранд → баҷои 450 ғалат намешавад)
                     const dia = art && game.slug === "free-fire" ? ffVoucherDia(p) : null;
-                    // 🔢 Пропуск: ҳамон бейҷ бо рақами сатр (соҳиб16.11.2026)
-                    const passLv =
-                      dia === null && art && game.slug === "free-fire" ? ffPassLevel(p) : null;
-                    const pill = dia ?? passLv;
+                    // 💎 Пропуск: чанд алмос медиҳад (соҳиб16.11.2026
+                    // «chand almos medihad haminro nishon dihad» — 6=120)
+                    const passDia =
+                      dia === null && art && game.slug === "free-fire" ? ffPassDia(p) : null;
+                    const pill = dia ?? passDia;
                     return (
                       <button
                         key={p.id}
@@ -890,12 +899,13 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                         {/* 💎 Бейҷ дар болои рост (манобеъ: скриншоти
                             соҳиб 11.11.2026): вouchер = алмос (Weekly Lite=90
                             · Weekly=450 · Monthly=2600); ПРОПУСК = ҳамон 💎 +
-                            рақами сатр — иловаи соҳиб16.11.2026 «dar propust
-                            ham haminxel nishon dihad», таҳрири ҳамон рӯз
-                            «ne almaz horo nishon dihad» → иконкаи алмос ҲАМ
-                            дар пропуск; рақам = сатри воқеӣ 6…30, ягон рақам
-                            сохта НАШУД; бастаҳои алмос дар матн «110 алмос»
-                            доранд → бейҷ намегиранд */}
+                            ЧАНД АЛМОС МЕДИҲАД — таҳрири соҳиб16.11.2026
+                            «chand almos medihad haminro nishon dihad»
+                            («level 6 minsol 120 almos»): 6→120 · 10/15/20/25→
+                            200 · 30→350 (ҷадвали воқеӣ, ҷамъ=1270 — тафсилот
+                            дар `FF_PASS_DIA`); сатри номаълум → бейҷ нест,
+                            ягон рақам сохта НАШУД; бастаҳои алмос дар матн
+                            «110 алмос» доранд → бейҷ намегиранд */}
                         {pill !== null && (
                           <span
                             aria-hidden
