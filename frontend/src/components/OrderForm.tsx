@@ -175,32 +175,194 @@ const PUBG_UC_TIERS: Record<number, string> = {
   40500: "uc-40500",
 };
 
-/** Расми воқеии маҳсулоти FF/PUBGё null (бозии дигар → иконкаи ҳозира). */
-function ffArt(game: Game, p: Product): string | null {
-  if (game.slug === "pubg-mobile") {
-    // API-и оммавӣ `sku` НАМЕДИҲАД → аз рӯи номи 4 забонӣ (ҳама «PUBG 60 UC»):
-    // «PUBG 60 WOW Coins» / бастаҳои махсус → иконка.
-    if (!/^PUBG \d+ UC$/.test(p.name.trim())) return null;
-    const uc = PUBG_UC_TIERS[Number(p.amount || 0)];
-    return uc ? `/images/pubg/${uc}.webp` : null;
-  }
-  if (game.slug !== "free-fire") return null;
-  const sku = (p.sku || "").toLowerCase();
-  const name = p.name.toLowerCase();
-  if (sku.startsWith("voucher") || name.includes("voucher")) {
-    if (sku.includes("week_lite") || name.includes("lite")) {
-      return "/images/ff/voucher-lite.webp";
-    }
-    if (sku.includes("month") || name.includes("month")) {
-      return "/images/ff/voucher-month.webp";
-    }
-    if (sku.includes("week") || name.includes("week")) {
-      return "/images/ff/voucher-week.webp";
-    }
+/*🖼️ Расмҳои воқеии ҳамаи бозиҳо (талаби соҳиб 12.11.2026:
+   «va ba daruni boziho daromada hamamaro realni kun … xulosa ki
+   hamai bozihoro kun»). Расмҳо аз мағозаҳои воқеӣ (firelootshop,
+   buffbuff, seagm, mtcgame, epinby, gamecore, voodoo, get4card,
+   famly, shefo-games, tokogame) гирифта, дар `public/images/{game}/`.
+   Мутобиқат АЗ НОМИ воқеии маҳсулот + `amount` (284/284 ном дар
+   4 забон якхела санҷида шуд → аз рӯи забон хатогӣ намешавад).
+   Ҷои расм вуҷуд надорад (0.99 Deal, Honor Point) → иконкаи ҳозира
+   (фолбэки рост) — расми бегона ҷо НАМЕШАВАД. */
+const BS_GOLD_TIERS: Record<number, string> = {
+  51: "gold-51", 100: "gold-100", 300: "gold-300", 500: "gold-500",
+  1000: "gold-1000", 2000: "gold-2000", 5000: "gold-5000",
+};
+const MLBB_RU_TIERS: Record<number, string> = {
+  32: "ru-32", 50: "ru-50", 150: "ru-150", 250: "ru-250", 500: "ru-500",
+  1000: "ru-1000", 1500: "ru-1500", 2500: "ru-2500", 5000: "ru-5000",
+};
+/* CIS 50/150 → ҳамон расми RU (ҷамъи бонус 55/165 = ҳамон бастаҳо) */
+const MLBB_CIS_TIERS: Record<number, string> = {
+  50: "ru-50", 78: "cis-78", 150: "ru-150", 156: "cis-156", 234: "cis-234",
+  625: "cis-625", 1860: "cis-1860", 3099: "cis-3099", 4649: "cis-4649",
+  7740: "cis-7740",
+};
+const HOK_TOKEN_TIERS: Record<number, string> = {
+  16: "tokens-16", 80: "tokens-80", 240: "tokens-240", 400: "tokens-400",
+  560: "tokens-560", 800: "tokens-800", 1200: "tokens-1200",
+  2400: "tokens-2400", 4000: "tokens-4000", 8000: "tokens-8000",
+};
+const AB_BOND_TIERS: Record<number, string> = {
+  60: "bonds-60", 310: "bonds-310", 630: "bonds-630", 1580: "bonds-1580",
+  3200: "bonds-3200", 6500: "bonds-6500",
+};
+const ABI_BOND_TIERS: Record<number, string> = {
+  100: "bonds-100", 500: "bonds-500", 1000: "bonds-1000",
+  2500: "bonds-2500", 5000: "bonds-5000", 10000: "bonds-10000",
+};
+const MR_LATTICE_TIERS: Record<number, string> = {
+  100: "lattice-100", 500: "lattice-500", 1000: "lattice-1000",
+  2180: "lattice-2180", 5680: "lattice-5680", 11680: "lattice-11680",
+};
+const PUBG_WOW_TIERS: Record<number, string> = {
+  60: "wow-60", 325: "wow-325", 660: "wow-660",
+  1800: "wow-1800", 3850: "wow-3850", 8100: "wow-8100",
+};
+
+/** Расми воқеии маҳсулоти ҲАМАИ бозиҳоё null (расм нест → иконкаи ҳозира). */
+function productArt(game: Game, p: Product): string | null {
+  const name = p.name.trim();
+  const amount = Number(p.amount || 0);
+  const img = (dir: string, key: string) => `/images/${dir}/${key}.webp`;
+  /** Мутобиқати номдор → расм (тартиби сатрҳо муҳим: «Plus» пеш аз оддӣ) */
+  const named = (dir: string, map: [RegExp, string][]): string | null => {
+    for (const [re, key] of map) if (re.test(name)) return img(dir, key);
     return null;
+  };
+
+  switch (game.slug) {
+    case "free-fire": {
+      const sku = (p.sku || "").toLowerCase();
+      const low = name.toLowerCase();
+      if (sku.startsWith("voucher") || low.includes("voucher")) {
+        if (sku.includes("week_lite") || low.includes("lite")) {
+          return img("ff", "voucher-lite");
+        }
+        if (sku.includes("month") || low.includes("month")) {
+          return img("ff", "voucher-month");
+        }
+        if (sku.includes("week") || low.includes("week")) {
+          return img("ff", "voucher-week");
+        }
+        return null;
+      }
+      const lm = name.match(/Level Up Pass\s*(\d+)?/i);
+      if (lm) {
+        const n = Number(lm[1]);
+        return [6, 10, 15, 20, 25, 30].includes(n) ? img("ff", `level-${n}`) : null;
+      }
+      if (/Evo Access/i.test(name)) {
+        if (/\b3D\b/i.test(name)) return img("ff", "evo-3d");
+        if (/\b7D\b/i.test(name)) return img("ff", "evo-7d");
+        if (/\b30D\b/i.test(name)) return img("ff", "evo-30d");
+        return null;
+      }
+      if (/Booyah/i.test(name)) {
+        return /premium/i.test(name) ? img("ff", "booyah-premium") : img("ff", "booyah");
+      }
+      const tier = FF_DIA_TIERS[amount];
+      return tier ? img("ff", tier) : null;
+    }
+    case "pubg-mobile": {
+      if (/^PUBG \d+ UC$/.test(name)) {
+        const uc = PUBG_UC_TIERS[amount];
+        return uc ? img("pubg", uc) : null;
+      }
+      if (/^PUBG \d+ WOW Coins$/.test(name)) {
+        const wow = PUBG_WOW_TIERS[amount];
+        return wow ? img("pubg", wow) : null;
+      }
+      const pm = name.match(/Prime Plus \((\d+) Month/i);
+      if (pm) return ["1", "3", "6", "12"].includes(pm[1]) ? img("pubg", `prime-plus-${pm[1]}m`) : null;
+      const pr = name.match(/\bPrime \((\d+) Month/i);
+      if (pr) return ["1", "3", "6", "12"].includes(pr[1]) ? img("pubg", `prime-${pr[1]}m`) : null;
+      return named("pubg", [
+        [/weekly mythic emblem value pack/i, "weekly-mythic"],
+        [/mythic emblem pack/i, "mythic-emblem"],
+        [/upgradable firearm materials/i, "firearm-materials"],
+        [/first purchase/i, "first-purchase"],
+        [/weekly deal pack 1/i, "weekly-deal-1"],
+        [/weekly deal pack 2/i, "weekly-deal-2"],
+        [/elite pass plus/i, "elite-plus"],
+        [/elite pass lv1-100/i, "elite-100"],
+        [/elite pass lv1-50/i, "elite-50"],
+      ]);
+    }
+    case "blood-strike": {
+      if (amount > 0) {
+        const gold = BS_GOLD_TIERS[amount];
+        return gold ? img("bs", gold) : null;
+      }
+      return named("bs", [
+        [/ultra skin lucky chest/i, "chest-ultra"],
+        [/lucky bag week/i, "lucky-bag-week"],
+        [/value season pass/i, "pass-season"],
+        [/strike pass elite/i, "pass-elite"],
+        [/strike pass premium/i, "pass-premium"],
+        [/level up pass/i, "pass-levelup"],
+        // «0.99 Deal» → расм дар ҳеҷ манобеъ ёфт нашуд → фолбэк
+      ]);
+    }
+    case "mobile-legends": {
+      if (/Diamonds/i.test(name)) {
+        const cis = /^MLBB CIS\b/.test(name);
+        const tier = (cis ? MLBB_CIS_TIERS : MLBB_RU_TIERS)[amount];
+        return tier ? img("mlbb", tier) : null;
+      }
+      return named("mlbb", [
+        [/super value pass/i, "super-value"],
+        [/weekly elite pack/i, "weekly-elite"],
+        [/monthly elite pack/i, "monthly-elite"],
+        [/twilight/i, "cis-twilight"],
+        [/^MLBB CIS Weekly$/i, "cis-weekly"],
+        [/^MLBB RU Weekly$/i, "ru-weekly"],
+      ]);
+    }
+    case "honor-of-kings": {
+      if (/Tokens/i.test(name) && amount > 0) {
+        const tier = HOK_TOKEN_TIERS[amount];
+        return tier ? img("hok", tier) : null;
+      }
+      return named("hok", [
+        [/weekly card plus/i, "weekly-card-plus"],
+        [/weekly card/i, "weekly-card"],
+        [/double token lucky bag/i, "double-token"],
+        // «Honor Point Value Pack» → расм рост нест → фолбэк
+      ]);
+    }
+    case "arena-breakout": {
+      if (amount > 0) {
+        const tier = AB_BOND_TIERS[amount];
+        return tier ? img("ab", tier) : null;
+      }
+      return named("ab", [
+        [/beginner select/i, "beginner"],
+        [/advanced battle pass/i, "advanced-bp"],
+        [/premium battle pass/i, "premium-bp"],
+      ]);
+    }
+    case "arena-breakout-infinite": {
+      if (amount > 0) {
+        const tier = ABI_BOND_TIERS[amount];
+        return tier ? img("abi", tier) : null;
+      }
+      return named("abi", [
+        [/craftsmanship skin bundle ii/i, "craft-2"],
+        [/craftsmanship skin bundle i\b/i, "craft-1"],
+        [/copper works skin bundle ii/i, "copper-2"],
+        [/copper works skin bundle i\b/i, "copper-1"],
+        [/advanced battle pass/i, "advanced-bp"],
+        [/premium battle pass/i, "premium-bp"],
+      ]);
+    }
+    case "marvel-rivals": {
+      const tier = MR_LATTICE_TIERS[amount];
+      return tier ? img("mr", tier) : null;
+    }
+    default:
+      return null;
   }
-  const tier = FF_DIA_TIERS[Number(p.amount || 0)];
-  return tier ? `/images/ff/${tier}.webp` : null;
 }
 
 /** 💎 Арзиши алмази узвият — аз скриншоти соҳиб11.11.2026 (воқеии FF):
@@ -684,8 +846,10 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                   {items.map((p) => {
                     const active = selected?.id === p.id;
                     const view = packView(p, game, t);
-                    const art = ffArt(game, p);
-                    const dia = art ? ffVoucherDia(p) : null;
+                    const art = productArt(game, p);
+                    // 💎 Ҷамъи алмази узвият — ТАНҲО FF (бақияи бозиҳо номи
+                    // «Weekly…» доранд → баҷои 450 ғалат намешавад)
+                    const dia = art && game.slug === "free-fire" ? ffVoucherDia(p) : null;
                     return (
                       <button
                         key={p.id}
@@ -725,8 +889,9 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                           </span>
                         )}
 
-                        {/* 🖼️ Расми воқеии маҳсулоти FF (талаби соҳиб 11.11.2026
-                            «танҳо суратҳо ва алмазҳо»); бозии дигар → иконка */}
+                        {/* 🖼️ Расми воқеии маҳсулот (талаби соҳиб 12.11.2026
+                            «hamai bozihoro kun») — ҳамаи 8 бозӣ; расм нест
+                            → иконкаи ҳозира (фолбэк рост) */}
                         {art ? (
                           <img
                             src={art}
@@ -837,9 +1002,9 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
               >
                 {/* 🖼️ Ҳамон расми воқеии маҳсулот (талаби соҳиб 11.11.2026
                     «injoro kame zobo tar kun») — бо кортҳои бахш мутобиқат */}
-                {ffArt(game, selected) ? (
+                {productArt(game, selected) ? (
                   <img
-                    src={ffArt(game, selected) as string}
+                    src={productArt(game, selected) as string}
                     alt=""
                     aria-hidden
                     className="h-10 w-12 shrink-0 rounded-xl object-contain"
