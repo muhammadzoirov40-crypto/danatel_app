@@ -18,18 +18,59 @@ import { Ic, CreditCard3D, Diamond3D, Gamepad3D, GiftBox3D, IdBadge3D, TajikFlag
  *   4) Плиткаҳои рақамҳо
  *   5) «Чӣ тавр кор мекунад» + огоҳиномаи бехатарӣ
  */
-export default function Home() {
-  const { t, lang, search: query, setSearch: setQuery } = useApp();
-  const [games, setGames] = useState<Game[]>([]);
-  const [loading, setLoading] = useState(true);
+/**
+ * 📦 Кэши барои БОЗГАШТ (талаби соҳиб 16.11.2026: «баъд ин обновис
+ * мешавад» → «зебо ва сода»): ҳангоми бозгашт ба саҳифаи асосӣ маълумот
+ * АЗ КЭШ ҳамонзамон нишон дода мешавад (без skeleton-и холӣ), дар
+ * пасмиз ҳамеша аз нав гирифта мешавад (stale-while-revalidate) →
+ * мундариҷа ҳамеша тоза мемонад. Кэш барои ҳар забон алоҳида (номҳои
+ * бозиҳо фарқ мекунанд).
+ */
+type HomeCache = {
+  games: Game[];
+  revList: Review[];
+  reviewSum: { rating_avg: number; reviews_total: number } | null;
+};
+const homeCache = new Map<string, HomeCache>();
+
+/** 🖼️ Суратҳои гармшуда — истинод нигоҳ дошта мешавад, то GC боркунии
+ *  нимавҷудро қатъ накунад */
+const warmImgs: HTMLImageElement[] = [];
+const warmedUrls = new Set<string>();
+
+/**
+ * 🖼️ Пешакӣ бор кардани логотипҳои бозиҳо (талаби соҳиб 16.11.2026:
+ * «ва баъд ин обновис мешавад» → «зебо ва сода»).
+ *
+ * `<img loading="lazy">` ҳангоми баромадан аз саҳифа (баргашт) аз DOM
+ * ҷудо шуда, боркуниаш қатъ мешавад → бозгашт = суратҳо чанд сония
+ * дертар меоянд (саҳифа аввал холӣ, баъд «обновис» мешавад).
+ * `new Image()` аз DOM ҷудо нест: боркунӣ то охираш идома мекунад ва
+ * натиҷа дар кэши браузер мемонад → бозгашт = логотипҳо ҳамонзамон.
+ */
+function warmGameImages(list: Game[]) {
+  for (const g of list) {
+    const u = g.image_url;
+    if (!u || warmedUrls.has(u)) continue;
+    warmedUrls.add(u);
+    const im = new Image();
+    im.src = u;
+    warmImgs.push(im);
+  }
+}
+
+export default function Home() {
+  const { t, lang, search: query, setSearch: setQuery } = useApp();
+  const [games, setGames] = useState<Game[]>(() => homeCache.get(lang)?.games ?? []);
+  const [loading, setLoading] = useState(() => !homeCache.has(lang));
   const [error, setError] = useState("");
   /** ⭐ Тақризҳои тасдиқшуда — НОМИ харидорони отзивдор барои тикер */
-  const [revList, setRevList] = useState<Review[]>([]);
+  const [revList, setRevList] = useState<Review[]>(() => homeCache.get(lang)?.revList ?? []);
   /** ⭐ Рейтинги воқеӣ аз ҷадвали отзывҳо (админ тасдиқкардаҳо) */
-  const [reviewSum, setReviewSum] = useState<{
-    rating_avg: number;
-    reviews_total: number;
-  } | null>(null);
+  const [reviewSum, setReviewSum] = useState<{
+    rating_avg: number;
+    reviews_total: number;
+  } | null>(() => homeCache.get(lang)?.reviewSum ?? null);
 
   /** ❤️ Дӯстдоштаҳо (нигоҳдорӣ дар хотираи браузер) */
   const [favorites, setFavorites] = useState<string[]>(() => {
@@ -52,26 +93,65 @@ export default function Home() {
     });
   };
 
-  useEffect(() => {
-    let alive = true;
-    setLoading(true);
-    api
-      .games(lang)
-      .then((d) => alive && setGames(d))
-      .catch((e) => alive && setError(e?.message ?? t("error")))
-      .finally(() => alive && setLoading(false));
+  useEffect(() => {
+    let alive = true;
+    const save = (patch: Partial<HomeCache>) => {
+      const cur = homeCache.get(lang) ?? { games: [], revList: [], reviewSum: null };
+      homeCache.set(lang, { ...cur, ...patch });
+    };
+    const c = homeCache.get(lang);
+    if (c) {
+      // Аз кэш → ҳамонзамон (бе skeleton) → бозгашт «обновис» намешавад
+      setGames(c.games);
+      setRevList(c.revList);
+      setReviewSum(c.reviewSum);
+      setLoading(false);
+      setError("");
+    } else {
+      setLoading(true);
+      setError("");
+    }
+    // SWR: ҳамеша дар пасмиз аз нав мегирем → маълумот ҳамеша тоза
+    api
+      .games(lang)
+      .then((d) => {
+        if (!alive) return;
+        setGames(d);
+        save({ games: d });
+        setLoading(false);
+      })
+      .catch((e) => {
+        if (!alive) return;
+        // хато танҳо он вақт нишон дода мешавад, ки кэш ҳам набошад
+        if (!homeCache.get(lang)) setError(e?.message ?? t("error"));
+        setLoading(false);
+      });
     api
       .reviews(12)
-      .then((d) => alive && setRevList(d))
+      .then((d) => {
+        if (!alive) return;
+        setRevList(d);
+        save({ revList: d });
+      })
       .catch(() => {});
     api
       .reviewSummary()
-      .then((d) => alive && setReviewSum(d))
-      .catch(() => {});
-    return () => {
-      alive = false;
-    };
-  }, [lang, t]);
+      .then((d) => {
+        if (!alive) return;
+        setReviewSum(d);
+        save({ reviewSum: d });
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [lang, t]);
+
+  /** 🖼️ Логотипҳоро ҳамонзамон гарм мекунем (аз ҷумла аз кэш) → бозгашт
+   *  бо суратҳои тайёр, бе пайдо шудани таъхирдор = «обновис» нест. */
+  useEffect(() => {
+    warmGameImages(games);
+  }, [games]);
 
   /** Ҷустуҷӯи зинда ва филтр — ҳама / машҳур / дӯстдоштаҳо */
   const filtered = useMemo(() => {
