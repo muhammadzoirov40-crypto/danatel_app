@@ -18,6 +18,11 @@ import { Ic } from "./Icons";
  *     16.11.2026: дар скриншоти соҳиб «менюи кушода» пайдо шуда буд). Беҳурматӣ ба `prefers-reduced-motion` → бе анимация;
  *     дар саҳифаи аввалии таърих (idx=0) → ҳамон рафтори пешин (бе ҳаракат);
  *     клики такрорӣ ҳангоми анимация манъ аст.
+ *   · 🎞️ 17.11.2026 (талаби соҳиб: «ҳангоми зер кардан ҳамин бозиро аз поён
+ *     ба боло нишон медиҳад»): ҳаракати АМУДӢ иваз шуд — саҳифаи ҳозира
+ *     `translateY(0 → -100%)` (аз поён ба боло баромада меравад), баъд
+ *     саҳифаи қаблӣ аз поён `translateY(12% → 0)` ворид мешавад (ҳамон
+ *     вақтҳо 0.22s + 0.17s; қаблан 16.11 уфуқӣ — ба тарафи рост — буд).
  *   · 🛡️ 17.11.2026 (талаби соҳиб: «бозгашт ҳамон пагеро нишон медиҳад» →
  *     17.11: «барои чӣ зер мекунем → боз ҳамон саҳифа, баъд нест мешавад»):
  *     мантиқи бозгашт аз рӯи Navigation API (`currentEntry.index` +
@@ -148,7 +153,8 @@ export default function BackButton({
     // ба мобайн кашида мешуд → ҳамчун «менюи кушода» пайдо мешуд → клип:
     el.style.overflowX = "hidden";
     const out = el.animate(
-      [{ transform: "translateX(0)" }, { transform: "translateX(100%)" }],
+      // 17.11 (талаби соҳиб): саҳифаи ҳозира аз поён ба БОЛО баромада меравад
+      [{ transform: "translateY(0)" }, { transform: "translateY(-100%)" }],
       { duration: 220, easing: "cubic-bezier(0.4, 0, 0.2, 1)", fill: "forwards" },
     );
     let released = false;
@@ -157,9 +163,9 @@ export default function BackButton({
       released = true;
       doNav(); // саҳифаи қаблӣ ё саҳифаи асосӣ (мундариҷа иваз мешавад)
       out.cancel(); // ҳаракати баромадан хотима → ҷои худ
-      // Саҳифаи қаблӣ аз чап (parallax-и iOS) ворид мешавад:
+      // Саҳифаи қаблӣ аз ПОЁН ворид мешавад (ҳамон самт — аз поён ба боло):
       el.animate(
-        [{ transform: "translateX(-12%)" }, { transform: "translateX(0)" }],
+        [{ transform: "translateY(12%)" }, { transform: "translateY(0)" }],
         { duration: 170, easing: "cubic-bezier(0, 0, 0.2, 1)" },
       );
       docEl.style.overflowX = prevOverflow;
