@@ -18,6 +18,13 @@ import { Ic } from "./Icons";
  *     16.11.2026: дар скриншоти соҳиб «менюи кушода» пайдо шуда буд). Беҳурматӣ ба `prefers-reduced-motion` → бе анимация;
  *     дар саҳифаи аввалии таърих (idx=0) → ҳамон рафтори пешин (бе ҳаракат);
  *     клики такрорӣ ҳангоми анимация манъ аст.
+ *   · 🛡️ 17.11.2026 (талаби соҳиб: «бозгашт ҳамон пагеро нишон медиҳад,
+ *     page дигариро [намедиҳад]»): агар дар таърих УМУМАН қаблӣ набошад
+ *     (`history.length≤1` — саҳифаи аввалин entry: мустақим кушодан/PWA/апп),
+ *     он вақт `nav(-1)` ҳеҷ чиро намекунад → ҳамон саҳифа мемонад. Ҳоло:
+ *     бо ҳамон анимация ба саҳифаи АСОСӢ меравад (`replace` → ба ҳамон
+ *     саҳифа дубора барнамегардад). Агар қаблӣ бошад (масалан аз Telegram)
+ *     → ҳамон `nav(-1)`-и пешин.
  *   · `aria-label` + матни «Бозгашт» (тарҷума: tj/ru/us/uz);
  *   · Калиди keyboard + `focus-visible` ring барои дастрастӣ (a11y).
  */
@@ -39,15 +46,34 @@ export default function BackButton({
   const goBack = () => {
     if (animating) return;
     const el = document.getElementById("root");
-    // Таърих: React Router `idx`-ро дар history.state нигоҳ медорад —
-    // агар саҳифа аввалин бошад (idx=0) → бозгашт нест → бе анимация (ҳамон пешин).
+    // Таърих: React Router `idx`-ро дар history.state нигоҳ медорад.
     const idx = (window.history.state as { idx?: number } | null)?.idx;
-    const canBack = typeof idx === "number" ? idx > 0 : true;
+    // Қаблӣ дар SPA: idx>0 → ҳа; idx=0/намаълум → аз рӯи history.length.
+    const canBack = typeof idx === "number" ? idx > 0 : window.history.length > 1;
+    // 🛡️ 17.11.2026 (талаби соҳиб): агар УМУМАН қаблӣ набошад (`length≤1`),
+    // `nav(-1)` ҳеҷ чиро намекунад → ҲАМОН САҲИФА мемонад. Ҳоло: ба
+    // саҳифаи АСОСӢ меравад (бо ҳамон анимация; `replace` → ба ҳамон
+    // саҳифа дубора барнамегардад). Агар қаблӣ вуҷуд дошта бошад
+    // (масалан аз Telegram) → ҳамон `nav(-1)`-и пешин.
+    const needHome =
+      !canBack &&
+      window.history.length <= 1 &&
+      window.location.pathname !== "/";
+    const doNav = () => {
+      if (needHome) nav("/", { replace: true });
+      else nav(-1);
+    };
     const reduced =
       typeof window.matchMedia === "function" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (!el || typeof el.animate !== "function" || !canBack || reduced) {
-      nav(-1);
+    // Бе анимация: reduced-motion / element нест / idx=0 бо қаблӣ (ҳамон пешин)
+    const skipAnim =
+      !el ||
+      typeof el.animate !== "function" ||
+      reduced ||
+      (typeof idx === "number" && idx === 0 && !needHome);
+    if (skipAnim) {
+      doNav();
       return;
     }
     animating = true;
@@ -66,7 +92,7 @@ export default function BackButton({
     const release = () => {
       if (released) return;
       released = true;
-      nav(-1); // саҳифаи қаблӣ (мундариҷа иваз мешавад)
+      doNav(); // саҳифаи қаблӣ ё саҳифаи асосӣ (мундариҷа иваз мешавад)
       out.cancel(); // ҳаракати баромадан хотима → ҷои худ
       // Саҳифаи қаблӣ аз чап (parallax-и iOS) ворид мешавад:
       el.animate(
