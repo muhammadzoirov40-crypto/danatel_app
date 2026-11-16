@@ -1172,20 +1172,18 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                   <Ic icon={Loader2} className="animate-spin" /> {t("loading")}
                 </span>
               ) : (
-                <span className="flex flex-col items-center justify-center leading-tight">
-                  <span className="inline-flex items-center gap-2 text-base font-semibold">
-                    <Ic icon={Lock} />
-                    {method === "balance" ? t("payFromBalance") : t("pay")}
-                  </span>
-                  {price > 0 && (
-                    <span className="mt-1.5 inline-flex items-baseline gap-1 rounded-lg bg-white/20 px-2.5 py-0.5 text-lg font-extrabold tabular-nums">
-                      {price.toLocaleString("tj-TJ")}
-                      <span className="text-xs font-bold opacity-90">{t("currency")}</span>
-                    </span>
-                  )}
+                <span className="inline-flex items-center gap-2 text-base font-semibold">
+                  <Ic icon={Lock} />
+                  {method === "balance" ? t("payFromBalance") : t("pay")}
                 </span>
               )}
             </button>
+
+            {/* 16.11.2026 (талаби соҳиб — скриншотҳо [1][2]: «chand pardoxt
+                meshavad ku haminro nishon nadihad») — рақами «N сомонӣ» АЗ
+                ТУГМАИ пардохт БАРДОШТА шуд: маблағ дар «Хамагӣ» менависад;
+                тугма танҳо матн (мисли навори browse-и 10.11.2026, ки нарх
+                он ҷо ҳам набуд). */}
 
             {/*10.11.2026 (talabi соҳиб — скриншот): падпаи secureNote дар ин
                 ҷо НАШАВАД — дар ҷараёни пардохти алмос нодаркор аст; тугмаи
