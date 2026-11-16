@@ -117,7 +117,16 @@ export default function Navbar() {
     if (st?.menuMarker) window.history.back();
     const onPop = () => {
       const cur = window.history.state as { menuMarker?: boolean } | null;
-      if (!cur?.menuMarker) markerRef.current = false;
+      if (!cur?.menuMarker) {
+        markerRef.current = false;
+      } else if (!markerRef.current && !closingRef.current) {
+        // 🧹 17.11.2026: ба entry-и маркер (ҳамон path) расидем, вале меню
+        //    пӯшта аст (reload/forward/дубора) → маркерро фавран бардоред, то
+        //    entry-и такрорӣ дар таърих намемонад (бозгашти навбатӣ ҳамон
+        //    саҳифаро нишон намедиҳад). `closingRef` → раванди худи
+        //    menuAction дорад, дахолат накунед.
+        window.history.back();
+      }
       setMenuOpen(false);
     };
     window.addEventListener("popstate", onPop);

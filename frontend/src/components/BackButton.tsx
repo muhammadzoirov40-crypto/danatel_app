@@ -18,13 +18,19 @@ import { Ic } from "./Icons";
  *     16.11.2026: дар скриншоти соҳиб «менюи кушода» пайдо шуда буд). Беҳурматӣ ба `prefers-reduced-motion` → бе анимация;
  *     дар саҳифаи аввалии таърих (idx=0) → ҳамон рафтори пешин (бе ҳаракат);
  *     клики такрорӣ ҳангоми анимация манъ аст.
- *   · 🛡️ 17.11.2026 (талаби соҳиб: «бозгашт ҳамон пагеро нишон медиҳад,
- *     page дигариро [намедиҳад]»): агар дар таърих УМУМАН қаблӣ набошад
- *     (`history.length≤1` — саҳифаи аввалин entry: мустақим кушодан/PWA/апп),
- *     он вақт `nav(-1)` ҳеҷ чиро намекунад → ҳамон саҳифа мемонад. Ҳоло:
- *     бо ҳамон анимация ба саҳифаи АСОСӢ меравад (`replace` → ба ҳамон
- *     саҳифа дубора барнамегардад). Агар қаблӣ бошад (масалан аз Telegram)
- *     → ҳамон `nav(-1)`-и пешин.
+ *   · 🛡️ 17.11.2026 (талаби соҳиб: «бозгашт ҳамон пагеро нишон медиҳад» →
+ *     17.11: «барои чӣ зер мекунем → боз ҳамон саҳифа, баъд нест мешавад»):
+ *     мантиқи бозгашт аз рӯи Navigation API (`currentEntry.index` +
+ *     URL-и entry-ҳои қаблӣ): (1) дар iframe (Responsive Viewer)
+ *     `history.length` аз таърихи МУШТАРАК аст → зиёда аз 1 ҳато барои
+ *     саҳифаи аввалин → `nav(-1)` ҳамон саҳифаро/таърихи бегона нишон
+ *     медиҳад → iframe бо index=0 ҳамеша ба саҳифаи асосӣ; (2) entry-и
+ *     такрорӣ (ҳамон path) → то саҳифаи ДИГАР мепарронад, агар ҳама қаблиҳо
+ *     ҳамон path бошанд → ба саҳифаи асосӣ (`replace` → ба ҳамон саҳифа
+ *     бар намегардад); (3) сатҳи болоӣ бо index=0 вале `history.length>1`
+ *     (масалан `about:blank` API-ро сифр мекунад, қаблӣ — Telegram/мақолаи
+ *     дигар) → ҳамон `nav(-1)`-и пешин. Фолбэк бе Navigation API → ҳамон
+ *     мантиқи пешин (`idx` → `history.length`).
  *   · `aria-label` + матни «Бозгашт» (тарҷума: tj/ru/us/uz);
  *   · Калиди keyboard + `focus-visible` ring барои дастрастӣ (a11y).
  */
@@ -48,20 +54,77 @@ export default function BackButton({
     const el = document.getElementById("root");
     // Таърих: React Router `idx`-ро дар history.state нигоҳ медорад.
     const idx = (window.history.state as { idx?: number } | null)?.idx;
-    // Қаблӣ дар SPA: idx>0 → ҳа; idx=0/намаълум → аз рӯи history.length.
-    const canBack = typeof idx === "number" ? idx > 0 : window.history.length > 1;
-    // 🛡️ 17.11.2026 (талаби соҳиб): агар УМУМАН қаблӣ набошад (`length≤1`),
-    // `nav(-1)` ҳеҷ чиро намекунад → ҲАМОН САҲИФА мемонад. Ҳоло: ба
-    // саҳифаи АСОСӢ меравад (бо ҳамон анимация; `replace` → ба ҳамон
-    // саҳифа дубора барнамегардад). Агар қаблӣ вуҷуд дошта бошад
-    // (масалан аз Telegram) → ҳамон `nav(-1)`-и пешин.
-    const needHome =
-      !canBack &&
-      window.history.length <= 1 &&
-      window.location.pathname !== "/";
+    const curPath = window.location.pathname;
+
+    // 🧭 17.11.2026 (талаби соҳиб: «барои чӣ зер мекунем → боз ҳамон саҳифа,
+    //    баъд нест мешавад»): Navigation API (Chrome 102+).
+    //    · `currentEntry.index` = ҷойи воқеии ҳамин window; дар iframe
+    //      (Responsive Viewer) `history.length` АЗ ТАЪРИХИ МУШТАРАК (joint)
+    //      аст → зиёда аз 1 ҳато барои саҳифаи аввалин → мантиқи кӯҳна
+    //      `length≤1` ғалат мешуд ва `nav(-1)` ҳамон саҳифаро ё таърихи
+    //      бегона нишон медиҳад;
+    //    · агар қаблӣ ҲАМОН path бошад (entry-и такрорӣ) → то саҳифаи ДИГАР
+    //      мепарронад; агар ҳамаи қаблиҳо ҳамон path бошанд → ба саҳифаи
+    //      асосӣ (replace → ба ҳамон саҳифа бар намегардад).
+    type NavApi = {
+      currentEntry?: { index?: number } | null;
+      entries?: () => { url: string }[];
+    };
+    // Режимҳо:
+    //  · 'skip' — API қаблиҳоро мебинад → то саҳифаи ДИГАР мепарронад
+    //    (entry-и такрорӣ = ҳамон path нодида гирифта мешавад);
+    //  · 'none' — API мегӯяд қаблӣ нест (index=0): дар iframe таърихи
+    //    МУШТАРАК бегона аст (joint back → вайронӣ/ҳамон саҳифа) → саҳифаи
+    //    асосӣ; дар сатҳи болоӣ (масалан `about:blank` сифр мекунад, вале
+    //    қаблӣ — Telegram/мақолаи дигар ҳаст) → ҳамон `nav(-1)`-и пешин;
+    //  · 'fb'   — бе Navigation API → ҳамон мантиқи пешин (idx → length).
+    let mode: "skip" | "none" | "fb" = "fb";
+    let steps = 1; // қадами бозгашт (0 → саҳифаи асосӣ)
+    try {
+      const api = (window as unknown as { navigation?: NavApi }).navigation;
+      const curIdx = api?.currentEntry?.index;
+      const entries = api?.entries?.();
+      if (typeof curIdx === "number" && Array.isArray(entries)) {
+        if (curIdx > 0) {
+          mode = "skip";
+          steps = 0;
+          for (let i = curIdx - 1; i >= 0; i--) {
+            let p = "";
+            try {
+              p = new URL(entries[i].url, window.location.href).pathname;
+            } catch {
+              p = "?";
+            }
+            if (p !== curPath) {
+              steps = curIdx - i;
+              break;
+            }
+          }
+        } else {
+          mode = "none";
+        }
+      }
+    } catch {
+      mode = "fb";
+    }
+    let needHome: boolean;
+    if (mode === "skip") {
+      // Ҳамаи қаблиҳо ҳамон path буданд (ё ҳеҷ кори дигар нест) → асосӣ.
+      needHome = steps === 0 && curPath !== "/";
+    } else if (mode === "none") {
+      const isIframe = window.self !== window.top;
+      needHome = curPath !== "/" && (isIframe || window.history.length <= 1);
+    } else {
+      // Фолбэк (браузер бе Navigation API): ҳамон мантиқи пешин.
+      const canBack = typeof idx === "number" ? idx > 0 : window.history.length > 1;
+      needHome = !canBack && window.history.length <= 1 && curPath !== "/";
+      steps = needHome ? 0 : 1;
+    }
+    // `replace` → ба ҳамон саҳифаи асосӣ дубора барнамегардад.
     const doNav = () => {
       if (needHome) nav("/", { replace: true });
-      else nav(-1);
+      else if (steps > 0) nav(-steps);
+      else nav(-1); // дар '/' бе қаблӣ → ҳамон nav(-1)-и беҳаракат
     };
     const reduced =
       typeof window.matchMedia === "function" &&
