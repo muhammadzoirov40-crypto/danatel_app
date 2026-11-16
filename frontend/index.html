@@ -71,16 +71,37 @@
         max-width: 250px;
       }
       html.dark .boot-status { color: #aab6d8; }
+      .boot-retry-btn {
+        margin-top: 16px;
+        padding: 12px 24px;
+        border: 0;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        color: #fff;
+        font: 700 14px/1 system-ui, sans-serif;
+        cursor: pointer;
+        box-shadow: 0 10px 22px -10px rgba(37, 99, 235, 0.95);
+        transition: transform 0.12s ease;
+      }
+      .boot-retry-btn:active { transform: scale(0.97); }
+      .boot-retry-btn:focus-visible { outline: 3px solid #93c5fd; outline-offset: 2px; }
     </style>
-    <!-- 🔄 Худкор бозхонӣ v2 (ислоҳи «экран мемонад» — талаби соҳиб
-         09.11.2026, мӯҳлати дуюм16:35): то3 маротиба, бо нишондоди
-         вазъият дар экран. Ҳар бор:20s интизор → агар React ҳанӯз
-         наномонда → бозхонӣ. sessionStorage = шумораи такрорҳо
-         (такрори беҳуда манъ); ҳангоми муваффақият пардохт пок
-         мешавад → дар оянда ҳам имконияти такрор мемонад. Агар
-         шумора сабт нашавад (маҳдудияти sessionStorage) → бозхонӣ
-         НАМЕКУНАД (ҳалқаи беҳуда манъ) → паёми охирин нишон дода
-         мешавад. -->
+    <!-- 🔄 Худкор бозхонӣ v3 (талаби соҳиб 16.11.2026 — скриншот
+         «Такрори боргирӣ 3 аз 3» + «haminro isloh kun»):
+         v2 (09.11.2026) ҳар 20s бозхонӣ мекард, ҳатто ҳангоми боршавии
+         ФАЪОЛ — дар интернети суст ҳар бор пешрафт партофта мешуд →
+         3/3 тамом → матн бо «(F5)» бе тугма (дар телефон кор намекард).
+         v3:
+         (1) Дарҳоли фаъол (HTML/скрипт ҳанӯз меоянд) → БОЗХОНӢ НАМЕКУНАД,
+             сабр мекунад (то 60s) — пешрафт нобуд НАМЕШАВАД;
+         (2) Шикасти дархости скрипт → бозхонии зуд (≥1.5s);
+         (3) Скрипт омад, вале React нанишаст (хатои барнома) → ≥6s баъд
+             бозхонӣ, бе интизории беҳуда;
+         (4) 15s ҳеч чиз намеояд (stalled) → бозхонӣ; ҳадди умумӣ 60s;
+         (5) Ҳамаи кӯшишҳо тамом → матн + ТУГМАИ «Аз нав кӯшиш кунед»
+             (touch/клавиатура; шумораи такрорҳоро пок → аз сифр).
+         sessionStorage = шумораи такрорҳо (ҳалқаи беҳуда манъ); ҳангоми
+         муваффақият пардохт пок мешавад → дар оянда ҳам такрор мемонад. -->
     <script>
       (function () {
         try {
@@ -91,12 +112,16 @@
             n = parseInt(sessionStorage.getItem(KEY) || "0", 10) || 0;
           } catch (e) {}
           if (n < 0 || n > MAX) n = 0;
+          var t0 = Date.now();
+          var failed = false;
+          var loaded = false;
+          var done = false;
           var mounted = function () {
             return !document.querySelector(".boot");
           };
           var say = function (text) {
             var boot = document.querySelector(".boot");
-            if (!boot) return;
+            if (!boot) return null;
             var s = document.getElementById("boot-status");
             if (!s) {
               s = document.createElement("p");
@@ -106,31 +131,89 @@
               boot.appendChild(s);
             }
             s.textContent = text;
+            return s;
+          };
+          // (2) Шикасти дархост (скрипт/лимс) — capture, дарҳол маълум
+          window.addEventListener(
+            "error",
+            function (ev) {
+              var t = ev.target;
+              if (t && (t.tagName === "SCRIPT" || t.tagName === "LINK")) failed = true;
+            },
+            true
+          );
+          var pending = function () {
+            if (document.readyState === "loading") return true;
+            var m = document.querySelector("script[type=module]");
+            if (!m || loaded || failed) return false;
+            if (!m._bootWatch) {
+              m._bootWatch = true;
+              m.addEventListener("load", function () {
+                loaded = true;
+              });
+              m.addEventListener("error", function () {
+                failed = true;
+              });
+            }
+            return true;
+          };
+          var final = function () {
+            if (done) return;
+            done = true;
+            say("Боргирӣ қатъ шуд — интернетро санҷед.");
+            var boot = document.querySelector(".boot");
+            if (!boot || document.getElementById("boot-retry-btn")) return;
+            var b = document.createElement("button");
+            b.id = "boot-retry-btn";
+            b.type = "button";
+            b.className = "boot-retry-btn";
+            b.textContent = "🔄 Аз нав кӯшиш кунед";
+            b.addEventListener("click", function () {
+              try {
+                sessionStorage.removeItem(KEY);
+              } catch (e) {}
+              location.reload();
+            });
+            boot.appendChild(b);
+          };
+          var reloadNow = function () {
+            if (done) return;
+            if (n >= MAX) return final();
+            var ok = true;
+            try {
+              sessionStorage.setItem(KEY, String(n + 1));
+            } catch (e) {
+              ok = false;
+            }
+            if (ok) location.reload();
+            else final();
           };
           var said = false;
           var iv = setInterval(function () {
             if (mounted()) {
               clearInterval(iv);
-              try { sessionStorage.removeItem(KEY); } catch (e) {}
+              try {
+                sessionStorage.removeItem(KEY);
+              } catch (e) {}
               return;
             }
             // DOM тайёр аст (1s) → вазъиятро нишон диҳед, агар такрор рафта бошад
-            if (n > 0 && !said) {
+            if (n > 0 && !said && !done) {
               said = true;
               say("Такрори боргирӣ " + n + " аз " + MAX + "…");
             }
           }, 1000);
-          setTimeout(function () {
-            if (mounted()) return;
-            if (n >= MAX) {
-              say("Боргирӣ қатъ шуд. Лутфан саҳифаро аз нав кунед (F5).");
-              return;
+          var ck = setInterval(function () {
+            if (mounted() || done) return;
+            var el = Date.now() - t0;
+            if (failed && el > 1500) return reloadNow(); // (2)
+            if (loaded && el > 6000) return reloadNow(); // (3)
+            if (pending()) {
+              if (el > 60000) reloadNow(); // (1) фаъол — сабр то 60s
+            } else if (el > 15000) {
+              reloadNow(); // (4) stalled
             }
-            var ok = true;
-            try { sessionStorage.setItem(KEY, String(n + 1)); } catch (e) { ok = false; }
-            if (ok) location.reload();
-            else say("Боргирӣ қатъ шуд. Лутфан саҳифаро аз нав кунед (F5).");
-          }, 20000);
+          }, 2000);
         } catch (e) { /* беҳатар */ }
       })();
     </script>
