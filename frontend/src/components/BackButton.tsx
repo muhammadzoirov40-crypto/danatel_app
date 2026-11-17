@@ -22,8 +22,12 @@ import { Ic } from "./Icons";
  *     tarafi rost meraft ku»): ҳаракати АМУДИИ қаблӣ (поён → боло) БАРГАРДОНДА
  *     ШУД → ҳамон 16.11: саҳифаи ҳозира ба тарафи РОСТ мебарояд
  *     (`translateX(0 → 100%)`), баъд саҳифаи қаблӣ аз чап ворид мешавад
- *     (`translateX(-12% → 0)`; 0.22s + 0.17s). «Зер кардан → бозӣ аз поён ба
+ *     (`translateX(-12% → 0)`; 0.18s + 0.14s). «Зер кардан → бозӣ аз поён ба
  *     боло» = КУШОДАНИ бозӣ → дар `GameOpenAnim` (амудӣ, он ҷо иҷро мешавад).
+ *   · 🛡️ 17.11 (шикояти соҳиб: «bozbaydo meshava, 0.5 sikund meistad, nest
+ *     meshava»): «даромадан» то ивази URL (traversal-и Chrome ~60-90ms) ва
+ *     commit-и React сабр мекунад → саҳифаи кӯҳна боз ба чап бар намегардад;
+ *     дар ин фосила #root дар ҷои рост мемонад (экран холӣ).
  *   · 🛡️ 17.11.2026 (талаби соҳиб: «бозгашт ҳамон пагеро нишон медиҳад» →
  *     17.11: «барои чӣ зер мекунем → боз ҳамон саҳифа, баъд нест мешавад»):
  *     мантиқи бозгашт аз рӯи Navigation API (`currentEntry.index` +
@@ -156,26 +160,53 @@ export default function BackButton({
     const out = el.animate(
       // 17.11 (тағйири фикри соҳиб): саҳифаи ҳозира ба тарафи РОСТ мебарояд
       [{ transform: "translateX(0)" }, { transform: "translateX(100%)" }],
-      { duration: 220, easing: "cubic-bezier(0.4, 0, 0.2, 1)", fill: "forwards" },
+      { duration: 180, easing: "cubic-bezier(0.4, 0, 0.2, 1)", fill: "forwards" },
     );
     let released = false;
     const release = () => {
       if (released) return;
       released = true;
-      doNav(); // саҳифаи қаблӣ ё саҳифаи асосӣ (мундариҷа иваз мешавад)
-      out.cancel(); // ҳаракати баромадан хотима → ҷои худ
-      // Саҳифаи қаблӣ аз ЧАП ворид мешавад (баръакси баромадан — ҳамон 16.11):
-      el.animate(
-        [{ transform: "translateX(-12%)" }, { transform: "translateX(0)" }],
-        { duration: 170, easing: "cubic-bezier(0, 0, 0.2, 1)" },
-      );
-      docEl.style.overflowX = prevOverflow;
-      el.style.overflowX = prevRootOverflow;
-      animating = false;
+      doNav(); // таърих иваз мешавад (nav(-steps) = traversal-и АСИНХРОН!)
+      // 🛡️ 17.11 (шикояти соҳиб: «ba tarafi rost meravad, bozbaydo meshava,
+      //    0.5 sikund meistad, nest meshava»): `history.go(-n)` дар Chrome
+      //    тақрибан 60-90ms ДАРЪАТ мешавад → дар ин фосила МУНДАРИҶА ҲАНОЗ
+      //    САҲИФАИ КӯҲНА аст. Агар ҳамон лаҳза «даромадан» оғоз шавад →
+      //    саҳифаи кӯҳна АЗ ЧАП БАРМЕГАРДАД («bozbaydo»), баъд дар охир ба
+      //    саҳифаи нав мабадал мешавад → ҳамин шикояти соҳиб. Ислоҳ: сабр то
+      //    ивази URL + 2 rAF (React аз popstate ҷорӣ шудааст) → баъд «даромадан».
+      //    Дар ин муддат #root дар ҷои рост (пӯшида) мемонад → экрани холӣ →
+      //    саҳифаи нав аз чап ТОЗА ворид мешавад. Мӯҳлатҳо: 0.18s + 0.14s.
+      let started = false;
+      const startIn = () => {
+        if (started) return;
+        started = true;
+        out.cancel(); // ҳаракати баромадан хотима → ҷои худ
+        // Саҳифаи қаблӣ аз ЧАП ворид мешавад (баръакси баромадан — ҳамон 16.11):
+        el.animate(
+          [{ transform: "translateX(-12%)" }, { transform: "translateX(0)" }],
+          { duration: 140, easing: "cubic-bezier(0, 0, 0.2, 1)" },
+        );
+        docEl.style.overflowX = prevOverflow;
+        el.style.overflowX = prevRootOverflow;
+        animating = false;
+      };
+      const t0 = performance.now();
+      const poll = () => {
+        if (started) return;
+        if (window.location.pathname !== curPath) {
+          // URL иваз шуд → +2 rAF = React аз popstate ҷорӣ шуд (commit пеш аз расм)
+          requestAnimationFrame(() => requestAnimationFrame(startIn));
+        } else if (performance.now() - t0 > 300) {
+          startIn(); // эҳтиёт: traversal-ро надидем → ҳамон роҳи кӯҳна
+        } else {
+          requestAnimationFrame(poll);
+        }
+      };
+      requestAnimationFrame(poll);
     };
     out.onfinish = release;
-    // Эҳтиёт: агар `onfinish` нашуд → пас аз 600ms ҳатман озод мешавад
-    window.setTimeout(release, 600);
+    // Эҳтиёт: агар `onfinish` нашуд → пас аз 500ms ҳатман озод мешавад
+    window.setTimeout(release, 500);
   };
 
   return (
