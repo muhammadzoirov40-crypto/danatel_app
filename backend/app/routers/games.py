@@ -7,6 +7,8 @@ from app.database import get_db
 from app.models import Game, Order, OrderStatus, Product, User
 from app.routers.lookup import DEFAULT_REGION, GAMES_NEED_ZONE, regions_for_slug
 from app.schemas import GameDetailOut, GameOut, ProductOut, PublicStats
+from app.security import get_current_user_optional
+from app.services.user_prices import overrides_for, price_of
 
 router = APIRouter(prefix="/api", tags=["games"])
 
@@ -28,9 +30,15 @@ def _default_products(g: Game) -> list[Product]:
 def list_games(
     lang: str = Query("tj"),
     db: Session = Depends(get_db),
+    current_user: User | None = Depends(get_current_user_optional),
 ):
-    """Рӯйхати ҳамаи бозиҳои фаъол."""
+    """Рӯйхати ҳамаи бозиҳои фаъол.
+
+    💰 Агар корбар ВУРУД карда бошад → минимум аз нархи ШАХСӢИ ӯ
+       (админ таъин кардааст) ҳисоб мешавад; бе вуруд → нархи умумӣ.
+    """
     lang = _lang(lang)
+    ov = overrides_for(db, current_user.id if current_user else None)
     games = db.scalars(
         select(Game)
         .options(selectinload(Game.products))
@@ -49,7 +57,7 @@ def list_games(
             image_url=g.image_url,
             image_pad=g.image_pad,
             # 📊 Маълумоти промо-картоҳои саҳифаи асосӣ
-            min_price_tjs=_min_price(g),
+            min_price_tjs=_min_price(g, ov),
             products_count=len(_default_products(g)),
             is_popular=any(p.is_popular for p in _default_products(g)),
         )
@@ -126,16 +134,32 @@ def list_customers(
     }
 
 
-def _min_price(g: Game):
-    """Арзиши аз-рӯи арзонтарин маҳсулоти фаъоли минтақаи пешфарз."""
-    prices = [p.price_tjs for p in _default_products(g) if p.price_tjs is not None]
+def _min_price(g: Game, overrides: dict | None = None):
+    """Арзиши аз-рӯи арзонтарин маҳсулоти фаъоли минтақаи пешфарз.
+
+    💰 `overrides` = нархҳои шахсии корбар (даромад: {product_id: narx}).
+    """
+    ov = overrides or {}
+    prices = [
+        price_of(p, ov) for p in _default_products(g) if p.price_tjs is not None
+    ]
     return min(prices) if prices else None
 
 
 @router.get("/games/{slug}", response_model=GameDetailOut)
-async def game_detail(slug: str, lang: str = Query("tj"), db: Session = Depends(get_db)):
-    """Тафсилоти бозӣ + маҳсулотҳо (нархҳо)."""
+async def game_detail(
+    slug: str,
+    lang: str = Query("tj"),
+    db: Session = Depends(get_db),
+    current_user: User | None = Depends(get_current_user_optional),
+):
+    """Тафсилоти бозӣ + маҳсулотҳо (нархҳо).
+
+    💰 Вуруд → нархи ШАХСИИ корбар (админ таъин кардааст); бе вуруд →
+       нархи умумӣ. Ҳеҷ маълумоти админӣ дар ин ҷо нест.
+    """
     lang = _lang(lang)
+    ov = overrides_for(db, current_user.id if current_user else None)
     game = db.scalar(
         select(Game)
         .options(selectinload(Game.products))
@@ -148,7 +172,7 @@ async def game_detail(slug: str, lang: str = Query("tj"), db: Session = Depends(
         ProductOut(
             id=p.id,
             name=p.get_name(lang),
-            price_tjs=p.price_tjs,
+            price_tjs=price_of(p, ov),
             amount=p.amount,
             is_popular=p.is_popular,
             is_active=p.is_active,
@@ -178,8 +202,8 @@ async def game_detail(slug: str, lang: str = Query("tj"), db: Session = Depends(
         products=products,
         regions=regions,
         needs_zone=game.slug in GAMES_NEED_ZONE,
-        # 📊 Ҳамон маълумоти промо мисли рӯйхат (минтақаи пешфарз)
-        min_price_tjs=_min_price(game),
+        # 📊 Ҳамон маълумоти промо мисли рӯйхат (минтақаи пешфарз + нархи шахсӣ)
+        min_price_tjs=_min_price(game, ov),
         products_count=len(_default_products(game)),
         is_popular=any(p.is_popular for p in _default_products(game)),
     )

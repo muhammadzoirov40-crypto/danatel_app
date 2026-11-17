@@ -16,6 +16,7 @@ import {
   Plus,
   Search,
   Smartphone,
+  Tag,
   Trash2,
   User,
   Users as UsersIcon,
@@ -28,6 +29,7 @@ import { TX_META } from "../../types";
 import { useApp } from "../../context/AppContext";
 import { Ic } from "../../components/Icons";
 import { copyText } from "../../utils/clipboard";
+import UserPrices from "./UserPrices";
 
 /**
  * 👥 Идоракунии баланси корбарон.
@@ -45,6 +47,8 @@ export default function Users() {
   const [search, setSearch] = useState("");
   // Корбари кушодашуда барои идоракунӣ
   const [openId, setOpenId] = useState<number | null>(null);
+  // 💰 Панели нархҳои ШАХСИИ корбар (нархи кӯҳна + нархи нав — талаби соҳиб 17.11.2026)
+  const [priceId, setPriceId] = useState<number | null>(null);
   const [history, setHistory] = useState<{ user: AdminUser; txs: BalanceTx[] } | null>(null);
   // 🔑 Кодҳои даъват + вазъияти парол (як бор ҳангоми кушодан)
   const [secrets, setSecrets] = useState<Record<number, UserSecret>>({});
@@ -436,6 +440,16 @@ export default function Users() {
                       <Ic icon={Wallet} size="xs" />
                       {t("manageBalance")}
                     </button>
+                    {/* 💰 Нархҳои шахсии ҳамин корбар (кӯҳна + нав) */}
+                    <button
+                      onClick={() => setPriceId(priceId === u.id ? null : u.id)}
+                      aria-expanded={priceId === u.id}
+                      aria-label={`${t("userPricesBtn")}: ${u.full_name || u.phone || `#${u.id}`}`}
+                      className="btn-ghost text-xs px-3 py-1.5 justify-center w-full sm:w-auto whitespace-nowrap"
+                    >
+                      <Ic icon={Tag} size="xs" />
+                      {t("userPricesBtn")}
+                    </button>
                     <button
                       onClick={() => void openHistory(u)}
                       className="btn-ghost text-xs px-3 py-1.5 justify-center w-full sm:w-auto whitespace-nowrap"
@@ -493,6 +507,9 @@ export default function Users() {
                     }}
                   />
                 )}
+
+                {/* 💰 Нархҳои шахсии корбар: кӯҳна (умумӣ) + нав (таъини админ) */}
+                {priceId === u.id && <UserPrices user={u} flash={flash} />}
               </div>
               );
             })}

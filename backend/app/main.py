@@ -25,6 +25,7 @@ from app.routers import (
     pricing,
     reviews,
     topups,
+    user_prices,
     webhook,
     ws,
 )
@@ -93,6 +94,7 @@ app.include_router(webhook.router)
 app.include_router(lookup.router)
 app.include_router(admin.router)
 app.include_router(admin_extra.router)
+app.include_router(user_prices.router)
 app.include_router(apk.router)
 app.include_router(pricing.router)
 app.include_router(reviews.router)

@@ -16,6 +16,20 @@ export interface Product {
   cost_tjs?: number | null;
 }
 
+/** 💰 Нархи корбар: НАРХИ КӯҲНА (умумӣ) + НАРХИ ШАХСӢ (админ таъин кардааст) */
+export interface UserPriceItem {
+  product_id: number;
+  game_id: number;
+  game_slug: string;
+  game_name: string;
+  game_image_url?: string | null;
+  name: string;
+  amount: number;
+  base_price_tjs: number;
+  /** null = ҳамон нархи кӯҳна */
+  custom_price_tjs: number | null;
+}
+
 /** 🔥 Баланси ҳисоби FireLoot (воқеӣ аз API партнёрӣ) */
 export interface FirelootBalance {
   balance: string | null;

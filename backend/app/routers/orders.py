@@ -19,6 +19,7 @@ from app.models import Game, Order, OrderStatus, PaymentMethod, Product, User
 from app.schemas import OrderCreate, OrderOut, PaymentInitOut
 from app.security import get_current_user, get_current_user_optional, require_admin
 from app.services import dc_service, telegram_service, wallet
+from app.services.user_prices import effective_price
 
 logger = logging.getLogger("orders")
 router = APIRouter(prefix="/api/orders", tags=["orders"])
@@ -212,7 +213,10 @@ async def create_order(
     if len(player_id) < 2:
         raise HTTPException(status_code=422, detail="Player ID нодуруст аст")
 
-    price = Decimal(str(product.price_tjs))
+    # 💰 Нархи самаранӣ: нархи ШАХСИИ корбар (админ таъин кардааст) ё
+    #    нархи умумӣ. Дар `order.amount_tjs` ҳамин мемонад → дарвозаҳои
+    #    тасдиқи пардохт (dc-push/чек) БЕ ТАҒЙИРИ МАНТИҚ кор мекунанд.
+    price = effective_price(db, user, product)
 
     # ---------- 💰 ПАРДОХТ АЗ БАЛАНС ----------
     if method == PaymentMethod.BALANCE:

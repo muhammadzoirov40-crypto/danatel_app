@@ -25,6 +25,7 @@ import type {
   Topup,
   TopupPrepare,
   User,
+  UserPriceItem,
   UserSecret,
   WheelData,
   WheelSpin,
@@ -457,6 +458,20 @@ export const api = {
     }),
   deleteProduct: (id: number) =>
     request<{ ok: boolean }>(`/admin/products/${id}`, { method: "DELETE" }),
+  /** 💰 Нархҳои шахсии корбар: кӯҳна (умумӣ) + нав (таъини админ) */
+  userPrices: (userId: number, lang: string = "tj") =>
+    request<UserPriceItem[]>(
+      `/admin/user-prices?user_id=${userId}&lang=${lang}`,
+    ),
+  setUserPrice: (userId: number, productId: number, price: number) =>
+    request<UserPriceItem>(`/admin/user-prices/${userId}/${productId}`, {
+      method: "PUT",
+      body: JSON.stringify({ price_tjs: price }),
+    }),
+  resetUserPrice: (userId: number, productId: number) =>
+    request<UserPriceItem>(`/admin/user-prices/${userId}/${productId}`, {
+      method: "DELETE",
+    }),
   /** 💱 Як рақам (%): mode="current" аз нархи ҷорӣ · "cost" аз нархи харид */
   adjustPrices: (percent: number, mode: "current" | "cost" = "current") =>
     request<{ updated: number; percent: number; mode: string }>(

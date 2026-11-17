@@ -563,3 +563,27 @@ class TopupPrepareOut(BaseModel):
     amount_tjs: Decimal
     payment_url: str
     receipt_deadline: datetime
+
+# =====================================================================
+# 💰 НАРХҲОИ ШАХСӢИ КОРБАРОН (admin panel — таъини соҳиб, 17.11.2026)
+# =====================================================================
+
+
+class UserPriceItem(BaseModel):
+    """Сатри admin panel: НАРХИ КӯҲНА (умумӣ) + НАРХИ ШАХСӢ (нав)."""
+
+    product_id: int
+    game_id: int
+    game_slug: str
+    game_name: str
+    game_image_url: str | None = None
+    name: str
+    amount: int
+    base_price_tjs: Decimal
+    custom_price_tjs: Decimal | None = None
+
+
+class UserPriceSet(BaseModel):
+    """Нархи шахсии нав. Баробари нархи кӯҳна → сатр нест мешавад."""
+
+    price_tjs: Decimal = Field(gt=0, le=1_000_000)

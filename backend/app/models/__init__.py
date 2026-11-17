@@ -11,6 +11,7 @@ from sqlalchemy import (
     Numeric,
     String,
     Text,
+    UniqueConstraint,
     func,
     text,
 )
@@ -284,6 +285,42 @@ class Product(Base):
 
     def get_name(self, lang: str = "tj") -> str:
         return getattr(self, f"name_{lang}", None) or self.name_tj
+
+
+# =====================================================================
+# 💰 НАРХИ ШАХСӢ (КОРБАР × МАҲСУЛОТ) — таъини админ
+# =====================================================================
+
+
+class UserProductPrice(Base):
+    """Нархи шахсии ЯК корбар барои ЯК маҳсулот (талаби соҳиб 17.11.2026).
+
+    Дар admin panel таъин мешавад: «нархи кӯҳна» = products.price_tjs
+    (умумӣ), «нархи нав» = ин сатр. Ҳеҷ сатр = корбар ҳамон нархи
+    умумиро мепардозад.
+
+    ⚠️ Фармоиш ҳангоми сохтан ҳамин нархи самаранӣ дар
+       `order.amount_tjs` мегирад → дарвозаҳои тасдиқи пардохт
+       (dc-push / чек / баланс) БЕ ТАҒЙИРИ МАНТИҚ кор мекунанд.
+    """
+
+    __tablename__ = "user_product_prices"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    product_id: Mapped[int] = mapped_column(
+        ForeignKey("products.id", ondelete="CASCADE"), index=True
+    )
+    price_tjs: Mapped[float] = mapped_column(Numeric(12, 2))
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "product_id", name="uq_user_product_price"),
+    )
 
 
 # =====================================================================
