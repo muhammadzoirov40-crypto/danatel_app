@@ -8,6 +8,7 @@ import BottomNav from "./components/BottomNav";
 import Footer from "./components/Footer";
 import Logo from "./components/Logo";
 import UpdateToast from "./components/UpdateToast";
+import GameOpenAnim from "./components/GameOpenAnim";
 import { Ic } from "./components/Icons";
 import Home from "./pages/Home";
 import GameDetail from "./pages/GameDetail";
@@ -82,6 +83,8 @@ export default function App() {
     <AppProvider>
       <BrowserRouter>
         <RefCapture />
+        {/* 🎞️ Кушодани бозӣ (зери корта) = аз поён ба боло (талаби соҳиб 17.11) */}
+        <GameOpenAnim />
         {/* 🔄 Авто-навсозӣ: версияи нав омад → тост + худаш reload */}
         <UpdateToast />
         <Navbar />
