@@ -20,6 +20,18 @@ import { useApp } from "../context/AppContext";
 const POLL_MS = 60_000;
 const RETRY_MS = 4_000;
 const DELAY_MS = 2_500;
+/**
+ * 📱 Тахмири мобилӣ (18.11.2026 — «dar mobilniham ivaz shavad»):
+ * дар шабакаи ноустувор SW ҳангоми шикасти network HTML-и КУҲНАро бармегардонад
+ * → бори нав = «хати JS-и кӯҳна» → бозхонӣ → дубора кӯҳна → ҲАЛҚАИ БЕҲУДА
+ * (телефон ҳамеша дар ҳамон версия мемонад). Буҷети худкор: ҳадди аксар
+ * 2 бозхонии худкор дар як саҳифа; баъд танҳо ТУГМАИ дастӣ («Ҳозир нав
+ * кунед»). Ҳангоми муваффақият (версияҳо баробар) → буҷет пок → барои
+ * навсозии оянда дубора худкор кор мекунад. sessionStorage ≠ localStorage
+ * → ҳар таб/таҷриба буҷети худ дорад.
+ */
+const AUTORELOAD_KEY = "ut_reload_n";
+const AUTORELOAD_MAX = 2;
 
 /** Номи файли JS-и асосӣ аз HTML (масалан `index-C9MDDFs-.js`) ё бо
  *  суолиш (`index-C9MDDFs-.js?b=…`) — суолиш ҳам муқоиса мешавад →
@@ -91,6 +103,18 @@ export default function UpdateToast() {
     const tryReload = () => {
       if (reloadingRef.current || !detectedRef.current) return;
       if (!safe()) return;
+      let n = 0;
+      try {
+        n = parseInt(sessionStorage.getItem(AUTORELOAD_KEY) || "0", 10) || 0;
+      } catch {
+        /* sessionStorage дастрас нест — бе буҷет */
+      }
+      if (n >= AUTORELOAD_MAX) return; // танҳо тугмаи дастӣ — ҳалқа манъ
+      try {
+        sessionStorage.setItem(AUTORELOAD_KEY, String(n + 1));
+      } catch {
+        /* беҳатар */
+      }
       reloadingRef.current = true;
       window.location.reload();
     };
@@ -110,6 +134,14 @@ export default function UpdateToast() {
           setReady(true);
           window.setTimeout(tryReload, DELAY_MS);
           retryTimer = window.setInterval(tryReload, RETRY_MS);
+        } else if (remote && bootRef.current && remote === bootRef.current) {
+          // версияҳо баробар → муваффақият → буҷети худкор барои
+          // навсозии оянда аз сифр (ҳар дафъа дубора 2 талош имкон дорад)
+          try {
+            sessionStorage.removeItem(AUTORELOAD_KEY);
+          } catch {
+            /* беҳатар */
+          }
         }
       } catch {
         /* офлайн / шабака — беҳуда */
