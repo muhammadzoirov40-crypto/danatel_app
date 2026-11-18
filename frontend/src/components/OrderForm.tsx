@@ -224,7 +224,10 @@ const PUBG_WOW_TIERS: Record<number, string> = {
 function productArt(game: Game, p: Product): string | null {
   const name = p.name.trim();
   const amount = Number(p.amount || 0);
-  const img = (dir: string, key: string) => `/images/${dir}/${key}.webp`;
+  // ?v= → cache-bust: сервер /images/* = max-age 7 рӯз медиҳад, соҳиб дар
+  // телефони худ расми кӯҳнаро то 7 рӯз мебинад. 18.11.2026: фонҳои тирфа
+  // аз расмҳои маҳсулот бардошта шуд → ҳангоми тағйири расм v = БАЛАНД кунед.
+  const img = (dir: string, key: string) => `/images/${dir}/${key}.webp?v=20261118`;
   /** Мутобиқати номдор → расм (тартиби сатрҳо муҳим: «Plus» пеш аз оддӣ) */
   const named = (dir: string, map: [RegExp, string][]): string | null => {
     for (const [re, key] of map) if (re.test(name)) return img(dir, key);
