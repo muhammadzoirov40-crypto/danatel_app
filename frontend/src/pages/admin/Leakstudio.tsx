@@ -8,16 +8,28 @@ import type { Game, LeakstudioPackage } from "../../types";
 /**
  * 🎯 Leak Studio BD — бастаҳои воқеӣ аз API (нархи BDT) + иловаи маҳсулот.
  *
- * Танҳо он чизе, ки backend дорад нишон дода мешавад (лайкҳо / авто-лайк /
- * Level Up Pass) — ҳамаи рақамҳо воқеӣ аз Leak Studio API (20.11.2026).
- * Нархи TJS-ро соҳиб худаш мегузорад; бастаи иловашуда → provider=leakstudio
- * → дар саҳифаи бозӣ дар бахши «ЛАЙКҲО» мебарояд.
+ * Нархҳо МИСЛИ FIRELOOT (талаби соҳиб 20.11.2026 «narhoro misli FireLoot kun»):
+ *   • Харид  = BDT × курс (BDT → сом)  → `cost_tjs` дар маҳсулот низ мемонад
+ *   • Фурӯш = нархи TJS (соҳиб мегузорад)
+ *   • Фоида  = фурӯш − харид (зинда ҳисоб мешавад)
+ * Курс: аввал аз localStorage, вагарна ВОҚЕӢ аз API-и курси байналмилалӣ
+ * (open.er-api.com, CORS кушода) — рақами сохта ҳеҷ гоҳ гузошта намешавад.
+ * Ҳамаи рақамҳои BDT воқеӣ аз Leak Studio API (20.11.2026).
  */
 const KINDS: { key: string; titleKey: string }[] = [
   { key: "likes", titleKey: "kindLikes" },
   { key: "auto_likes", titleKey: "kindAutoLikes" },
   { key: "levelup", titleKey: "kindLevelup" },
 ];
+
+/** Курси нигоҳдорӣ дар браузери админ (моҳиятан BDT → сом) */
+const RATE_KEY = "ls_bdt_rate";
+
+/** Ҳисоби харид = BDT × курс (то 2 рақам — пули воқеӣ) */
+function costOf(bdt: number, rate: number): number {
+  if (!(bdt > 0) || !(rate > 0)) return 0;
+  return Math.round(bdt * rate * 100) / 100;
+}
 
 export default function Leakstudio() {
   const { t } = useApp();
@@ -30,6 +42,7 @@ export default function Leakstudio() {
   const [msg, setMsg] = useState("");
   const [creating, setCreating] = useState<string | null>(null);
   const [prices, setPrices] = useState<Record<string, string>>({});
+  const [rate, setRate] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -55,7 +68,38 @@ export default function Leakstudio() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /** ➕ Иловаи баста → маҳсулоти воқеӣ (нархи TJS-ро соҳиб мегузорад) */
+  /* 💲 Курси BDT → сом: localStorage → вагарна ВОҚЕӢ аз API-и курс */
+  useEffect(() => {
+    const saved = window.localStorage.getItem(RATE_KEY);
+    if (saved && Number(saved) > 0) {
+      setRate(saved);
+      return;
+    }
+    let alive = true;
+    fetch("https://open.er-api.com/v6/latest/BDT")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: unknown) => {
+        const v = Number(
+          (d as { rates?: { TJS?: number } } | null)?.rates?.TJS ?? NaN,
+        );
+        if (alive && Number.isFinite(v) && v > 0) {
+          setRate(String(Number(v.toFixed(6))));
+        }
+      })
+      .catch(() => undefined); // сет хомӯш — админ дастӣ мегузорад
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const rateN = Number((rate || "").replace(",", ".")) || 0;
+
+  const saveRate = (v: string) => {
+    setRate(v);
+    window.localStorage.setItem(RATE_KEY, v.replace(",", "."));
+  };
+
+  /** ➕ Иловаи баста → маҳсулоти воқеӣ: харид = BDT × курс, фурӯш = TJS */
   const add = async (kind: string, pkg: LeakstudioPackage) => {
     const pk = String(pkg.id ?? pkg.name ?? pkg.code ?? "");
     const key = `${kind}:${pk}`;
@@ -72,6 +116,8 @@ export default function Leakstudio() {
     try {
       const likes = Number(pkg.likes || 0);
       const days = Number(pkg.days || 0);
+      const bdt = Number(String(pkg.price ?? "").replace(",", "."));
+      const cost = costOf(Number.isFinite(bdt) ? bdt : 0, rateN);
       const label =
         kind === "likes" && likes
           ? `${likes} ${t("unitLikes")}`
@@ -82,6 +128,7 @@ export default function Leakstudio() {
         game_id: game.id,
         name_tj: label,
         price_tjs: price,
+        cost_tjs: cost,
         amount: kind === "likes" ? likes : kind === "auto_likes" ? days : 0,
         is_active: true,
         provider: "leakstudio",
@@ -139,24 +186,49 @@ export default function Leakstudio() {
         )}
       </div>
 
-      {/* 🎮 Бозии таъиншуда барои илова */}
+      {/* 💲 Курси харид — мисли FireLoot: харид = BDT × курс */}
       <div className="card p-4">
-        <label className="label">{t("game")}</label>
-        <select
-          className="input text-sm"
-          value={gameSlug}
-          onChange={(e) => setGameSlug(e.target.value)}
-          aria-label={t("game")}
-        >
-          {games.map((g) => (
-            <option key={g.slug} value={g.slug}>
-              {g.name || g.slug}
-            </option>
-          ))}
-        </select>
+        <div className="flex flex-wrap items-end gap-3">
+          <div>
+            <label htmlFor="ls-rate" className="label !mb-1 block">
+              {t("lsRate")}
+            </label>
+            <input
+              id="ls-rate"
+              type="number"
+              inputMode="decimal"
+              step="0.000001"
+              min={0.000001}
+              value={rate}
+              onChange={(e) => saveRate(e.target.value)}
+              placeholder="0.000000"
+              className="input !w-36 !py-2 text-sm font-semibold"
+            />
+          </div>
+          <span className="text-xs text-slate-500 pb-2">
+            {t("costLabel")} = BDT × {t("lsRate").toLowerCase()}
+            {rateN > 0 && ` · 1 BDT = ${rateN} ${t("currency")}`}
+          </span>
+        </div>
+
+        <div className="mt-3 pt-3 border-t border-slate-100">
+          <label className="label">{t("game")}</label>
+          <select
+            className="input text-sm"
+            value={gameSlug}
+            onChange={(e) => setGameSlug(e.target.value)}
+            aria-label={t("game")}
+          >
+            {games.map((g) => (
+              <option key={g.slug} value={g.slug}>
+                {g.name || g.slug}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
-      {/* 📦 Бастаҳои воқеӣ (нархи BDT) + нархи TJS */}
+      {/* 📦 Бастаҳои воқеӣ: харид (BDT×курс) → фурӯш (TJS) → фоида */}
       {loading ? (
         <div className="py-10 text-center text-slate-500 inline-flex items-center gap-2 justify-center w-full card">
           <Ic icon={Loader2} className="animate-spin" /> {t("loading")}
@@ -175,13 +247,17 @@ export default function Leakstudio() {
               {(packages[key] ?? []).map((pkg, i) => {
                 const pk = String(pkg.id ?? pkg.name ?? pkg.code ?? i);
                 const k = `${key}:${pk}`;
-                const price = Number(String(pkg.price ?? "").replace(",", "."));
+                const bdt = Number(String(pkg.price ?? "").replace(",", "."));
+                const hasBdt = Number.isFinite(bdt) && bdt > 0;
+                const cost = costOf(hasBdt ? bdt : 0, rateN);
+                const price = Number((prices[k] ?? "").replace(",", ".")) || 0;
+                const profit = price > 0 && cost >= 0 ? Math.round((price - cost) * 100) / 100 : null;
                 return (
                   <div
                     key={k}
                     className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 px-3 py-2"
                   >
-                    <div className="min-w-0 flex-1">
+                    <div className="min-w-0 flex-1 basis-48">
                       <div className="text-sm font-medium text-slate-800 truncate">
                         {String(pkg.display_name || pkg.name || pkg.code || pk)}
                       </div>
@@ -197,9 +273,25 @@ export default function Leakstudio() {
                         )}
                         {pkg.server != null && <span>{pkg.server} · </span>}
                         <span className="font-semibold text-emerald-700">
-                          {Number.isFinite(price) && price > 0 ? `${price} BDT` : "—"}
+                          {hasBdt ? `${bdt} BDT` : "—"}
                         </span>
+                        {hasBdt && rateN > 0 && (
+                          <span className="text-slate-600">
+                            {" · "}
+                            {t("costLabel")}: <b>{cost} {t("currency")}</b>
+                          </span>
+                        )}
                       </div>
+                      {/* Фоида = фурӯш − харид (зинда, вақте нарх гузошта шуд) */}
+                      {profit !== null && (
+                        <div
+                          className={`text-xs tabular-nums font-semibold ${
+                            profit >= 0 ? "text-emerald-600" : "text-rose-600"
+                          }`}
+                        >
+                          {t("lsProfit")}: {profit} {t("currency")}
+                        </div>
+                      )}
                     </div>
                     <input
                       className="input !w-24 !py-1.5 text-sm"

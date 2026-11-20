@@ -497,6 +497,8 @@ class ProductUpsert(BaseModel):
     name_en: str = ""
     name_uz: str = ""
     price_tjs: Decimal = Field(gt=0)
+    # 💲 Нархи харид = BDT/$ × курс (мисли FireLoot fill-costs — барои фоида)
+    cost_tjs: Decimal = Field(default=Decimal("0"), ge=0)
     amount: int = 0
     is_active: bool = True
     is_popular: bool = False

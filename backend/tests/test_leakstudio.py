@@ -189,6 +189,8 @@ def test_product_upsert_accepts_provider_fields(client: TestClient):
             "game_id": game_id,
             "name_tj": "Лайкҳо 220 (тест)",
             "price_tjs": 7,
+            # 💲 мисли FireLoot: харид = BDT × курс → cost_tjs дохил мешавад
+            "cost_tjs": 0.51,
             "amount": 220,
             "provider": "leakstudio",
             "ls_kind": "likes",
@@ -199,6 +201,7 @@ def test_product_upsert_accepts_provider_fields(client: TestClient):
     body = r.json()
     assert body["provider"] == "leakstudio"
     assert body["ls_kind"] == "likes"
+    assert abs(float(body["cost_tjs"]) - 0.51) < 0.005  # харид нигоҳ дошта шуд
 
     # Дар каталоги умумӣ низ (UI-и сомона ҳаминро мебинад)
     r2 = client.get("/api/games/free-fire", params={"lang": "tj"})
