@@ -442,6 +442,15 @@ export const api = {
   userTransactions: (userId: number) =>
     request<BalanceTx[]>(`/admin/users/${userId}/transactions`),
   /** 🌍 Минтақаҳо: хомӯш/фаъол кардан аз панели админ */
+  adminGroups: (game = "free-fire") =>
+    request<{ game: string; groups: { name: string; enabled: boolean }[] }>(
+      `/admin/groups?game=${encodeURIComponent(game)}`,
+    ),
+  setAdminGroup: (data: { game: string; group: string; enabled: boolean }) =>
+    request<{ ok: boolean }>("/admin/groups", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
   adminRegionGames: () =>
     request<{ slug: string; name: string }[]>("/admin/regions/games"),
   adminRegions: (game = "free-fire") =>

@@ -65,6 +65,31 @@ def admin_region_games(db: Session = Depends(get_db)):
     ]
 
 
+class GroupToggle(BaseModel):
+    game: str = "free-fire"
+    group: str
+    enabled: bool
+
+
+@router.get("/groups")
+def admin_groups(game: str = "free-fire"):
+    """📦 Гурӯҳҳои маҳсулот + ҳолати фаъол/хомӯш."""
+    from app.services.regions import GROUPS, disabled_groups
+    off = disabled_groups(game)
+    return {
+        "game": game,
+        "groups": [{"name": g, "enabled": g not in off} for g in GROUPS],
+    }
+
+
+@router.post("/groups")
+def admin_set_group(body: GroupToggle):
+    from app.services.regions import set_group_enabled
+    set_group_enabled(body.game, body.group, body.enabled)
+    return {"ok": True, "game": body.game, "group": body.group,
+            "enabled": body.enabled}
+
+
 @router.get("/regions")
 async def admin_regions(game: str = "free-fire"):
     """🌍 Минтақаҳои воқеӣ + ҳолати фаъол/хомӯш (itan az admin panel)."""
