@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import {
   Flame,
+  Globe2,
   Gem,
   Heart,
   LayoutDashboard,
@@ -26,6 +27,7 @@ import Reviews from "./Reviews";
 import Topups from "./Topups";
 import Fireloot from "./Fireloot";
 import Leakstudio from "./Leakstudio";
+import Regions from "./Regions";
 
 type Tab =
   | "dashboard"
@@ -35,7 +37,8 @@ type Tab =
   | "reviews"
   | "topups"
   | "fireloot"
-  | "leakstudio";
+  | "leakstudio"
+  | "regions";
 
 /** Панели идора — танҳо бо вуруди админ */
 export default function Admin() {
@@ -74,6 +77,7 @@ export default function Admin() {
     { id: "topups", label: t("topupRequests"), icon: Wallet },
     { id: "fireloot", label: "FireLoot", icon: Flame },
     { id: "leakstudio", label: "Leak Studio", icon: Heart },
+    { id: "regions", label: "Минтақаҳо", icon: Globe2 },
   ];
 
   return (
@@ -132,6 +136,7 @@ export default function Admin() {
       {tab === "topups" && <Topups />}
       {tab === "fireloot" && <Fireloot />}
       {tab === "leakstudio" && <Leakstudio />}
+      {tab === "regions" && <Regions />}
     </div>
   );
 }

@@ -441,6 +441,16 @@ export const api = {
     }),
   userTransactions: (userId: number) =>
     request<BalanceTx[]>(`/admin/users/${userId}/transactions`),
+  /** 🌍 Минтақаҳо: хомӯш/фаъол кардан аз панели админ */
+  adminRegions: (game = "free-fire") =>
+    request<{ game: string; regions: { name: string; enabled: boolean }[] }>(
+      `/admin/regions?game=${encodeURIComponent(game)}`,
+    ),
+  setAdminRegion: (data: { game: string; region: string; enabled: boolean }) =>
+    request<{ ok: boolean }>("/admin/regions", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
   adminGames: () => request<Game[]>("/admin/games"),
   adminGame: (slug: string) => request<Game>(`/admin/games/${slug}`),
   /** 📚 Нархҳои КОМИЛ: + sku + cost_tjs (барои $ ва фоида) */

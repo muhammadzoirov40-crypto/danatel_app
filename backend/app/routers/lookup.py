@@ -313,7 +313,9 @@ async def regions_for_slug(slug: str) -> list[str]:
     except Exception as exc:  # noqa: BLE001
         logger.warning("FireLoot /products (минтақа) ноком: %s", exc)
         return []
-    return regions_for(slug, products)
+    # 🌍 Минтақаҳои хомӯшшударо аз танзимоти админ мегирем (соҳиб 20.11.2026)
+    from app.services.regions import disabled as _disabled_regions
+    return [r for r in regions_for(slug, products) if r not in _disabled_regions(slug)]
 
 
 def _split_uid_zone(slug: str, uid: str) -> tuple[str, str | None]:

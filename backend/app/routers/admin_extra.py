@@ -34,7 +34,7 @@ from app.models import Game, Order, OrderStatus, Product, User
 from app.routers.auth import _weak_password  # ҳамон сиёсати пароли қайд
 from app.schemas import GameOut
 from app.security import bump_token_version, hash_password, require_admin
-from app.services import coins
+from app.services import coins, regions as region_settings
 
 router = APIRouter(
     prefix="/api/admin",
@@ -46,6 +46,35 @@ router = APIRouter(
 # =====================================================================
 # 📚 НАРХҲО: маҳсулоти комил (sku + нархи харид)
 # =====================================================================
+
+
+class RegionToggle(BaseModel):
+    game: str = "free-fire"
+    region: str
+    enabled: bool
+
+
+@router.get("/regions")
+async def admin_regions(game: str = "free-fire"):
+    """🌍 Минтақаҳои воқеӣ + ҳолати фаъол/хомӯш (itan az admin panel)."""
+    from app.routers.lookup import regions_for_slug
+    current = await regions_for_slug(game)
+    off = region_settings.disabled(game)
+    return {
+        "game": game,
+        "regions": [
+            {"name": r, "enabled": r not in off}
+            for r in dict.fromkeys([*current, *sorted(off)])
+        ],
+    }
+
+
+@router.post("/regions")
+async def admin_set_region(body: RegionToggle):
+    """Хомӯш/фаъол кардани минтақа (дарҳол барои ҳамаи харидорон)."""
+    region_settings.set_enabled(body.game, body.region, body.enabled)
+    return {"ok": True, "game": body.game, "region": body.region.upper(),
+            "enabled": body.enabled}
 
 
 class ProductFullOut(BaseModel):
