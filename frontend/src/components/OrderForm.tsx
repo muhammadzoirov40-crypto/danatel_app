@@ -1020,7 +1020,11 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                             src={art}
                             alt=""
                             aria-hidden
-                            className="inline-flex h-10 w-12 shrink-0 rounded-xl object-contain sm:h-9 sm:w-9"
+                            className={
+                              key === "likes"
+                                ? "h-14 w-14 shrink-0 rounded-full object-contain"
+                                : "inline-flex h-10 w-12 shrink-0 rounded-xl object-contain sm:h-9 sm:w-9"
+                            }
                           />
                         ) : (
                           <span
@@ -1045,31 +1049,53 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                           </span>
                         )}
 
-                        {/* Ном/рақам — ҳеҷ гоҳ берун намебарояд */}
-                        <span
-                          className={`line-clamp-1 min-w-0 flex-1 text-xs sm:text-sm font-bold leading-tight ${
-                            active ? "text-brand-700" : "text-slate-700"
-                          }`}
-                        >
-                          {view.text}
-                          {view.sub && (
-                            <span className="ml-1 font-medium text-slate-400">{view.sub}</span>
-                          )}
-                        </span>
-
-                        {/* Нарх — доимо бо асъор, набурда */}
-                        <span
-                          className={`flex min-w-0 shrink-0 items-baseline gap-1 ${
-                            active ? "text-brand-700" : "text-brand-600"
-                          }`}
-                        >
-                          <span className="truncate font-extrabold tabular-nums text-sm sm:text-base">
-                            {Number(p.price_tjs).toLocaleString("tj-TJ")}
+                        {/* 20.11.2026 (соҳиб «misli in boshad»): корти лайк —
+                            расм + НОМ дар боло + НАРХИ кабуд дар поён */}
+                        {key === "likes" ? (
+                          <span className="min-w-0 flex-1 flex flex-col gap-0.5">
+                            <span
+                              className={`truncate text-[13px] font-bold leading-tight ${
+                                active ? "text-brand-700" : "text-slate-800"
+                              }`}
+                            >
+                              {view.text}
+                            </span>
+                            <span
+                              className={`font-extrabold tabular-nums text-[13px] ${
+                                active ? "text-brand-700" : "text-brand-600"
+                              }`}
+                            >
+                              {Number(p.price_tjs).toLocaleString("tj-TJ")} {t("currency")}
+                            </span>
                           </span>
-                          <span className="shrink-0 text-[10px] font-semibold text-slate-400">
-                            {t("currency")}
-                          </span>
-                        </span>
+                        ) : (
+                          <>
+                            {/* Ном/рақам — ҳеҷ гоҳ берун намебарояд */}
+                            <span
+                              className={`line-clamp-1 min-w-0 flex-1 text-xs sm:text-sm font-bold leading-tight ${
+                                active ? "text-brand-700" : "text-slate-700"
+                              }`}
+                            >
+                              {view.text}
+                              {view.sub && (
+                                <span className="ml-1 font-medium text-slate-400">{view.sub}</span>
+                              )}
+                            </span>
+                            {/* Нарх — доимо бо асъор, набурда */}
+                            <span
+                              className={`flex min-w-0 shrink-0 items-baseline gap-1 ${
+                                active ? "text-brand-700" : "text-brand-600"
+                              }`}
+                            >
+                              <span className="truncate font-extrabold tabular-nums text-sm sm:text-base">
+                                {Number(p.price_tjs).toLocaleString("tj-TJ")}
+                              </span>
+                              <span className="shrink-0 text-[10px] font-semibold text-slate-400">
+                                {t("currency")}
+                              </span>
+                            </span>
+                          </>
+                        )}
 
                         {active && (
                           <span
