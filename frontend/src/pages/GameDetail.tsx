@@ -158,10 +158,6 @@ export default function GameDetail() {
             <h1 className="min-w-0 flex-1 truncate text-xl sm:text-4xl font-extrabold leading-tight drop-shadow-sm">
               {game.name}
             </h1>
-            <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-semibold uppercase tracking-wider bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full">
-              <Ic icon={Gem} size="xs" />
-              {t("topup")}
-            </span>
           </div>
           <div className="flex items-start gap-4 sm:gap-6">
             <div className="shrink-0">

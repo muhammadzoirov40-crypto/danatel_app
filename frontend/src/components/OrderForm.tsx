@@ -1228,6 +1228,18 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
               </div>
             )}
 
+            {/* 🆔 Player ID — соҳиб 21.11.2026: ID дар корти «Фармоиши шумо» */}
+            {uidValue && (
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <span className="text-sm text-slate-500">
+                  {game.player_id_label || t("playerId")}
+                </span>
+                <span className="min-w-0 truncate font-mono text-sm font-bold text-slate-800">
+                  {uidValue}
+                </span>
+              </div>
+            )}
+
             {/* Ҳамагӣ */}
             <div className="mt-3.5 flex items-center justify-between gap-3">
               <span className="text-sm text-slate-500">{t("total")}</span>
