@@ -969,7 +969,7 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                         aria-pressed={active}
                         aria-label={p.name}
                         title={p.name}
-                        className={`relative flex min-w-0 flex-row items-center gap-3 rounded-2xl border-2 px-3 py-3 text-left transition-all
+                        className={`relative flex min-w-0 flex-row items-center ${key === "likes" ? "gap-2 px-2.5" : "gap-3 px-3"} rounded-2xl border-2 py-3 text-left transition-all
                           ${
                               key === "likes"
                                 ? active
@@ -1022,7 +1022,7 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                             aria-hidden
                             className={
                               key === "likes"
-                                ? "h-12 w-12 shrink-0 rounded-full object-contain"
+                                ? "h-10 w-10 shrink-0 rounded-full object-contain"
                                 : "inline-flex h-10 w-12 shrink-0 rounded-xl object-contain sm:h-9 sm:w-9"
                             }
                           />
@@ -1055,18 +1055,18 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                           <span className="min-w-0 flex-1 flex flex-col gap-0.5">
                             <span className="flex items-baseline gap-1">
                               <span
-                                className={`text-lg font-extrabold tabular-nums leading-none ${
+                                className={`text-base font-extrabold tabular-nums leading-none ${
                                   active ? "text-emerald-700" : "text-emerald-800"
                                 }`}
                               >
                                 {Number(p.amount || 0).toLocaleString("tj-TJ")}
                               </span>
-                              <span className="text-xs font-semibold text-slate-500">
+                              <span className="text-[10px] font-semibold text-slate-500 truncate ml-0.5">
                                 {t("unitLikes")}
                               </span>
                             </span>
                             <span
-                              className={`font-extrabold tabular-nums text-[13px] ${
+                              className={`font-extrabold tabular-nums text-[11px] whitespace-nowrap ${
                                 active ? "text-emerald-700" : "text-emerald-600"
                               }`}
                             >
