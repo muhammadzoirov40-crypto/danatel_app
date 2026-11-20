@@ -803,108 +803,6 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
               </div>
             )}
 
-            <div className="mb-4">
-              <label className="label">
-                {game.player_id_label || t("playerId")} <span className="text-rose-500">*</span>
-              </label>
-              <div className="flex gap-2">
-                <input
-                  className="input font-mono flex-1 min-w-0"
-                  inputMode="numeric"
-                  placeholder={t("enterPlayerId")}
-                  value={playerId}
-                  onChange={(e) => {
-                    setPlayerId(e.target.value);
-                    try { window.localStorage.setItem(pidKey, e.target.value); } catch { /* бехатар */ }
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && uidValue.length >= 3) runLookup(uidValue);
-                  }}
-                />
-                {/* 📋 «Вставить» — гузоридани ID аз clipboard (соҳиб 20.11.2026) */}
-                <button
-                  type="button"
-                  onClick={async () => {
-                    try {
-                      const text = (await navigator.clipboard.readText()).trim();
-                      if (text) {
-                        setPlayerId(text);
-                        try { window.localStorage.setItem(pidKey, text); } catch { /* бехатар */ }
-                      }
-                    } catch { /* clipboard дастрас нест — бехатар */ }
-                  }}
-                  aria-label={t("paste")}
-                  title={t("paste")}
-                  className="shrink-0 px-3 rounded-xl border border-slate-200 bg-white text-slate-600
-                             text-sm font-semibold hover:bg-slate-50 transition flex items-center gap-1.5"
-                >
-                  <Ic icon={ClipboardPaste} />
-                  <span className="max-[420px]:hidden">{t("paste")}</span>
-                </button>
-                <button
-                  type="button"
-
-                  aria-label={t("check")}
-                  title={t("check")}
-                  onClick={() => runLookup(uidValue)}
-                  disabled={nickLoading || uidValue.length < 3}
-                  className="shrink-0 px-3.5 rounded-xl bg-brand-600 text-white text-sm font-semibold
-                             hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed
-                             transition flex items-center gap-1.5"
-                >
-                  {nickLoading ? (
-                    <Ic icon={Loader2} className="animate-spin" />
-                  ) : (
-                    <>
-                      <Ic icon={Search} />
-                    </>
-                  )}
-                </button>
-              </div>
-
-              {/* 🎮 Зона/Server ID — талаби воқеии MLBB (FireLoot ҳам мепурсад) */}
-              {game.needs_zone && (
-                <div className="mt-3">
-                  <label className="label" htmlFor="zone-input">
-                    {t("zoneId")} <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    id="zone-input"
-                    className="input font-mono"
-                    inputMode="numeric"
-                    placeholder={t("zonePh")}
-                    value={zone}
-                    onChange={(e) => setZone(e.target.value)}
-                  />
-                </div>
-              )}
-
-              {/* Натиҷаи логини ник */}
-              {nickLookup?.found && nickLookup.nickname && (
-                <div className="mt-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 px-3.5 py-2.5 rounded-2xl flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center">
-                    <Ic icon={CircleCheck} size="xs" className="text-emerald-600" />
-                  </span>
-                  <span className="font-mono font-semibold">{nickLookup.nickname}</span>
-                  {nickLookup.region && (
-                    <span className="text-emerald-500 text-xs">({nickLookup.region})</span>
-                  )}
-                </div>
-              )}
-              {nickLookup?.found === false && !nickLoading && playerId.trim().length >= 3 && (() => {
-                // "ID дуруст ✓" → сабз (мусбат) | "Zone лозим" ё "ID ёфт нашуд" → амбер
-                const ok = /дуруст|✓/.test(nickLookup.message || "");
-                const cls = ok
-                  ? "text-emerald-700 bg-emerald-50 border-emerald-200"
-                  : "text-amber-700 bg-amber-50 border-amber-200";
-                return (
-                  <div className={`mt-2 text-sm border px-3.5 py-2.5 rounded-2xl flex items-center gap-2 ${cls}`}>
-                    <Ic icon={ok ? CircleCheck : TriangleAlert} />
-                    <span>{nickLookup.message || t("nicknameNotFound")}</span>
-                  </div>
-                );
-              })()}
-            </div>
 
           </div>
 
@@ -1229,18 +1127,107 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
             )}
 
             {/* 🆔 Player ID — соҳиб 21.11.2026: ID дар корти «Фармоиши шумо» */}
-            {/* 🆔 Player ID — соҳиб 21.11.2026: ҳамеша дар корти «Фармоиши шумо» */}
-            <div className="mt-3 flex items-center justify-between gap-3">
-              <span className="text-sm text-slate-500">
-                {game.player_id_label || t("playerId")}
-              </span>
-              <span
-                className={`min-w-0 truncate font-mono text-sm font-bold ${
-                  uidValue ? "text-slate-800" : "text-slate-400"
-                }`}
-              >
-                {uidValue || "—"}
-              </span>
+            <div className="mb-4">
+              <label className="label">
+                {game.player_id_label || t("playerId")} <span className="text-rose-500">*</span>
+              </label>
+              <div className="flex gap-2">
+                <input
+                  className="input font-mono flex-1 min-w-0"
+                  inputMode="numeric"
+                  placeholder={t("enterPlayerId")}
+                  value={playerId}
+                  onChange={(e) => {
+                    setPlayerId(e.target.value);
+                    try { window.localStorage.setItem(pidKey, e.target.value); } catch { /* бехатар */ }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && uidValue.length >= 3) runLookup(uidValue);
+                  }}
+                />
+                {/* 📋 «Вставить» — гузоридани ID аз clipboard (соҳиб 20.11.2026) */}
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      const text = (await navigator.clipboard.readText()).trim();
+                      if (text) {
+                        setPlayerId(text);
+                        try { window.localStorage.setItem(pidKey, text); } catch { /* бехатар */ }
+                      }
+                    } catch { /* clipboard дастрас нест — бехатар */ }
+                  }}
+                  aria-label={t("paste")}
+                  title={t("paste")}
+                  className="shrink-0 px-3 rounded-xl border border-slate-200 bg-white text-slate-600
+                             text-sm font-semibold hover:bg-slate-50 transition flex items-center gap-1.5"
+                >
+                  <Ic icon={ClipboardPaste} />
+                  <span className="max-[420px]:hidden">{t("paste")}</span>
+                </button>
+                <button
+                  type="button"
+
+                  aria-label={t("check")}
+                  title={t("check")}
+                  onClick={() => runLookup(uidValue)}
+                  disabled={nickLoading || uidValue.length < 3}
+                  className="shrink-0 px-3.5 rounded-xl bg-brand-600 text-white text-sm font-semibold
+                             hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed
+                             transition flex items-center gap-1.5"
+                >
+                  {nickLoading ? (
+                    <Ic icon={Loader2} className="animate-spin" />
+                  ) : (
+                    <>
+                      <Ic icon={Search} />
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* 🎮 Зона/Server ID — талаби воқеии MLBB (FireLoot ҳам мепурсад) */}
+              {game.needs_zone && (
+                <div className="mt-3">
+                  <label className="label" htmlFor="zone-input">
+                    {t("zoneId")} <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    id="zone-input"
+                    className="input font-mono"
+                    inputMode="numeric"
+                    placeholder={t("zonePh")}
+                    value={zone}
+                    onChange={(e) => setZone(e.target.value)}
+                  />
+                </div>
+              )}
+
+              {/* Натиҷаи логини ник */}
+              {nickLookup?.found && nickLookup.nickname && (
+                <div className="mt-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 px-3.5 py-2.5 rounded-2xl flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center">
+                    <Ic icon={CircleCheck} size="xs" className="text-emerald-600" />
+                  </span>
+                  <span className="font-mono font-semibold">{nickLookup.nickname}</span>
+                  {nickLookup.region && (
+                    <span className="text-emerald-500 text-xs">({nickLookup.region})</span>
+                  )}
+                </div>
+              )}
+              {nickLookup?.found === false && !nickLoading && playerId.trim().length >= 3 && (() => {
+                // "ID дуруст ✓" → сабз (мусбат) | "Zone лозим" ё "ID ёфт нашуд" → амбер
+                const ok = /дуруст|✓/.test(nickLookup.message || "");
+                const cls = ok
+                  ? "text-emerald-700 bg-emerald-50 border-emerald-200"
+                  : "text-amber-700 bg-amber-50 border-amber-200";
+                return (
+                  <div className={`mt-2 text-sm border px-3.5 py-2.5 rounded-2xl flex items-center gap-2 ${cls}`}>
+                    <Ic icon={ok ? CircleCheck : TriangleAlert} />
+                    <span>{nickLookup.message || t("nicknameNotFound")}</span>
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Ҳамагӣ */}
