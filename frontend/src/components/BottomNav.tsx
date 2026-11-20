@@ -105,13 +105,15 @@ export default function BottomNav() {
    *  `flex-1 min-w-0` → тақсимоти БАРОБАР;
    *  танҳо иконка (бе матн) → `py-3` барои қалби ламс ≥44px. */
   const itemCls = (active: boolean) =>
-    `relative flex-1 min-w-0 flex flex-col items-center justify-center rounded-2xl
-     px-0 py-3 transition-all active:scale-95
-     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${
+    `relative flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5
+     rounded-xl px-0 py-1.5 transition-colors
+     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${
        active
-         ? "text-white bg-gradient-to-b from-blue-600 via-indigo-600 to-purple-600 shadow-[0_6px_16px_-4px_rgba(79,70,229,0.55)]"
-         : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800"
+         ? "text-blue-500 dark:text-blue-400"
+         : "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
      }`;
+  const labelCls = (active: boolean) =>
+    `text-[10px] leading-none font-medium ${active ? "" : "opacity-90"}`;
 
   return (
     <>
@@ -125,15 +127,14 @@ export default function BottomNav() {
       <nav
         aria-label="Навигатсияи поёнӣ"
         data-bottomnav=""
-        className={`md:hidden fixed bottom-3 inset-x-3 z-50 max-w-md mx-auto
-                   bg-white/80 dark:bg-slate-900/70 backdrop-blur-xl
-                   border border-white/60 dark:border-slate-700/60
-                   shadow-[0_12px_40px_-8px_rgba(31,38,135,0.28)]
-                   rounded-[26px] px-1 py-2 ${hideNav ? "hidden" : "flex"} items-stretch gap-1`}
+        className={`md:hidden fixed bottom-0 inset-x-0 z-50 mx-auto
+                   ios-bar ios-tabbar max-w-md
+                   px-2 pt-2 ${hideNav ? "hidden" : "flex"} items-stretch gap-1`}
       >
         {/* 1) Асосӣ */}
         <Link to="/" onClick={handleHomeClick} aria-label={labels.home} title={labels.home} className={itemCls(isHome)}>
-          <Ic icon={House} size="md" strokeWidth={isHome ? 2.4 : 2} />
+          <Ic icon={House} size="md" strokeWidth={1.75} />
+          <span className={labelCls(isHome)}>{labels.home}</span>
         </Link>
 
         {/* 2) Каталог */}
@@ -144,7 +145,8 @@ export default function BottomNav() {
           title={labels.catalog}
           className={itemCls(false)}
         >
-          <Ic icon={LayoutGrid} size="md" />
+          <Ic icon={LayoutGrid} size="md" strokeWidth={1.75} />
+          <span className={labelCls(false)}>{labels.catalog}</span>
         </button>
 
         {/* 3) Тугмаи калони марказӣ «Пур кардан» — CTA бо градиент + FAB бардошта */}
@@ -153,17 +155,19 @@ export default function BottomNav() {
           onClick={handleTopUpClick}
           aria-label={labels.topup}
           title={labels.topup}
-          className="relative flex-1 min-w-0 -mt-6 flex flex-col items-center justify-center group
-                     active:scale-95 transition-transform cursor-pointer rounded-2xl
-                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+          className="relative flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 group
+                     active:scale-95 transition-transform cursor-pointer rounded-xl
+                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
         >
           <div
-            className="w-12 h-12 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600
-                       text-white shadow-[0_10px_22px_-6px_rgba(79,70,229,0.6)] flex items-center justify-center
-                       ring-4 ring-white dark:ring-slate-900 group-hover:scale-105 transition-transform"
+            className="w-9 h-9 rounded-full bg-blue-500 text-white flex items-center justify-center
+                       shadow-[0_2px_8px_rgba(0,122,255,0.3)] transition-transform"
           >
-            <Ic icon={Plus} size="lg" strokeWidth={2.75} />
+            <Ic icon={Plus} size="md" strokeWidth={2} />
           </div>
+          <span className="text-[10px] leading-none font-medium text-slate-400">
+            {labels.topup}
+          </span>
         </button>
 
         {/* 4) Фармоишҳо (сабад НЕСТ — ин фармоишҳои воқеӣ) */}
@@ -174,7 +178,8 @@ export default function BottomNav() {
           title={labels.orders}
           className={itemCls(isOrders && !isHome)}
         >
-          <Ic icon={Package} size="md" strokeWidth={isOrders && !isHome ? 2.4 : 2} />
+          <Ic icon={Package} size="md" strokeWidth={1.75} />
+          <span className={labelCls(isOrders && !isHome)}>{labels.orders}</span>
         </Link>
 
         {/* 5) Профил */}
@@ -184,7 +189,8 @@ export default function BottomNav() {
           title={labels.profile}
           className={itemCls((isProfile || isLogin) && !isHome)}
         >
-          <Ic icon={User} size="md" strokeWidth={(isProfile || isLogin) && !isHome ? 2.4 : 2} />
+          <Ic icon={User} size="md" strokeWidth={1.75} />
+          <span className={labelCls((isProfile || isLogin) && !isHome)}>{labels.profile}</span>
         </Link>
       </nav>
     </>

@@ -41,7 +41,7 @@ export default {
       },
       fontFamily: {
         // Фонти Onest — ҳамон fonts-и persshop
-        sans: ["Onest", "Inter", "system-ui", "sans-serif"],
+        sans: ["-apple-system", "BlinkMacSystemFont", "SF Pro Display", "SF Pro Text", "Inter", "Onest", "system-ui", "sans-serif"],
       },
     },
   },

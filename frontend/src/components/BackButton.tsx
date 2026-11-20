@@ -214,11 +214,7 @@ export default function BackButton({
       type="button"
       onClick={goBack}
       aria-label={t("back")}
-      className={`mb-1 w-fit justify-self-start inline-flex items-center gap-1
-                  rounded-full bg-slate-900/60 hover:bg-slate-900/75 border border-white/25
-                  text-white text-xs sm:text-sm font-semibold px-3 py-1.5 backdrop-blur-md
-                  transition active:scale-95 focus-visible:outline-none focus-visible:ring-2
-                  focus-visible:ring-white/70 ${className}`}
+      className={`ios-back mb-1 w-fit justify-self-start ${className}`}
     >
       <Ic icon={ArrowLeft} size="xs" />
       {!iconOnly && t("back")}

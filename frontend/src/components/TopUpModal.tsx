@@ -234,20 +234,12 @@ export default function TopUpModal({ open, onClose }: Props) {
        модалка аз боло намебарояд */
     <div className="fixed inset-0 z-[60] grid place-items-center p-4 sm:p-6 bg-slate-950/60 backdrop-blur-md animate-in fade-in duration-200">
       <div
-        className="relative w-full max-w-md rounded-[28px] bg-white/95 backdrop-blur-xl p-5 sm:p-6
-                   shadow-[0_1px_0_rgba(255,255,255,0.9)_inset,0_24px_60px_-20px_rgba(15,23,42,0.45),0_60px_120px_-40px_rgba(37,99,235,0.35)]
-                   border border-white/70 ring-1 ring-blue-200/50
-                   max-h-[92dvh] overflow-y-auto overscroll-contain"
+        className="ios-sheet relative w-full max-w-md p-5 sm:p-6 max-h-[92dvh] overflow-y-auto overscroll-contain"
         role="dialog"
         aria-modal="true"
         aria-label={lang === "ru" ? "Пополнение баланса" : "Пур кардани баланс"}
       >
-        {/* 🎯 Glow-и болоии кабуд — ҳисси «дорогой» */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-32 rounded-t-[28px]
-                     bg-[radial-gradient(120%_90%_at_50%_-20%,rgba(37,99,235,0.16),transparent_70%)]"
-        />
+        <div className="ios-grabber" aria-hidden />
 
         {/* Тугмаи пӯшидан — доираи равшан, дастрасии калон (44px тавсия).
             z-10 → аз сатри сарлавҳа (`relative`) боло, вагарна сарлавҳа
