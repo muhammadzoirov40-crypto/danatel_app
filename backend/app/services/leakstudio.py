@@ -196,6 +196,11 @@ async def purchase(
         # status 1 = расонда; 2/3 = лайкии имрӯза пур (ҲЕЧ ХАРҶ НАШУД)
         if success:
             return _ok("completed", ref)
+        # 20.11.2026: ҷавоби пурраи провайдер ба лог — сабаби рад шудан дида шавад
+        logger.warning(
+            "leakstudio: likes rejected uid=%s likes=%s status=%s error=%s message=%s resp_uid=%s",
+            uid, likes, st_s, data.get("error"), data.get("message"), data.get("UID"),
+        )
         if st_s in ("2", "3"):
             return _rejected("already_likes_today")
         return _rejected(
