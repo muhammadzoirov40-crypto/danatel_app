@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Check, Globe2, Loader2, X } from "lucide-react";
+import { Globe2, Loader2 } from "lucide-react";
 import { api } from "../../api/client";
 import { useApp } from "../../context/AppContext";
 
@@ -129,7 +129,8 @@ export default function Regions() {
             type="button"
             onClick={() => void toggle(r)}
             disabled={saving === r.name}
-            aria-pressed={r.enabled}
+            role="switch"
+            aria-checked={r.enabled}
             aria-label={`${r.name}: ${r.enabled ? "фаъол" : "хомӯш"}`}
             className={`flex items-center justify-between gap-3 rounded-2xl border-2 px-3 py-2.5
                         text-left text-sm font-bold transition active:scale-[0.99]
@@ -141,19 +142,22 @@ export default function Regions() {
                         }`}
           >
             <span className="min-w-0 truncate">{r.name}</span>
+            {/* 🎚️ Слайдер: чап = ХОМӮШ, рост = ФАЪОЛ (талаби соҳиб) */}
             <span
-              className={`grid h-6 w-6 shrink-0 place-items-center rounded-full ${
-                r.enabled ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-400"
+              className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+                r.enabled ? "bg-emerald-600" : "bg-slate-300"
               }`}
               aria-hidden
             >
-              {saving === r.name ? (
-                <Loader2 className="w-3 h-3 animate-spin" />
-              ) : r.enabled ? (
-                <Check className="w-3.5 h-3.5" strokeWidth={3} />
-              ) : (
-                <X className="w-3.5 h-3.5" />
-              )}
+              <span
+                className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${
+                  r.enabled ? "left-[22px]" : "left-0.5"
+                }`}
+              >
+                {saving === r.name && (
+                  <Loader2 className="absolute inset-0 m-auto w-3 h-3 animate-spin text-emerald-600" />
+                )}
+              </span>
             </span>
           </button>
         ))}
