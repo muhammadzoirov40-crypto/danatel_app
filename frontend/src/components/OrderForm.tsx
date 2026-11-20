@@ -4,6 +4,7 @@ import {
   Check,
   CircleCheck,
   ClipboardList,
+  ClipboardPaste,
   Coins,
   CreditCard,
   Flame,
@@ -459,7 +460,12 @@ const SECTION_META: { key: GroupKey; titleKey: string; icon: LucideIcon }[] = [
  */
 export default function OrderForm({ game, selected: extSelected, onSelected, onCreated }: Props) {
   const { t, lang, user, balance, refreshUser } = useApp();
-  const [playerId, setPlayerId] = useState("");
+  // 💾 ID-и бозингар дар браузер нигоҳ дошта мешавад (соҳиб 20.11.2026:
+  //    «idiro sazranit kunad») — ҳангоми бозгашт худкор пур мешавад
+  const pidKey = `danatel_pid_${game.slug}`;
+  const [playerId, setPlayerId] = useState(() => {
+    try { return window.localStorage.getItem(pidKey) || ""; } catch { return ""; }
+  });
   const [nickname, setNickname] = useState("");
   const [innerSelected, setInnerSelected] = useState<Product | null>(null);
   const selected = extSelected !== undefined ? extSelected : innerSelected;
@@ -807,13 +813,37 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                   inputMode="numeric"
                   placeholder={t("enterPlayerId")}
                   value={playerId}
-                  onChange={(e) => setPlayerId(e.target.value)}
+                  onChange={(e) => {
+                    setPlayerId(e.target.value);
+                    try { window.localStorage.setItem(pidKey, e.target.value); } catch { /* бехатар */ }
+                  }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && uidValue.length >= 3) runLookup(uidValue);
                   }}
                 />
+                {/* 📋 «Вставить» — гузоридани ID аз clipboard (соҳиб 20.11.2026) */}
                 <button
                   type="button"
+                  onClick={async () => {
+                    try {
+                      const text = (await navigator.clipboard.readText()).trim();
+                      if (text) {
+                        setPlayerId(text);
+                        try { window.localStorage.setItem(pidKey, text); } catch { /* бехатар */ }
+                      }
+                    } catch { /* clipboard дастрас нест — бехатар */ }
+                  }}
+                  aria-label={t("paste")}
+                  title={t("paste")}
+                  className="shrink-0 px-3 rounded-xl border border-slate-200 bg-white text-slate-600
+                             text-sm font-semibold hover:bg-slate-50 transition flex items-center gap-1.5"
+                >
+                  <Ic icon={ClipboardPaste} />
+                  <span className="max-[420px]:hidden">{t("paste")}</span>
+                </button>
+                <button
+                  type="button"
+
                   onClick={() => runLookup(uidValue)}
                   disabled={nickLoading || uidValue.length < 3}
                   className="shrink-0 px-4 rounded-xl bg-brand-600 text-white text-sm font-semibold
