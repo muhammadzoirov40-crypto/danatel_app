@@ -943,6 +943,14 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                   </div>
                 </div>
 
+                        {/* ⏰ Қоидаи воқеии Leak Studio (соҳиб 20.11.2026):
+                            «dar davomi 1 ruz 1bor meshavad» — танҳо дар бахши лайк */}
+                        {key === "likes" && (
+                          <p className="mb-3 flex items-start gap-2 rounded-2xl border border-rose-200/80 bg-rose-50 px-3 py-2 text-[11px] leading-snug text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-200">
+                            <Ic icon={CalendarClock} size="xs" className="mt-0.5 shrink-0" />
+                            <span>{t("likesDailyNote")}</span>
+                          </p>
+                        )}
                 {/* 20.11.2026 (соҳиб «dar 1 row nishon dihad»): ду лайк
                     ёнбаш дар як сатр, дигар бахшҳо — мисли пешин */}
                 <div

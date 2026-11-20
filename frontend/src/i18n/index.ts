@@ -138,6 +138,7 @@ const tj: Dict = {
   lsRate: "курс",
   lsMarket: "Бозор",
   lsProfit: "Фоида",
+likesDailyNote: "Ба як ID дар 24 соат танҳо 1 маротиба лайк меояд. Агар ин ID имрӯз лайк гирифта бошад, фармоиш бекор шуда, пул ба тавозун баргардонида мешавад.",
   lsNote:
     "Нархҳо воқеӣ аз Leak Studio API (BDT) — нархи TJS-ро худатон мегузоред. «Free Fire» аз FireLoot мемонад, лайкҳо аз Leak Studio.",
   secCurrency: "АСЪОРҲО",
@@ -662,6 +663,7 @@ const ru: Dict = {
   lsRate: "курс",
   lsMarket: "Рынок",
   lsProfit: "Прибыль",
+likesDailyNote: "На один ID — только 1 раз в 24 часа. Если ID уже получил лайки сегодня, заказ отменяется, а деньги возвращаются на баланс.",
   lsNote:
     "Цены реальные из Leak Studio API (BDT) — цену TJS ставите сами. «Free Fire» остаётся от FireLoot, лайки — от Leak Studio.",
   secCurrency: "ВАЛЮТА",
@@ -1188,6 +1190,7 @@ const en: Dict = {
   lsRate: "rate",
   lsMarket: "Market",
   lsProfit: "Profit",
+likesDailyNote: "Each ID can receive likes only once every 24 hours. If this ID already got likes today, the order is cancelled and the money is refunded to your balance.",
   lsNote:
     "Real prices from the Leak Studio API (BDT) — set the TJS price yourself. Free Fire stays on FireLoot; likes come from Leak Studio.",
   secCurrency: "CURRENCY",
@@ -1713,6 +1716,7 @@ const uz: Dict = {
   lsRate: "kurs",
   lsMarket: "Bozor",
   lsProfit: "Foyda",
+likesDailyNote: "Bir ID ga 24 soat ichida faqat 1 marta layk keladi. Agar bu ID bugun layk olgan bo‘lsa, buyurtma bekor qilinadi va pul balansga qaytariladi.",
   lsNote:
     "Narxlar Leak Studio API'dan real (BDT) — TJS narxini o'zingiz qo'yasiz. Free Fire FireLoot'da qoladi, likelar Leak Studio'dan.",
   secCurrency: "VALYUTA",
