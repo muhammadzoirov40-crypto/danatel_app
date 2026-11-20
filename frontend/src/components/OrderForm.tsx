@@ -514,13 +514,20 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
   // 20.11.2026: `?group=likes` — гузариш аз корти «ЛАЙКҲО»-и саҳифаи асосӣ
   //    (`dar alohidagi soz`) → ҳамон бахш фавран кушода мешавад.
   const groupParam = new URLSearchParams(window.location.search).get("group");
+  /** 20.11.2026 (талаби соҳиб) — ДУ ПАПКАИ АЛОҲИДА:
+   *  /game/free-fire    → ТАНҲО алмос/вучер/пропуск (лайк НЕСТ);
+   *  ?group=likes (корти «ЛАЙКҲО») → ТАНҲО лайк (дигарон НЕСТ). */
+  const likesOnly = groupParam === "likes";
   const [activeGroup, setActiveGroup] = useState<GroupKey | null>(
-    groupParam && ["likes", "diamonds", "currency", "vouchers", "passes", "packs"].includes(groupParam)
-      ? (groupParam as GroupKey)
-      : null,
+    likesOnly
+      ? "likes"
+      : groupParam && groupParam !== "likes" &&
+          ["diamonds", "currency", "vouchers", "passes", "packs"].includes(groupParam)
+        ? (groupParam as GroupKey)
+        : null,
   );
   useEffect(() => {
-    setActiveGroup(null);
+    setActiveGroup(likesOnly ? "likes" : null);
   }, [game.id]);
 
   // 🌍 Худкор-интихоби минтақа: вақте backend аз рӯи ID минтақаи ҳақиқиро
@@ -529,7 +536,13 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
   const autoRegionRef = useRef(false);
 
   // 🌍 Филтри минтақа: бастаҳои минтақаи интихобшуда (+ бе минтақа = барои ҳама)
-  const products = (game.products ?? []).filter((p) => !p.region || p.region === region);
+  // 🌍 Филтри минтақа + ДУ ПАПКА (20.11.2026): лайк дар папкаи худ,
+  //    дар Free Fire — нест; дар папкаи лайк — танҳо лайк
+  const products = (game.products ?? []).filter(
+    (p) =>
+      (!p.region || p.region === region) &&
+      (likesOnly ? groupOf(p) === "likes" : groupOf(p) !== "likes"),
+  );
   const price = selected ? Number(selected.price_tjs) : 0;
   const canUseBalance = !!user && balance >= price && price > 0;
 
