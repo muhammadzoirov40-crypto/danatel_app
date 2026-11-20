@@ -388,31 +388,42 @@ export default function Home() {
         </section>
 
         {/* ===== 4) ПЛИТКАҲОИ РАҚАМ ===== */}
-        {/* 🎯 ЛАЙКҲО — БАХШИ АЛОҲИДА, плитка мисли кортҳои бозӣ (20.11.2026) */}
+        {/* 🎯 ЛАЙКҲО — БАХШИ АЛОҲИДА: ҳаҷм мисли кортҳои бозӣ, РАСМИ ВОҚЕӢ */}
         <section className="mt-4 sm:hidden" aria-label={t("secLikes")}>
           <div className="grid grid-cols-4 gap-x-3 gap-y-5">
             <Link
               to="/game/free-fire?group=likes"
               aria-label={t("secLikes")}
-              className="group flex flex-col items-center gap-1.5 w-full max-w-[100px] mx-auto
+              className="group relative flex flex-col items-center gap-1.5
+                         w-full max-w-[100px] sm:max-w-[110px] mx-auto
                          transition active:scale-[0.96] focus-visible:outline-none
                          focus-visible:ring-2 focus-visible:ring-brand-400 rounded-xl"
             >
-              <span className="w-20 h-20 rounded-[24%] grid place-items-center
-                               bg-gradient-to-br from-rose-400 to-pink-600
-                               shadow-[0_10px_22px_-10px_rgba(225,29,72,0.55)]
-                               group-hover:scale-[1.04] group-hover:shadow-[0_14px_28px_-10px_rgba(225,29,72,0.65)]
+              <span className="relative w-20 h-20 sm:w-28 sm:h-28 rounded-[24%] shrink-0
+                               shadow-[0_10px_22px_-10px_rgba(37,99,235,0.45)]
+                               group-hover:scale-[1.04] group-hover:shadow-[0_14px_28px_-10px_rgba(37,99,235,0.55)]
                                transition">
-                <Ic icon={Heart} size="xl" className="text-white fill-white" />
+                <img
+                  src="/images/free-fire.webp"
+                  alt=""
+                  aria-hidden
+                  className="w-full h-full object-cover rounded-[24%]"
+                />
+                {/* ❤️ Бейҷи дил — мисли тугмаи дӯстдоштаҳои кортҳои бозӣ */}
+                <span className="absolute -top-1.5 -left-1.5 z-10 w-6 h-6 rounded-full
+                                 bg-white/95 backdrop-blur-xs shadow-xs border border-slate-200/80
+                                 grid place-items-center">
+                  <Ic icon={Heart} size="xs" className="text-rose-500 fill-rose-500" />
+                </span>
               </span>
-              <span className="w-full text-[11px] font-bold leading-tight line-clamp-2 text-center text-slate-800 dark:text-white">
+              <span className="w-full text-[11px] sm:text-xs font-bold leading-tight line-clamp-2
+                               text-center text-slate-800 dark:text-white">
                 {t("secLikes")}
               </span>
             </Link>
           </div>
         </section>
 
-        {/* ===== 4) ПЛИТКАҲОИ РАҚАМ ===== */}
         {!loading && !error && (
           <section className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-3">
             <Tile
