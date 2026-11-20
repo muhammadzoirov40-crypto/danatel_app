@@ -844,9 +844,11 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                 <button
                   type="button"
 
+                  aria-label={t("check")}
+                  title={t("check")}
                   onClick={() => runLookup(uidValue)}
                   disabled={nickLoading || uidValue.length < 3}
-                  className="shrink-0 px-4 rounded-xl bg-brand-600 text-white text-sm font-semibold
+                  className="shrink-0 px-3.5 rounded-xl bg-brand-600 text-white text-sm font-semibold
                              hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed
                              transition flex items-center gap-1.5"
                 >
@@ -855,7 +857,6 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                   ) : (
                     <>
                       <Ic icon={Search} />
-                      {t("check")}
                     </>
                   )}
                 </button>
