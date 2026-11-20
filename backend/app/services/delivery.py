@@ -45,7 +45,7 @@ from app.models import (
     OrderStatus,
     Product,
 )
-from app.services import coins, telegram_service, wallet
+from app.services import coins, leakstudio, telegram_service, wallet
 
 logger = logging.getLogger("delivery")
 
@@ -56,13 +56,18 @@ _POLL_EVERY = 30.0
 _CLAIM = "WIP"
 _REF_PFX = "ref:"
 _ERR_PFX = "ERR:"
+# 🎯 Leak Studio: «pending» = қабул+харҷ → интизори webhook/админ (ДУБРА НАКОШ!)
+_LSP_PFX = "LSP:"
 
 # Гузаришӣ = дубра таҳо (баъди WIP-stale-reset); корӣ = бе кӯшиши дубра
 _TRANSIENT_MARKS = ("network", "timeout", "rate_limited", "http_5", "service_unavailable")
 
 
 def configured() -> bool:
-    return bool(settings.FIRELOOT_API_URL and settings.FIRELOOT_API_KEY)
+    """Ягон провайдер мавҷуд бошад → poller кор мекунад (FireLoot ё Leak Studio)."""
+    return bool(settings.FIRELOOT_API_URL and settings.FIRELOOT_API_KEY) or (
+        leakstudio.configured()
+    )
 
 
 def _base() -> str:
@@ -122,7 +127,7 @@ async def _notify_failed(
         logger.warning("delivery: notify_admin ноком (#%s)", order_id, exc_info=True)
 
 
-async def _finish(db: Session, order_id: int, ref: str) -> bool:
+async def _finish(db: Session, order_id: int, ref: str, provider: str = "FireLoot") -> bool:
     """paid → delivered (CAS) + cashback + AuditLog + Telegram. Агар каси дигар
     пештар расонида бошад — ҳеҷ кор намекунад (rowcount=0)."""
     stored = f"{_REF_PFX}{ref}" if ref else ""
@@ -137,7 +142,7 @@ async def _finish(db: Session, order_id: int, ref: str) -> bool:
                 action="order_delivered",
                 entity="order",
                 entity_id=str(order_id),
-                details=f"auto (FireLoot {ref or 'ok'})",
+                details=f"auto ({provider} {ref or 'ok'})",
             )
         )
         db.commit()
@@ -203,7 +208,9 @@ def _refund_order(db: Session, order: Order, code: str) -> Decimal:
     return amount
 
 
-async def _fail(db: Session, order_id: int, code: str) -> bool:
+async def _fail(
+    db: Session, order_id: int, code: str, provider: str = "fireloot"
+) -> bool:
     """paid → failed (CAS — танҳо як бор) + БАРГАРДОНИИ ПУЛ + AuditLog + Telegram.
 
     Мол расонда нашод → пул фавран ба баланси мизоҷ бармегардад
@@ -230,21 +237,25 @@ async def _fail(db: Session, order_id: int, code: str) -> bool:
             action="order_delivery_failed",
             entity="order",
             entity_id=str(order_id),
-            details=f"fireloot: {code}"
+            details=f"{provider}: {code}"
             + (f" | баргардон: +{refunded} TJS" if refunded else ""),
         )
     )
     db.commit()
-    logger.error("🎮 Фармоиш #%s иҷро ноком: %s", order_id, code)
+    logger.error("🎮 Фармоиш #%s иҷро ноком (%s): %s", order_id, provider, code)
     await _notify_failed(order_id, code, refunded)
     return True
 
 
 async def _deliver(db: Session, order: Order) -> None:
-    """CAS-эълон → POST /order → (completed | processing | хато)."""
+    """CAS-эълон → провайдер: FireLoot POST /order | Leak Studio purchase()."""
     product = db.get(Product, order.product_id) if order.product_id else None
-    sku = (product.sku if product else "") or ""
     uid = (order.player_id or "").strip()
+    provider = ((product.provider if product else "") or "").strip()
+    if provider == "leakstudio":
+        await _deliver_ls(db, order, product, uid)
+        return
+    sku = (product.sku if product else "") or ""
     if not sku or not uid:
         await _fail(db, order.id, f"missing_{'sku' if not sku else 'uid'}")
         return
@@ -278,6 +289,99 @@ async def _deliver(db: Session, order: Order) -> None:
         logger.info("🎮 Фармоиш #%s → FireLoot processing (%s)", order.id, ref)
     else:
         await _fail(db, order.id, st or "unknown_status")
+
+
+# =====================================================================
+# 🎯 LEAK STUDIO BD — хариди синхронӣ (лайкҳо / авто-лайк)
+# =====================================================================
+# Натиҷаи ноумеди амнияти пул (сет/таймаут/5xx): дубра = ХАРҶИ ДУБРА
+# (LS параметри external_id надорад → идемпотентӣ нест!).
+_LS_AMBIG = ("network", "invalid_response", "not_configured")
+
+
+def _ls_ambiguous(code: str) -> bool:
+    return code in _LS_AMBIG or code.startswith("http_5")
+
+
+async def _notify_ls(order_id: int, text: str) -> None:
+    try:
+        await telegram_service.notify_admin(text)
+    except Exception:  # noqa: BLE001
+        logger.warning("delivery: notify LS ноком (#%s)", order_id, exc_info=True)
+
+
+async def _deliver_ls(
+    db: Session, order: Order, product: Product | None, uid: str
+) -> None:
+    """🎯 Leak Studio → completed | pending | rejected | unknown.
+
+    • completed → расонда (ҳамон лаҳза)
+    • pending   → fl_ref='LSP:<ref>' → webhook ё админ (харҷ шуд — ДУБРА НАКОШ)
+    • rejected  → ҳеҷ чиз барнаёмад → _fail + баргардони пул
+    • unknown   → fl_ref='LSP:unknown:<code>' → бе дубра + хабар ба админ
+    """
+    kind = ((product.ls_kind if product else "") or "").strip()
+    if not uid:
+        await _fail(db, order.id, "missing_uid", provider="leakstudio")
+        return
+    if kind not in leakstudio.KINDS:
+        await _fail(db, order.id, "ls_bad_kind", provider="leakstudio")
+        return
+
+    # Эълон: ягона дар байни worker-ҳо (ҳамон CAS-и умумӣ)
+    if _cas(db, order.id, or_(Order.fl_ref.is_(None), Order.fl_ref == ""), fl_ref=_CLAIM) != 1:
+        return
+
+    if not leakstudio.configured():
+        # Калид нест → WIP мемонад → баъди 3 дақиқа дубра (логҳо ҳар 3 дақиқа)
+        logger.warning("delivery: LEAKSTUDIO_API_KEY нест (#%s) — дубра баъд", order.id)
+        return
+
+    try:
+        res = await leakstudio.purchase(
+            kind,
+            uid=uid,
+            sku=(product.sku if product else "") or "",
+            amount=int(product.amount or 0),
+            quantity=int(order.quantity or 1),
+        )
+    except leakstudio.LSError as exc:
+        if exc.transient:
+            # 429: дархост ҚАБУЛ НАШУД → WIP мемонад → дубра бехатар
+            logger.warning("delivery: LS гузаришӣ (#%s): %s", order.id, exc.code)
+            return
+        if _ls_ambiguous(exc.code):
+            # Амнияти пул: харҷ шояд шуда бошад → ДУБРА НАКОШ, админ месанҷад
+            if _cas(db, order.id, true(), fl_ref=f"{_LSP_PFX}unknown:{exc.code}"[:64]) == 1:
+                logger.error("delivery: LS натиҷаи номаълум (#%s): %s", order.id, exc.code)
+                await _notify_ls(
+                    order.id,
+                    f"⚠️ Фармоиш #{order.id}: Leak Studio натиҷаи номаълум "
+                    f"(<code>{exc.code}</code>) — пули харҷ шояд шуд.\n"
+                    f"Аз панели Leak Studio санҷед → баъд расонда ё баргардонед. "
+                    f"ДУБРА НАКОШ.",
+                )
+            return
+        # Хатои корӣ (bad_uid, insufficient_balance, …) → бе дубра + баргардон
+        await _fail(db, order.id, exc.code, provider="leakstudio")
+        return
+
+    outcome = str(res.get("outcome") or "")
+    ref = str(res.get("ref") or "").strip()
+    if outcome == "completed":
+        await _finish(db, order.id, ref, provider="LeakStudio")
+    elif outcome == "pending":
+        if _cas(db, order.id, true(), fl_ref=f"{_LSP_PFX}{ref or 'pending'}"[:64]) == 1:
+            logger.info("🎮 Фармоиш #%s → Leak Studio pending (%s)", order.id, ref or "-")
+            await _notify_ls(
+                order.id,
+                f"⏳ Фармоиш #{order.id}: Leak Studio қабул кард "
+                f"(пул харҷ шуд, интизори расонидан){f', ref={ref}' if ref else ''}.\n"
+                f"Webhook ё админ тасдиқ мекунад — ДУБРА НАКОШ.",
+            )
+    else:
+        # rejected → ҳеҷ чиз барнаёмад → _fail + баргардони пул
+        await _fail(db, order.id, str(res.get("code") or "rejected"), provider="leakstudio")
 
 
 async def _poll_ref(db: Session, order: Order, ref: str) -> None:
@@ -339,7 +443,9 @@ async def poller_once() -> None:
 
 async def poller_loop() -> None:
     if not configured():
-        logger.info("🎮 Delivery poller: FIRELOOT_API_KEY нест — хомӯш")
+        logger.info(
+            "🎮 Delivery poller: FIRELOOT_API_KEY/LEAKSTUDIO_API_KEY нест — хомӯш"
+        )
         return
     logger.info("🎮 Delivery poller оғоз ёфт (ҳар %ss, тозаӣ=%sh)", int(_POLL_EVERY), _FRESH_HOURS)
     while True:

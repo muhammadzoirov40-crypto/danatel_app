@@ -14,6 +14,10 @@ export interface Product {
   sku?: string | null;
   /** 💲 Нархи харид (TJS) — 0 = ворид нашудааст */
   cost_tjs?: number | null;
+  /** 🎯 Провайдери иҷро: "" = FireLoot, "leakstudio" = Leak Studio BD */
+  provider?: string;
+  /** 🎯 Навъи маҳсулоти Leak Studio: likes | auto_likes | diamonds | levelup | indonesia */
+  ls_kind?: string;
 }
 
 /** 💰 Нархи корбар: НАРХИ КӯҲНА (умумӣ) + НАРХИ ШАХСӢ (админ таъин кардааст) */
@@ -55,6 +59,29 @@ export interface FirelootCatalog {
   total: number;
   matched: number;
   manual: number;
+}
+
+/** 🎯 Бастаи воқеии Leak Studio BD (нархи BDT — воқеӣ аз API, 20.11.2026) */
+export interface LeakstudioPackage {
+  id?: number | string;
+  name?: string;
+  display_name?: string;
+  code?: string;
+  likes?: number;
+  days?: number;
+  likes_per_day?: number;
+  price?: number | string;
+  price_per_like?: number | string;
+  currency?: string;
+  server?: string;
+}
+
+export interface LeakstudioPackages {
+  configured: boolean;
+  /** kind (likes | auto_likes | diamonds | levelup | indonesia) → бастаҳо */
+  packages: Record<string, LeakstudioPackage[]>;
+  /** як хатои навъ (масалан 522) → код; боқимонда кор мекунанд */
+  errors?: Record<string, string>;
 }
 
 export interface Game {

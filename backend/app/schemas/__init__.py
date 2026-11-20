@@ -73,6 +73,10 @@ class ProductOut(BaseModel):
     # 🔥 sku дар каталоги FireLoot (пайваст барои намоиши $) + 💲 нархи харид
     sku: str | None = None
     cost_tjs: Decimal = Decimal("0")
+    # 🎯 Провайдери иҷро: "" = FireLoot (пешфарз), "leakstudio" = Leak Studio BD
+    provider: str = ""
+    # 🎯 Навъи маҳсулоти Leak Studio: likes | auto_likes | diamonds | levelup | indonesia
+    ls_kind: str = ""
 
 
 class PublicStats(BaseModel):
@@ -499,6 +503,11 @@ class ProductUpsert(BaseModel):
     sort_order: int = 0
     # 🌍 Минтақаи ин баста ("" = барои ҳама / бозии якминтақаӣ)
     region: str = ""
+    # 🎯 Leak Studio: провайдер + навъ + идентификатори баста (sku)
+    #    ("" = FireLoot/дастӣ — рафтори пешин бетағйир)
+    provider: str = ""
+    ls_kind: str = ""
+    sku: str = ""
 
 
 class ProductUpdate(BaseModel):
@@ -514,6 +523,10 @@ class ProductUpdate(BaseModel):
     is_popular: bool | None = None
     sort_order: int | None = None
     region: str | None = None
+    # 🎯 Leak Studio: провайдер/навъ/sku (барои ивази маҳсулоти мавҷуд)
+    provider: str | None = None
+    ls_kind: str | None = None
+    sku: str | None = None
 
 
 # =====================================================================

@@ -1,18 +1,21 @@
 """Вебхукҳо: DC Wallet (пардохт)."""
 from __future__ import annotations
 
+import hashlib
 import hmac
+import json
 import logging
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from pydantic import BaseModel
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import ratelimit
 from app.config import settings
 from app.database import get_db
 from app.models import Order, OrderStatus
-from app.services import dc_push, dc_service, telegram_service
+from app.services import dc_push, dc_service, delivery, telegram_service
 
 logger = logging.getLogger("webhook")
 router = APIRouter(prefix="/api/webhook", tags=["webhook"])
@@ -114,3 +117,57 @@ async def dc_push_webhook(
         except Exception:  # noqa: BLE001 — Telegram набояд ҷавобро бозмедорад
             logger.exception("Огоҳиномаи Telegram (dc push) ноком шуд")
     return result
+
+
+# =====================================================================
+# 🎯 LEAK STUDIO BD — вебхуки статуси фармоиш (order.status)
+# =====================================================================
+# Имзо: `X-LS-Signature: sha256=HMAC-SHA256(raw body, LEAKSTUDIO_API_KEY)`.
+# URL дар панели Leak Studio насб мешавад (кори соҳиб). Мо танҳо:
+#   completed → расонда (CAS аз `paid`)
+#   cancelled → ноком + баргардони пул (CAS аз `paid`)
+#   pending   → ҳеҷ кор (ҳанӯз расонда нашуда)
+# Ҳамаи ҳолатҳои дигар → 2xx {"ok": true} то Leak Studio дубра фиристад.
+@router.post("/leakstudio")
+async def leakstudio_webhook(request: Request, db: Session = Depends(get_db)):
+    """🔔 Статуси фармоиши Leak Studio → расонидан/баргардон (идемпотент)."""
+    ip = request.client.host if request.client else "unknown"
+    ratelimit.enforce(request, "ls_webhook", 60, 60, identifier=ip)
+
+    if not settings.LEAKSTUDIO_API_KEY:
+        # Калид нест → имзо санҷида намешавад → рад (бе иттилоот)
+        raise HTTPException(status_code=400, detail="LEAKSTUDIO_API_KEY нест")
+
+    raw = await request.body()
+    sig = (request.headers.get("X-LS-Signature") or "").strip()
+    expected = "sha256=" + hmac.new(
+        settings.LEAKSTUDIO_API_KEY.encode("utf-8"), raw, hashlib.sha256
+    ).hexdigest()
+    if not hmac.compare_digest(sig, expected):
+        logger.warning("LeakStudio webhook: имзо нодуруст (IP=%s)", ip)
+        raise HTTPException(status_code=401, detail="Имзо тасдиқ нашуд")
+
+    try:
+        payload = json.loads(raw)
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=400, detail="JSON нодуруст") from exc
+
+    event = str(payload.get("event") or "")
+    ls_order_id = str(payload.get("order_id") or "").strip()
+    status = str(payload.get("status") or "").lower()
+    if event != "order.status" or not ls_order_id:
+        return {"ok": True, "skipped": True}
+
+    # Ёфтани фармоиши мо: дар `pending` мо fl_ref='LSP:<order_id>' гузоштем
+    order = db.scalar(select(Order).where(Order.fl_ref == f"LSP:{ls_order_id}"))
+    if order is None:
+        # Нодида гирифтан бехатар: 2xx → Leak Studio дубра намефиристад
+        return {"ok": True, "skipped": True}
+
+    if status == "completed":
+        await delivery._finish(db, order.id, ls_order_id, provider="LeakStudio")
+    elif status in ("cancelled", "canceled", "failed"):
+        # Пул дар LS харҷ шудааст → баргардон ба баланси мизоҷи мо
+        await delivery._fail(db, order.id, "ls_cancelled", provider="leakstudio")
+    # pending → ҳанӯз расонда нашуд — интизорӣ
+    return {"ok": True}

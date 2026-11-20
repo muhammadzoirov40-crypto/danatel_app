@@ -178,6 +178,9 @@ async def game_detail(
             is_active=p.is_active,
             # 🌍 ҳамаи минтақаҳо мефуршад — филтр дар сӯи корбар
             region=p.region,
+            # 🎯 провайдер/навъ → UI гурӯҳҳои лайк/авто-лайкро месозад
+            provider=p.provider or "",
+            ls_kind=p.ls_kind or "",
         )
         for p in game.products
         if p.is_active

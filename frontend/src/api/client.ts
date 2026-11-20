@@ -15,6 +15,7 @@ import type {
   FirelootBalance,
   FirelootCatalog,
   Game,
+  LeakstudioPackages,
   Order,
   OrderDetail,
   PaymentInit,
@@ -495,6 +496,8 @@ export const api = {
       "/admin/fireloot/sync",
       { method: "POST" },
     ),
+  // 🎯 Leak Studio BD — бастаҳои воқеӣ (нархи BDT; танҳо админ)
+  lsPackages: () => request<LeakstudioPackages>("/admin/leakstudio/packages"),
 };
 
 export { ApiError };

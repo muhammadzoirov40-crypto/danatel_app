@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
+  CalendarClock,
   Check,
   CircleCheck,
   ClipboardList,
@@ -8,6 +9,7 @@ import {
   Flame,
   Gem,
   Globe,
+  Heart,
   Layers,
   Loader2,
   Lock,
@@ -86,6 +88,28 @@ function packView(
   t: (key: string) => string,
 ): { icon: LucideIcon; text: string; sub?: string; diamond?: boolean } {
   const amount = Number(p.amount || 0);
+  // 🎯 Leak Studio (талаби соҳиб 20.11.2026: «лайкҳо аз Studio API»):
+  //    лайк/авто-лайк → иконкаи воқеии бахш + рақам аз `amount`
+  //    (расми бегона ҷо НАМЕШАВAD — фолбэки рост мемонад)
+  if (p.ls_kind === "likes") {
+    return {
+      icon: Heart,
+      text:
+        amount > 0
+          ? `${amount.toLocaleString("tj-TJ")} ${t("unitLikes")}`
+          : p.name,
+    };
+  }
+  if (p.ls_kind === "auto_likes") {
+    return {
+      icon: CalendarClock,
+      text:
+        amount > 0
+          ? `${amount.toLocaleString("tj-TJ")} ${t("unitDays")}`
+          : p.name,
+      sub: t("subAutoLikes"),
+    };
+  }
   // 1️⃣ Бастаи рақамдор: рақам + асъор аз НОМИ воқеӣ (Diamonds/UC/Gold/Bonds/Tokens/Lattice)
   if (amount > 0) {
     // 🎁 Тӯҳфа аз номи воқеӣ (каталоги FireLoot): «32 + 3 Diamonds» → «32 + 3 алмос»
@@ -133,10 +157,19 @@ function packView(
 }
 
 /** 🗂 Калимаҳои бахшҳо — аз номи воқеии маҳсулотҳо. */
-type GroupKey = "diamonds" | "currency" | "vouchers" | "passes" | "packs";
+type GroupKey = "likes" | "diamonds" | "currency" | "vouchers" | "passes" | "packs";
 
 function groupOf(p: Product): GroupKey {
+  // 🎯 Leak Studio: лайкҳо/авто-лайк → бахши алоҳида (ПЕШ аз қоидаи amount>0,
+  //    вагарна «220 лайк» ба бахши «асъор» мезанед)
+  if (
+    p.provider === "leakstudio" &&
+    (p.ls_kind === "likes" || p.ls_kind === "auto_likes")
+  ) {
+    return "likes";
+  }
   const n = p.name.toLowerCase();
+  if (n.includes("лайк") || /\blikes?\b/i.test(n)) return "likes";
   if (Number(p.amount || 0) > 0) return n.includes("diamond") ? "diamonds" : "currency";
   if (n.includes("voucher")) return "vouchers";
   if (n.includes("pass") || n.includes("level")) return "passes";
@@ -402,6 +435,7 @@ function ffPassDia(p: Product): number | null {
 
 /** Тартиб + иконкаи бахшҳо — танҳо онҳое нишон мешаванд, ки маҳсулот доранд */
 const SECTION_META: { key: GroupKey; titleKey: string; icon: LucideIcon }[] = [
+  { key: "likes", titleKey: "secLikes", icon: Heart },
   { key: "diamonds", titleKey: "secDiamonds", icon: Gem },
   { key: "currency", titleKey: "secCurrency", icon: Coins },
   { key: "vouchers", titleKey: "secVouchers", icon: Ticket },
@@ -489,6 +523,7 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
 
   /** 🗂 Гурӯҳбандии воқеӣ аз номи маҳсулот (на логикаи сахткӯҳ) */
   const groups: Record<GroupKey, Product[]> = {
+    likes: [],
     diamonds: [],
     currency: [],
     vouchers: [],

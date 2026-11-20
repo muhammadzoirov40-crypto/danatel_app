@@ -32,6 +32,8 @@ os.environ.update(
         "TELEGRAM_BOT_TOKEN": "",
         "PAYMENT_LINK_URL": "",
         "FIRELOOT_API_KEY": "",
+        # 🎯 Leak Studio: калид холӣ → тестҳо худашон ҷуброн мекунанд
+        "LEAKSTUDIO_API_KEY": "",
     }
 )
 

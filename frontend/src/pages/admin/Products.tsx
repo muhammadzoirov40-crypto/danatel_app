@@ -446,6 +446,10 @@ function AddProduct({
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [amount, setAmount] = useState("");
+  // 🎯 Leak Studio: провайдер + навъ + ID-и баста ("" = FireLoot/дастӣ)
+  const [provider, setProvider] = useState("");
+  const [lsKind, setLsKind] = useState("likes");
+  const [sku, setSku] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
 
@@ -464,10 +468,14 @@ function AddProduct({
         price_tjs: Number(price),
         amount: Number(amount || 0),
         is_active: true,
+        provider: provider || "",
+        ls_kind: provider ? lsKind : "",
+        sku: provider ? sku.trim() : "",
       });
       setName("");
       setPrice("");
       setAmount("");
+      setSku("");
       onAdded();
       flash("Маҳсулот илова шуд / Товар добавлен");
     } catch (e2) {
@@ -518,6 +526,44 @@ function AddProduct({
             placeholder="100"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {/* 🎯 Провайдери иҷро: "" = FireLoot/дастӣ (рафтори пешин),
+          "leakstudio" = лайкҳо/авто-лайк аз Leak Studio BD */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
+        <div>
+          <label className="label">{t("providerLabel")}</label>
+          <select
+            className="input !py-2 text-sm"
+            value={provider}
+            onChange={(e) => setProvider(e.target.value)}
+          >
+            <option value="">{t("providerManual")}</option>
+            <option value="leakstudio">Leak Studio BD</option>
+          </select>
+        </div>
+        <div>
+          <label className="label">{t("kindLabel")}</label>
+          <select
+            className="input !py-2 text-sm"
+            value={lsKind}
+            disabled={!provider}
+            onChange={(e) => setLsKind(e.target.value)}
+          >
+            <option value="likes">{t("kindLikes")}</option>
+            <option value="auto_likes">{t("kindAutoLikes")}</option>
+          </select>
+        </div>
+        <div>
+          <label className="label">{t("pkgIdLabel")}</label>
+          <input
+            className="input !py-2 text-sm"
+            placeholder={lsKind === "likes" ? "— (миқдор = amount)" : "1"}
+            value={sku}
+            disabled={!provider}
+            onChange={(e) => setSku(e.target.value)}
           />
         </div>
       </div>

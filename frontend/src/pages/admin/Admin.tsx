@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import {
   Flame,
   Gem,
+  Heart,
   LayoutDashboard,
   Loader2,
   LogIn,
@@ -24,8 +25,17 @@ import Users from "./Users";
 import Reviews from "./Reviews";
 import Topups from "./Topups";
 import Fireloot from "./Fireloot";
+import Leakstudio from "./Leakstudio";
 
-type Tab = "dashboard" | "orders" | "products" | "users" | "reviews" | "topups" | "fireloot";
+type Tab =
+  | "dashboard"
+  | "orders"
+  | "products"
+  | "users"
+  | "reviews"
+  | "topups"
+  | "fireloot"
+  | "leakstudio";
 
 /** Панели идора — танҳо бо вуруди админ */
 export default function Admin() {
@@ -63,6 +73,7 @@ export default function Admin() {
     { id: "reviews", label: t("reviews"), icon: Star },
     { id: "topups", label: t("topupRequests"), icon: Wallet },
     { id: "fireloot", label: "FireLoot", icon: Flame },
+    { id: "leakstudio", label: "Leak Studio", icon: Heart },
   ];
 
   return (
@@ -120,6 +131,7 @@ export default function Admin() {
       {tab === "reviews" && <Reviews />}
       {tab === "topups" && <Topups />}
       {tab === "fireloot" && <Fireloot />}
+      {tab === "leakstudio" && <Leakstudio />}
     </div>
   );
 }

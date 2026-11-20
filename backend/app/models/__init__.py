@@ -280,6 +280,17 @@ class Product(Base):
     region: Mapped[str] = mapped_column(String(32), default="", server_default=text("''"))
     # Калиди каталоги FireLoot (барои ҳамоҳангсозии худкор; "" = дастӣ)
     sku: Mapped[str] = mapped_column(String(64), default="", server_default=text("''"))
+    # 🎯 Провайдери иҷро (талаби соҳиб 20.11.2026): "" = FireLoot (пешфарз),
+    #    "leakstudio" = Leak Studio BD (лайкҳо/авто-лайк). Автомигратсия:
+    #    database._ensure_missing_columns сутунро дар ҷадвали мавҷуда илова мекунад.
+    provider: Mapped[str] = mapped_column(
+        String(24), default="", server_default=text("''")
+    )
+    # 🎯 Навъи маҳсулоти Leak Studio: likes | auto_likes | diamonds | levelup | indonesia
+    #    (танҳо likes/auto_likes дар UI истифода мешавад; боқӣ дар client мавҷуд).
+    ls_kind: Mapped[str] = mapped_column(
+        String(16), default="", server_default=text("''")
+    )
 
     game: Mapped["Game"] = relationship(back_populates="products")
 

@@ -63,6 +63,12 @@ class Settings(BaseSettings):
     FIRELOOT_API_URL: str = "https://partner.firelootshop.com/api/v1"
     FIRELOOT_API_KEY: str = ""
 
+    # 🎯 LEAK STUDIO BD (Public API) — лайкҳои FF + авто-лайк (талаби соҳиб 20.11.2026):
+    #    «Free Fire аз API-и ман (FireLoot) мемонад, лайкҳо аз Studio API».
+    #    Калид ТАНҲО дар .env-и сервер (ҳаргиз дар GitHub!).
+    LEAKSTUDIO_API_URL: str = "https://leakstudiobd.com/api/public"
+    LEAKSTUDIO_API_KEY: str = ""
+
     # 🪙 PERS COINS (тангаҳои дохилӣ) — ҳамаи рақамҳо аз .env танзим мешаванд
     #    💱 НАРХИ ТАНИМОӢ (танзими соҳиб, 06.11.2026):
     #       10 сомонӣ = 1 танга (ислоҳи соҳиб: «аз 10 сомонӣ 1 коин диҳад»)
