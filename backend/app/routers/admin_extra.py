@@ -54,6 +54,17 @@ class RegionToggle(BaseModel):
     enabled: bool
 
 
+@router.get("/regions/games")
+def admin_region_games(db: Session = Depends(get_db)):
+    """♻️ Ҳамаи бозиҳое, ки dropdown-и минтақа доранд (соҳиб 20.11.2026)."""
+    from app.routers.lookup import SLUG_SKU_PREFIXES
+    names = {g.slug: (g.name_tj or g.slug) for g in db.query(Game).all()}
+    return [
+        {"slug": s, "name": names.get(s, s)}
+        for s in SLUG_SKU_PREFIXES
+    ]
+
+
 @router.get("/regions")
 async def admin_regions(game: str = "free-fire"):
     """🌍 Минтақаҳои воқеӣ + ҳолати фаъол/хомӯш (itan az admin panel)."""

@@ -8,10 +8,18 @@ interface RegionRow {
   enabled: boolean;
 }
 
-/** 🌍 Минтақаҳои бозӣ — соҳиб онҳоро хомӯш/фаъол мекунад (20.11.2026).
- *  Рӯйхат аз каталоги воқеии FireLoot меояд; ягон минтақаи сохта нест. */
+interface GameOption {
+  slug: string;
+  name: string;
+}
+
+/** 🌍 Минтақаҳо — соҳиб онҳоро хомӯш/фаъол мекунад (20.11.2026).
+ *  Ба ҲАМАИ бозиҳое, ки dropdown-и минтақа доранд, татбиқ мешавад.
+ *  Рӯйхат аз каталоги воқеии FireLoot меояд; минтақаи сохта нест. */
 export default function Regions() {
   const { t } = useApp();
+  const [games, setGames] = useState<GameOption[]>([]);
+  const [game, setGame] = useState("");
   const [rows, setRows] = useState<RegionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState("");
@@ -20,7 +28,27 @@ export default function Regions() {
   useEffect(() => {
     let alive = true;
     api
-      .adminRegions("free-fire")
+      .adminRegionGames()
+      .then((d) => {
+        if (!alive) return;
+        setGames(d);
+        if (d.length) setGame((prev) => prev || d[0].slug);
+      })
+      .catch(() => {
+        if (alive) setError("Рӯйхати бозиҳо бор нашудааст");
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!game) return;
+    let alive = true;
+    setLoading(true);
+    setError("");
+    api
+      .adminRegions(game)
       .then((d) => {
         if (alive) setRows(d.regions);
       })
@@ -33,10 +61,10 @@ export default function Regions() {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [game]);
 
   const toggle = async (row: RegionRow) => {
-    if (saving) return;
+    if (saving || !game) return;
     const next = !row.enabled;
     setSaving(row.name);
     setError("");
@@ -44,7 +72,7 @@ export default function Regions() {
       prev.map((r) => (r.name === row.name ? { ...r, enabled: next } : r)),
     );
     try {
-      await api.setAdminRegion({ game: "free-fire", region: row.name, enabled: next });
+      await api.setAdminRegion({ game, region: row.name, enabled: next });
     } catch {
       setRows((prev) =>
         prev.map((r) => (r.name === row.name ? { ...r, enabled: !next } : r)),
@@ -61,10 +89,26 @@ export default function Regions() {
         <Globe2 className="w-5 h-5 text-brand-600" aria-hidden />
         <h2 className="text-lg font-extrabold text-slate-800">{t("regions")}</h2>
       </div>
-      <p className="text-xs text-slate-500 mb-4">
-        Free Fire · минтақаҳои воқеӣ аз FireLoot. Хомӯшшудаҳо дар саҳифаи
-        харидор намоён намешаванд.
+      <p className="text-xs text-slate-500 mb-3">
+        Ҳамаи бозиҳое, ки минтақа доранд. Хомӯшшудаҳо дар саҳифаи харидор
+        намоён намешаванд.
       </p>
+
+      <label className="label mb-2 block" htmlFor="regions-game">
+        Бозӣ
+      </label>
+      <select
+        id="regions-game"
+        className="input mb-4 w-full sm:w-72"
+        value={game}
+        onChange={(e) => setGame(e.target.value)}
+      >
+        {games.map((g) => (
+          <option key={g.slug} value={g.slug}>
+            {g.name}
+          </option>
+        ))}
+      </select>
 
       {loading && (
         <div className="flex items-center gap-2 text-sm text-slate-500">
