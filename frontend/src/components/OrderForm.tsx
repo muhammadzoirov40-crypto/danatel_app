@@ -288,7 +288,7 @@ function productArt(game: Game, p: Product): string | null {
         }
         return null;
       }
-      const lm = name.match(/Level Up Pass\s*(\d+)?/i);
+      const lm = name.match(/Level Up(?: Pass)?\s*(\d+)/i);
       if (lm) {
         const n = Number(lm[1]);
         return [6, 10, 15, 20, 25, 30].includes(n) ? img("ff", `level-${n}`) : null;
@@ -558,6 +558,17 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
     packs: [],
   };
   for (const p of products) groups[groupOf(p)].push(p);
+  // 🔢 Тартиби воқеӣ (талаби соҳиб 20.11.2026 «bo paryaduk mon»):
+  //    Level Up 6 → 10 → 15 → 20 → 25 → 30 (ном рақами воқеӣ дорад)
+  for (const key of Object.keys(groups) as GroupKey[]) {
+    groups[key].sort((a, b) => {
+      const lvl = (p: Product) => {
+        const m = p.name.match(/Level Up(?: Pass)?\s*(\d+)/i);
+        return m ? Number(m[1]) : Number.POSITIVE_INFINITY;
+      };
+      return lvl(a) - lvl(b) || a.id - b.id;
+    });
+  }
 
   /** Гурӯҳҳои маҳсулотдошта (тартиб аз SECTION_META) + таби фаъол */
   const visibleSections = SECTION_META.filter((m) => groups[m.key].length > 0);
