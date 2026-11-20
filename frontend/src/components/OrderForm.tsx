@@ -259,14 +259,10 @@ function productArt(game: Game, p: Product): string | null {
   //    ба 100 алмос зада, расми Алмаз мегирифт (задамаи FF_DIA_TIERS,
   //    20.11.2026) → иконкаи Heart/CalendarClock-и худи бахш мемонад
   //    (мисли «220 лайк» ки art=null дошт — якхела кард)
-  // 20.11.2026 (соҳиб «surathoyashro mon»): иконкаҳои ВОҚЕӢ аз акси
-  //    худи соҳиб — «100 LIKES» / «220 LIKES» (ба ҳар баста алоҳида)
-  if (p.ls_kind === "likes" || p.ls_kind === "auto_likes") {
-    const likes = Number(p.amount || 0);
-    if ([100, 220].includes(likes))
-      return `/images/likes/likes-${likes}.webp?v=20261120`;
-    return "/images/free-fire.webp?v=20261119";
-  }
+  // 20.11.2026 (соҳиб «monandi bashad»): иконкаи сабзи воқеӣ
+  //    «Пакеты лайков» — ҳамон расм дар ҳарду корт (аз акси соҳиб)
+  if (p.ls_kind === "likes" || p.ls_kind === "auto_likes")
+    return "/images/likes/like-thumb.webp?v=20261120";
   const name = p.name.trim();
   const amount = Number(p.amount || 0);
   // ?v= → cache-bust: сервер /images/* = max-age 7 рӯз медиҳад, соҳиб дар
@@ -975,9 +971,13 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                         title={p.name}
                         className={`relative flex min-w-0 flex-row items-center gap-3 rounded-2xl border-2 px-3 py-3 text-left transition-all
                           ${
-                            active
-                              ? "border-brand-600 bg-brand-50 shadow-[0_8px_20px_-10px_rgba(37,99,235,0.7)] scale-[1.02]"
-                              : "border-slate-200 bg-white hover:border-brand-300 hover:shadow-md hover:-translate-y-0.5"
+                              key === "likes"
+                                ? active
+                                  ? "border-emerald-600 bg-emerald-50 shadow-[0_8px_20px_-10px_rgba(5,150,105,0.7)] scale-[1.02]"
+                                  : "border-emerald-100 bg-white hover:border-emerald-300 hover:shadow-md hover:-translate-y-0.5"
+                                : active
+                                  ? "border-brand-600 bg-brand-50 shadow-[0_8px_20px_-10px_rgba(37,99,235,0.7)] scale-[1.02]"
+                                  : "border-slate-200 bg-white hover:border-brand-300 hover:shadow-md hover:-translate-y-0.5"
                           }`}
                       >
                         {p.is_popular && (
@@ -1022,7 +1022,7 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                             aria-hidden
                             className={
                               key === "likes"
-                                ? "h-14 w-14 shrink-0 rounded-full object-contain"
+                                ? "h-12 w-12 shrink-0 rounded-full object-contain"
                                 : "inline-flex h-10 w-12 shrink-0 rounded-xl object-contain sm:h-9 sm:w-9"
                             }
                           />
@@ -1049,20 +1049,25 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                           </span>
                         )}
 
-                        {/* 20.11.2026 (соҳиб «misli in boshad»): корти лайк —
-                            расм + НОМ дар боло + НАРХИ кабуд дар поён */}
+                        {/* 20.11.2026 (соҳиб «monandi bashad»): корти сабз —
+                            расм + РАҚАМ калон + «лайк» + нархи поён */}
                         {key === "likes" ? (
                           <span className="min-w-0 flex-1 flex flex-col gap-0.5">
-                            <span
-                              className={`truncate text-[13px] font-bold leading-tight ${
-                                active ? "text-brand-700" : "text-slate-800"
-                              }`}
-                            >
-                              {view.text}
+                            <span className="flex items-baseline gap-1">
+                              <span
+                                className={`text-lg font-extrabold tabular-nums leading-none ${
+                                  active ? "text-emerald-700" : "text-emerald-800"
+                                }`}
+                              >
+                                {Number(p.amount || 0).toLocaleString("tj-TJ")}
+                              </span>
+                              <span className="text-xs font-semibold text-slate-500">
+                                {t("unitLikes")}
+                              </span>
                             </span>
                             <span
                               className={`font-extrabold tabular-nums text-[13px] ${
-                                active ? "text-brand-700" : "text-brand-600"
+                                active ? "text-emerald-700" : "text-emerald-600"
                               }`}
                             >
                               {Number(p.price_tjs).toLocaleString("tj-TJ")} {t("currency")}
