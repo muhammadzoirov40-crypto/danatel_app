@@ -938,7 +938,15 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-2 sm:gap-2.5 mb-6">
+                {/* 20.11.2026 (соҳиб «dar 1 row nishon dihad»): ду лайк
+                    ёнбаш дар як сатр, дигар бахшҳо — мисли пешин */}
+                <div
+                  className={`grid gap-2 sm:gap-2.5 mb-6 ${
+                    key === "likes"
+                      ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4"
+                      : "grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4"
+                  }`}
+                >
                   {items.map((p) => {
                     const active = selected?.id === p.id;
                     const view = packView(p, game, t);
