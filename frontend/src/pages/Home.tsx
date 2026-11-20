@@ -410,17 +410,15 @@ export default function Home() {
                   aria-hidden
                   className="w-full h-full object-cover"
                 />
-                {/* 🆕 Бейҷи «NEW» — 10 рӯз (20—30.11.2026), баъд худкор нопадид
-                    мешавад; дили гулобии «боқимонда» бардошта шуд */}
+              </span>
+                {/* 🆕 NEW — 10 рӯз (20—30.11.2026); берун аз расм, то бурида нашавад */}
                 {Date.now() < Date.parse("2026-11-30T23:59:59+05:00") && (
-                  <span className="absolute -top-2 -right-2 z-10 inline-flex items-center
-                                   rounded-full border-2 border-white bg-white/95 px-2 py-0.5
-                                   text-[9px] font-black uppercase tracking-[0.12em]
-                                   text-rose-600 shadow-[0_4px_12px_-4px_rgba(225,29,72,0.7)]">
+                  <span className="absolute -top-2 -right-3 z-10 inline-flex items-center justify-center
+                                   rounded-full border-2 border-white bg-white px-2 py-0.5
+                                   text-[10px] font-extrabold leading-none text-rose-600 shadow-md">
                     NEW
                   </span>
                 )}
-              </span>
               <span className="w-full text-[11px] sm:text-xs font-bold leading-tight line-clamp-2
                                text-center text-slate-800 dark:text-white">
                 {t("secLikes")}
