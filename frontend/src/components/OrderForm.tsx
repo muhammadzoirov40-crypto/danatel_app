@@ -255,6 +255,11 @@ const PUBG_WOW_TIERS: Record<number, string> = {
 
 /** Расми воқеии маҳсулоти ҲАМАИ бозиҳоё null (расм нест → иконкаи ҳозира). */
 function productArt(game: Game, p: Product): string | null {
+  // 🎯 Leak Studio (лайк/авто-лайк): расми бегона ҷо НАМЕШАВAD — «100 лайк»
+  //    ба 100 алмос зада, расми Алмаз мегирифт (задамаи FF_DIA_TIERS,
+  //    20.11.2026) → иконкаи Heart/CalendarClock-и худи бахш мемонад
+  //    (мисли «220 лайк» ки art=null дошт — якхела кард)
+  if (p.ls_kind === "likes" || p.ls_kind === "auto_likes") return null;
   const name = p.name.trim();
   const amount = Number(p.amount || 0);
   // ?v= → cache-bust: сервер /images/* = max-age 7 рӯз медиҳад, соҳиб дар

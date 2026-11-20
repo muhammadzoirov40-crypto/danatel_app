@@ -135,7 +135,8 @@ const tj: Dict = {
   kindAutoLikes: "Авто-лайк",
   kindLevelup: "Level Up Pass",
   pkgIdLabel: "ID-и баста",
-  lsRate: "Курс BDT → сом",
+  lsRate: "курс",
+  lsMarket: "Бозор",
   lsProfit: "Фоида",
   lsNote:
     "Нархҳо воқеӣ аз Leak Studio API (BDT) — нархи TJS-ро худатон мегузоред. «Free Fire» аз FireLoot мемонад, лайкҳо аз Leak Studio.",
@@ -658,7 +659,8 @@ const ru: Dict = {
   kindAutoLikes: "Авто-лайк",
   kindLevelup: "Level Up Pass",
   pkgIdLabel: "ID пакета",
-  lsRate: "Курс BDT → сомони",
+  lsRate: "курс",
+  lsMarket: "Рынок",
   lsProfit: "Прибыль",
   lsNote:
     "Цены реальные из Leak Studio API (BDT) — цену TJS ставите сами. «Free Fire» остаётся от FireLoot, лайки — от Leak Studio.",
@@ -1183,7 +1185,8 @@ const en: Dict = {
   kindAutoLikes: "Auto likes",
   kindLevelup: "Level Up Pass",
   pkgIdLabel: "Package ID",
-  lsRate: "BDT → TJS rate",
+  lsRate: "rate",
+  lsMarket: "Market",
   lsProfit: "Profit",
   lsNote:
     "Real prices from the Leak Studio API (BDT) — set the TJS price yourself. Free Fire stays on FireLoot; likes come from Leak Studio.",
@@ -1707,7 +1710,8 @@ const uz: Dict = {
   kindAutoLikes: "Avto-like",
   kindLevelup: "Level Up Pass",
   pkgIdLabel: "Paket ID",
-  lsRate: "BDT → som kursi",
+  lsRate: "kurs",
+  lsMarket: "Bozor",
   lsProfit: "Foyda",
   lsNote:
     "Narxlar Leak Studio API'dan real (BDT) — TJS narxini o'zingiz qo'yasiz. Free Fire FireLoot'da qoladi, likelar Leak Studio'dan.",

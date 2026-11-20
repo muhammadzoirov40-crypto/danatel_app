@@ -11,7 +11,8 @@
  * ⚠️ cache-и HTML ҳамеша ПАС аз кӯшиши network навишта мешавад →
  *    ҳеҷ гоҳ версияи куҳна ҳангоми пайвастагӣ намерасад.
  */
-const CACHE = "donatshop-v1";
+const CACHE = "donatshop-v2"; // v1 → v2 (20.11.2026): пок кардани cache-и вайрони
+// қаблӣ, ки бадани КАМТАМОМ дошт («Unexpected end of input» → сайти холӣ)
 const STATIC = [/^\/assets\//, /^\/face-models\//, /^\/icon-.*\.png$/];
 
 self.addEventListener("install", () => {
@@ -44,7 +45,10 @@ self.addEventListener("fetch", (e) => {
           const res = await fetch(req);
           if (res.ok) {
             const c = await caches.open(CACHE);
-            c.put(req, res.clone());
+            // 20.11.2026: put-ро бо `waitUntil` НЕГАХ дор → SW ҳангоми
+            // бехобӣ ниматайёр КУШТА НАШАВАД (Cache Storage бадани камтаом
+            // → «Unexpected end of input» → React оғоз намешавад)
+            e.waitUntil(c.put(req, res.clone()).catch(() => {}));
           }
           return res;
         } catch {
@@ -68,7 +72,8 @@ self.addEventListener("fetch", (e) => {
         if (hit) return hit;
         try {
           const res = await fetch(req);
-          if (res.ok) c.put(req, res.clone());
+          // ҳамон қоидаи waitUntil (20.11.2026) — навишти cache то тамом шудан
+          if (res.ok) e.waitUntil(c.put(req, res.clone()).catch(() => {}));
           return res;
         } catch {
           return Response.error();
