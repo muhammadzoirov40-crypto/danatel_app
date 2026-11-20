@@ -511,7 +511,14 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
   //    boshad:1 almosho2 vaycherho3 propustho»): дар мобилӣ гурӯҳҳо ҳамчун
   //    таб иваз мешаванд (як вақт танҳо як бахш); дар десктоп ҳамон стеки
   //    пас-пас мемонад (layout танҳо дар мобилӣ иваз мешавад).
-  const [activeGroup, setActiveGroup] = useState<GroupKey | null>(null);
+  // 20.11.2026: `?group=likes` — гузариш аз корти «ЛАЙКҲО»-и саҳифаи асосӣ
+  //    (`dar alohidagi soz`) → ҳамон бахш фавран кушода мешавад.
+  const groupParam = new URLSearchParams(window.location.search).get("group");
+  const [activeGroup, setActiveGroup] = useState<GroupKey | null>(
+    groupParam && ["likes", "diamonds", "currency", "vouchers", "passes", "packs"].includes(groupParam)
+      ? (groupParam as GroupKey)
+      : null,
+  );
   useEffect(() => {
     setActiveGroup(null);
   }, [game.id]);
