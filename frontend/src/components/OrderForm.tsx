@@ -259,10 +259,14 @@ function productArt(game: Game, p: Product): string | null {
   //    ба 100 алмос зада, расми Алмаз мегирифт (задамаи FF_DIA_TIERS,
   //    20.11.2026) → иконкаи Heart/CalendarClock-и худи бахш мемонад
   //    (мисли «220 лайк» ки art=null дошт — якхела кард)
-  // 20.11.2026 (соҳиб «iconkoi haminro realni kun»): дар кортҳои лайк
-  //    расми ВОҚЕӢ — ҳамон расми FF, ки дар плиткаи «ЛАЙКҲО»-и хона аст
-  if (p.ls_kind === "likes" || p.ls_kind === "auto_likes")
+  // 20.11.2026 (соҳиб «surathoyashro mon»): иконкаҳои ВОҚЕӢ аз акси
+  //    худи соҳиб — «100 LIKES» / «220 LIKES» (ба ҳар баста алоҳида)
+  if (p.ls_kind === "likes" || p.ls_kind === "auto_likes") {
+    const likes = Number(p.amount || 0);
+    if ([100, 220].includes(likes))
+      return `/images/likes/likes-${likes}.webp?v=20261120`;
     return "/images/free-fire.webp?v=20261119";
+  }
   const name = p.name.trim();
   const amount = Number(p.amount || 0);
   // ?v= → cache-bust: сервер /images/* = max-age 7 рӯз медиҳад, соҳиб дар

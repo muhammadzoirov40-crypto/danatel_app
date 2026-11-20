@@ -405,7 +405,7 @@ export default function Home() {
                              group-hover:scale-[1.04] group-hover:shadow-[0_14px_28px_-10px_rgba(37,99,235,0.55)]
                              transition duration-200">
                 <img
-                  src="/images/free-fire.webp"
+                  src="/images/likes/heart-fire.webp?v=20261120"
                   alt=""
                   aria-hidden
                   className="w-full h-full object-cover"
