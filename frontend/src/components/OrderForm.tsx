@@ -578,7 +578,9 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
   const activeKey: GroupKey | undefined =
     activeGroup && groups[activeGroup].length ? activeGroup : visibleSections[0]?.key;
   /** Табҳо танҳо ҳангоми ≥2 бахш (дар мобилӣ; десктоп = стеки пешин) */
-  const tabsOn = visibleSections.length >= 2;
+  // 20.11.2026 (соҳиб «dar injo propusk daror nest»): дар папкаи ЛАЙКҲО
+  //    ҳарду бахш — Лайкҳо + Level Up Pass — якҷоя намоён, таби ивазкунӣ нест
+  const tabsOn = !likesOnly && visibleSections.length >= 2;
 
   // 🙈 Навори пардохт ТАНҲО ҳангоми интихоби бахши фаъол (талаби соҳиб
   //    10.11.2026 «va inro nishon nadihad to inhoro intixob nakunad»):
