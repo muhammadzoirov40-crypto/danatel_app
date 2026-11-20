@@ -74,13 +74,7 @@ export default function GameDetail() {
 
   const theme = useMemo(() => THEMES[slug] ?? {}, [slug]);
   const bg = theme.bg ?? FALLBACK_BG;
-  const products = game?.products ?? [];
-  // 📊 Омори сарлавҳа = минтақаи пешфарз аз backend (ҳамаи минтақаҳо → рақами беҳуда)
-  const itemsCount = game?.products_count ?? products.length;
-  const minRaw =
-    game?.min_price_tjs ??
-    (products.length ? Math.min(...products.map((p) => Number(p.price_tjs))) : null);
-  const minPrice = minRaw != null ? Number(minRaw) : null;
+  // 🖼️ Баннер — танҳо расм + номи бозӣ (навиштаҳои иловагӣ бардошта шуд, соҳиб 21.11.2026)
 
   if (loading) {
     return (
@@ -172,27 +166,6 @@ export default function GameDetail() {
           <div className="flex items-start gap-4 sm:gap-6">
             <div className="shrink-0">
               <GameLogo game={game} size="hero" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-white/85 text-sm sm:text-base mt-1.5">
-                {t("gameSubtitle")}
-              </p>
-
-              {/* Чипҳои асосӣ */}
-              <div className="flex flex-wrap gap-2 mt-3">
-                {minPrice != null && (
-                  <span className="text-xs sm:text-sm bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full font-semibold">
-                    {t("from")} {minPrice.toLocaleString("tj-TJ")} {t("currency")}
-                  </span>
-                )}
-                {itemsCount > 0 && (
-                  <span className="text-xs sm:text-sm bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full">
-                    {itemsCount} {t("statProducts")}
-                  </span>
-                )}
-                {/* ⚠️ Чипи «Дар сонияҳо» (даъвои суръат) бароварда шуд —
-                    танҳо маълумоти воқеӣ: нархи аз + шумораи бастаҳо */}
-              </div>
             </div>
           </div>
         </div>
