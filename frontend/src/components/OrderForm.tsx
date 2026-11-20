@@ -516,7 +516,7 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
   const groupParam = new URLSearchParams(window.location.search).get("group");
   /** 20.11.2026 (талаби соҳиб) — ДУ ПАПКАИ АЛОҲИДА:
    *  /game/free-fire    → ТАНҲО алмос/вучер/пропуск (лайк НЕСТ);
-   *  ?group=likes (корти «ЛАЙКҲО») → ТАНҲО лайк (дигарон НЕСТ). */
+   *  ?group=likes (корти «ЛАЙКҲО») → ТАНҲО лайк + Level Up Pass (Leak Studio). */
   const likesOnly = groupParam === "likes";
   const [activeGroup, setActiveGroup] = useState<GroupKey | null>(
     likesOnly
@@ -536,12 +536,14 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
   const autoRegionRef = useRef(false);
 
   // 🌍 Филтри минтақа: бастаҳои минтақаи интихобшуда (+ бе минтақа = барои ҳама)
-  // 🌍 Филтри минтақа + ДУ ПАПКА (20.11.2026): лайк дар папкаи худ,
-  //    дар Free Fire — нест; дар папкаи лайк — танҳо лайк
+  // 🌍 Филтри минтақа + ДУ ПАПКА (20.11.2026, талаби соҳиб):
+  //    папкаи «ЛАЙКҲО» → ТАНҲО маҳсулоти Leak Studio: 2 бахш —
+  //       Лайкҳо + Level Up Pass (мисли панели идораи ӯ);
+  //    папкаи Free Fire → ТАНҲо FireLoot (алмос/вучер/пропуск).
   const products = (game.products ?? []).filter(
     (p) =>
       (!p.region || p.region === region) &&
-      (likesOnly ? groupOf(p) === "likes" : groupOf(p) !== "likes"),
+      (likesOnly ? p.provider === "leakstudio" : p.provider !== "leakstudio"),
   );
   const price = selected ? Number(selected.price_tjs) : 0;
   const canUseBalance = !!user && balance >= price && price > 0;
