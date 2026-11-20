@@ -185,7 +185,21 @@
               try {
                 sessionStorage.removeItem(KEY);
               } catch (e) {}
-              location.reload();
+              // 20.11.2026: SW-и вайрон ё кэши камтаом сабаби «қатъ шуд» аст
+              // (iPhone/iOS низ) — пеш аз бозхонӣ онҳоро тоза мекунем
+              try {
+                var jobs = [];
+                if ("serviceWorker" in navigator)
+                  jobs.push(navigator.serviceWorker.getRegistrations().then(function (rs) {
+                    return Promise.all(rs.map(function (r) { return r.unregister(); }));
+                  }));
+                if (window.caches)
+                  jobs.push(caches.keys().then(function (ks) {
+                    return Promise.all(ks.map(function (k) { return caches.delete(k); }));
+                  }));
+                Promise.all(jobs).then(function () { location.reload(); },
+                                        function () { location.reload(); });
+              } catch (e) { location.reload(); }
             });
             boot.appendChild(b);
           };

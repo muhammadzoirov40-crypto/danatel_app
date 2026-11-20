@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronRight, Flame, Gamepad2, Heart, LayoutGrid, Search, SearchX, ShieldAlert, Star, TriangleAlert, X } from "lucide-react";
+import { Flame, Gamepad2, Heart, LayoutGrid, Search, SearchX, ShieldAlert, Star, TriangleAlert, X } from "lucide-react";
 import { api } from "../api/client";
 import type { Game, Review } from "../types";
 import GameCard from "../components/GameCard";
@@ -388,26 +388,31 @@ export default function Home() {
         </section>
 
         {/* ===== 4) ПЛИТКАҲОИ РАҚАМ ===== */}
-        {/* 🎯 ЛАЙКҲО — БАХШИ АЛОҲИДА (талаби соҳиб 20.11.2026) */}
+        {/* 🎯 ЛАЙКҲО — БАХШИ АЛОҲИДА, плитка мисли кортҳои бозӣ (20.11.2026) */}
         <section className="mt-4 sm:hidden" aria-label={t("secLikes")}>
-          <Link
-            to="/game/free-fire?group=likes"
-            aria-label={t("secLikes")}
-            className="card flex items-center gap-3 p-3 transition hover:border-brand-300 hover:shadow-md active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
-          >
-            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-rose-50 text-rose-500 dark:bg-rose-500/10">
-              <Ic icon={Heart} size="lg" className="fill-current" />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-sm font-extrabold text-slate-800 dark:text-white">
+          <div className="grid grid-cols-4 gap-x-3 gap-y-5">
+            <Link
+              to="/game/free-fire?group=likes"
+              aria-label={t("secLikes")}
+              className="group flex flex-col items-center gap-1.5 w-full max-w-[100px] mx-auto
+                         transition active:scale-[0.96] focus-visible:outline-none
+                         focus-visible:ring-2 focus-visible:ring-brand-400 rounded-xl"
+            >
+              <span className="w-20 h-20 rounded-[24%] grid place-items-center
+                               bg-gradient-to-br from-rose-400 to-pink-600
+                               shadow-[0_10px_22px_-10px_rgba(225,29,72,0.55)]
+                               group-hover:scale-[1.04] group-hover:shadow-[0_14px_28px_-10px_rgba(225,29,72,0.65)]
+                               transition">
+                <Ic icon={Heart} size="xl" className="text-white fill-white" />
+              </span>
+              <span className="w-full text-[11px] font-bold leading-tight line-clamp-2 text-center text-slate-800 dark:text-white">
                 {t("secLikes")}
               </span>
-              <span className="block text-[11px] text-slate-500">{t("unitLikes")}</span>
-            </span>
-            <ChevronRight size={18} className="shrink-0 text-slate-400" aria-hidden />
-          </Link>
+            </Link>
+          </div>
         </section>
 
+        {/* ===== 4) ПЛИТКАҲОИ РАҚАМ ===== */}
         {!loading && !error && (
           <section className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-3">
             <Tile

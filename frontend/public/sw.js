@@ -11,8 +11,9 @@
  * ⚠️ cache-и HTML ҳамеша ПАС аз кӯшиши network навишта мешавад →
  *    ҳеҷ гоҳ версияи куҳна ҳангоми пайвастагӣ намерасад.
  */
-const CACHE = "donatshop-v2"; // v1 → v2 (20.11.2026): пок кардани cache-и вайрони
-// қаблӣ, ки бадани КАМТАМОМ дошт («Unexpected end of input» → сайти холӣ)
+const CACHE = "donatshop-v3"; // v3 (20.11.2026): iOS/WebKit `waitUntil`-и баъди
+// await-ро рад мекунад → SW меафтад → саҳифа «Боргирӣ қатъ шуд» мемонад.
+// v1/v2 пок мешаванд (activate: ҳамаи калидҳои ғайри CACHE).
 const STATIC = [/^\/assets\//, /^\/face-models\//, /^\/icon-.*\.png$/];
 
 self.addEventListener("install", () => {
@@ -45,10 +46,9 @@ self.addEventListener("fetch", (e) => {
           const res = await fetch(req);
           if (res.ok) {
             const c = await caches.open(CACHE);
-            // 20.11.2026: put-ро бо `waitUntil` НЕГАХ дор → SW ҳангоми
-            // бехобӣ ниматайёр КУШТА НАШАВАД (Cache Storage бадани камтаом
-            // → «Unexpected end of input» → React оғоз намешавад)
-            e.waitUntil(c.put(req, res.clone()).catch(() => {}));
+            // 20.11.2026: `await` дар дохили respondWith — SW то тамом шудани
+            // навишт зинда мемонад. `waitUntil`-и баъди await дар iOS меафтад!
+            await c.put(req, res.clone()).catch(() => {});
           }
           return res;
         } catch {
@@ -72,8 +72,11 @@ self.addEventListener("fetch", (e) => {
         if (hit) return hit;
         try {
           const res = await fetch(req);
-          // ҳамон қоидаи waitUntil (20.11.2026) — навишти cache то тамом шудан
-          if (res.ok) e.waitUntil(c.put(req, res.clone()).catch(() => {}));
+          // ҳамон қоида (20.11.2026): навишт то охир — бе waitUntil (iOS!)
+          if (res.ok) {
+            const c = await caches.open(CACHE);
+            await c.put(req, res.clone()).catch(() => {});
+          }
           return res;
         } catch {
           return Response.error();
