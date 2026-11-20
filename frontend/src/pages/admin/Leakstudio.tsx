@@ -22,8 +22,8 @@ const KINDS: { key: string; titleKey: string }[] = [
   { key: "levelup", titleKey: "kindLevelup" },
 ];
 
-/** Курси нигоҳдорӣ дар браузери админ (моҳиятан BDT → сом) */
-const RATE_KEY = "ls_bdt_rate";
+/** 💲 Курси нигоҳдорӣ: BDT барои 1 сомонӣ (самти «бо сомонӣ», талаби соҳиб) */
+const RATE_KEY = "ls_bdt_per_som";
 
 /** Ҳисоби харид = BDT × курс (то 2 рақам — пули воқеӣ) */
 function costOf(bdt: number, rate: number): number {
@@ -42,7 +42,11 @@ export default function Leakstudio() {
   const [msg, setMsg] = useState("");
   const [creating, setCreating] = useState<string | null>(null);
   const [prices, setPrices] = useState<Record<string, string>>({});
-  const [rate, setRate] = useState("");
+  // 💲 Курси ду тарафа (талаби соҳиб 20.11.2026 «курсро бо сомонӣ кун»):
+  //    A = «1 сомонӣ = чанд BDT» (вуруд) · B = «1 BDT = чанд сомонӣ» (харид)
+  const [bdtPerSom, setBdtPerSom] = useState("");
+  const [somPerBdt, setSomPerBdt] = useState("");
+  const [market, setMarket] = useState<{ a: number; b: number } | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -68,22 +72,32 @@ export default function Leakstudio() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* 💲 Курси BDT → сом: localStorage → вагарна ВОҚЕӢ аз API-и курс */
+  /* 💲 Курс: нигоҳдоштаи браузер (самти нав) → вагарна ВОҚЕӢ аз API-и курс.
+      Хатои формати кӯҳна («1 BDT = … сом», 20.11.2026) пок мешавад. */
   useEffect(() => {
-    const saved = window.localStorage.getItem(RATE_KEY);
-    if (saved && Number(saved) > 0) {
-      setRate(saved);
-      return;
+    const r6 = (x: number) => Number(x.toFixed(6));
+    const saved = Number(window.localStorage.getItem(RATE_KEY) || 0);
+    if (saved > 0) {
+      setBdtPerSom(String(r6(saved)));
+      setSomPerBdt(String(r6(1 / saved)));
+    } else {
+      window.localStorage.removeItem("ls_bdt_rate"); // кӯҳнаи самти баръакс
     }
     let alive = true;
-    fetch("https://open.er-api.com/v6/latest/BDT")
+    fetch("https://open.er-api.com/v6/latest/USD")
       .then((r) => (r.ok ? r.json() : null))
       .then((d: unknown) => {
-        const v = Number(
-          (d as { rates?: { TJS?: number } } | null)?.rates?.TJS ?? NaN,
-        );
-        if (alive && Number.isFinite(v) && v > 0) {
-          setRate(String(Number(v.toFixed(6))));
+        const rt = (d as { rates?: { TJS?: number; BDT?: number } } | null)
+          ?.rates;
+        const a =
+          rt && typeof rt.TJS === "number" && typeof rt.BDT === "number" && rt.TJS > 0 && rt.BDT > 0
+            ? rt.BDT / rt.TJS
+            : NaN;
+        if (!alive || !(a > 0)) return;
+        setMarket({ a: r6(a), b: r6(1 / a) }); // сарчашаи воқеӣ + сана дар поён
+        if (!(saved > 0)) {
+          setBdtPerSom(String(r6(a)));
+          setSomPerBdt(String(r6(1 / a)));
         }
       })
       .catch(() => undefined); // сет хомӯш — админ дастӣ мегузорад
@@ -92,11 +106,32 @@ export default function Leakstudio() {
     };
   }, []);
 
-  const rateN = Number((rate || "").replace(",", ".")) || 0;
+  /** Ҳисоби харид аз майдони B («1 BDT = чанд сомонӣ» — ҳамон курс) */
+  const rateN = Number((somPerBdt || "").replace(",", ".")) || 0;
 
-  const saveRate = (v: string) => {
-    setRate(v);
-    window.localStorage.setItem(RATE_KEY, v.replace(",", "."));
+  /** A: «1 сомонӣ = чанд BDT» → B = 1/A (зинда) */
+  const onSomSide = (v: string) => {
+    setBdtPerSom(v);
+    const n = Number(v.replace(",", "."));
+    if (n > 0) {
+      setSomPerBdt(String(Number((1 / n).toFixed(6))));
+      window.localStorage.setItem(RATE_KEY, String(n));
+    } else {
+      setSomPerBdt("");
+    }
+  };
+
+  /** B: «1 BDT = чанд сомонӣ» → A = 1/B (зинда) */
+  const onBdtSide = (v: string) => {
+    setSomPerBdt(v);
+    const n = Number(v.replace(",", "."));
+    if (n > 0) {
+      const a = Number((1 / n).toFixed(6));
+      setBdtPerSom(String(a));
+      window.localStorage.setItem(RATE_KEY, String(a));
+    } else {
+      setBdtPerSom("");
+    }
   };
 
   /** ➕ Иловаи баста → маҳсулоти воқеӣ: харид = BDT × курс, фурӯш = TJS */
@@ -186,30 +221,60 @@ export default function Leakstudio() {
         )}
       </div>
 
-      {/* 💲 Курси харид — мисли FireLoot: харид = BDT × курс */}
+      {/* 💲 Курси харид — БО СОМОНӢ: 1 сомонӣ = чанд BDT (+ оинаи BDT → сом) */}
       <div className="card p-4">
         <div className="flex flex-wrap items-end gap-3">
           <div>
-            <label htmlFor="ls-rate" className="label !mb-1 block">
-              {t("lsRate")}
+            <label htmlFor="ls-a" className="label !mb-1 block">
+              1 {t("currency")} =
             </label>
             <input
-              id="ls-rate"
+              id="ls-a"
               type="number"
               inputMode="decimal"
               step="0.000001"
               min={0.000001}
-              value={rate}
-              onChange={(e) => saveRate(e.target.value)}
+              value={bdtPerSom}
+              onChange={(e) => onSomSide(e.target.value)}
               placeholder="0.000000"
-              className="input !w-36 !py-2 text-sm font-semibold"
+              aria-label={`1 ${t("currency")} = BDT`}
+              className="input !w-32 !py-2 text-sm font-semibold"
             />
+            <span className="mt-1 block text-[10px] leading-none text-slate-500">
+              BDT
+            </span>
           </div>
-          <span className="text-xs text-slate-500 pb-2">
-            {t("costLabel")} = BDT × {t("lsRate").toLowerCase()}
-            {rateN > 0 && ` · 1 BDT = ${rateN} ${t("currency")}`}
-          </span>
+          <div>
+            <label htmlFor="ls-b" className="label !mb-1 block">
+              1 BDT =
+            </label>
+            <input
+              id="ls-b"
+              type="number"
+              inputMode="decimal"
+              step="0.000001"
+              min={0.000001}
+              value={somPerBdt}
+              onChange={(e) => onBdtSide(e.target.value)}
+              placeholder="0.000000"
+              aria-label={`1 BDT = ${t("currency")}`}
+              className="input !w-32 !py-2 text-sm font-semibold"
+            />
+            <span className="mt-1 block text-[10px] leading-none text-slate-500">
+              {t("currency")}
+            </span>
+          </div>
         </div>
+        <p className="mt-2 text-xs text-slate-500">
+          {t("costLabel")} = BDT × {t("lsRate")}
+          {market && (
+            <span className="text-slate-400">
+              {" · "}
+              {t("lsMarket")}: 1 {t("currency")} = {market.a} BDT · 1 BDT ={" "}
+              {market.b} {t("currency")}
+            </span>
+          )}
+        </p>
 
         <div className="mt-3 pt-3 border-t border-slate-100">
           <label className="label">{t("game")}</label>
