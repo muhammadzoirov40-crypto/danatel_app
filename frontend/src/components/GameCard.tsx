@@ -29,7 +29,29 @@ export default function GameCard({ game, isFavorite = false, onToggleFavorite }:
                  w-full max-w-[100px] sm:max-w-[110px] md:max-w-[118px] mx-auto
                  transition active:scale-[0.96]"
     >
-      {/* favorite heart removed per owner: "in lakero nest kun" */}
+      {/* ❤️ Тугмаи дӯстдоштаҳо */}
+      {onToggleFavorite && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onToggleFavorite(game.slug);
+          }}
+          aria-label={isFavorite ? "Аз дӯстдоштаҳо хориҷ кардан" : "Ба дӯстдоштаҳо илова кардан"}
+          title={isFavorite ? "Дӯстдошта" : "Илова ба дӯстдоштаҳо"}
+          className="absolute -top-1.5 -left-1.5 z-10 w-6 h-6 rounded-full bg-white/95
+                     backdrop-blur-xs shadow-xs border border-slate-200/80
+                     grid place-items-center hover:scale-110 active:scale-90 transition
+                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+        >
+          <Ic
+            icon={Heart}
+            size="xs"
+            className={isFavorite ? "text-rose-500 fill-rose-500" : "text-slate-400 hover:text-rose-500"}
+          />
+        </button>
+      )}
 
       {/* 🏷️ «ХИТ» — танҳо аз рӯи маълумоти сервер */}
       {game.is_popular && (
