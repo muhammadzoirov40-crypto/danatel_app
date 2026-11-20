@@ -546,7 +546,7 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
   const products = (game.products ?? []).filter(
     (p) =>
       (!p.region || p.region === region) &&
-      (likesOnly ? p.provider === "leakstudio" : p.provider !== "leakstudio"),
+      (likesOnly ? groupOf(p) === "likes" : groupOf(p) !== "likes"),
   );
   const price = selected ? Number(selected.price_tjs) : 0;
   const canUseBalance = !!user && balance >= price && price > 0;
