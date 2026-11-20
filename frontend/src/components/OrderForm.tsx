@@ -1064,7 +1064,7 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                             className={
                               key === "likes"
                                 ? "h-10 w-10 shrink-0 rounded-full object-contain"
-                                : "inline-flex h-10 w-12 shrink-0 rounded-xl object-contain sm:h-9 sm:w-9"
+                                : "inline-flex h-12 w-14 shrink-0 rounded-xl object-contain"
                             }
                           />
                         ) : (
