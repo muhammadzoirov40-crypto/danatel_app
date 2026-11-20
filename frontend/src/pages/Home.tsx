@@ -399,15 +399,16 @@ export default function Home() {
                          transition active:scale-[0.96] focus-visible:outline-none
                          focus-visible:ring-2 focus-visible:ring-brand-400 rounded-xl"
             >
-              <span className="relative w-20 h-20 sm:w-28 sm:h-28 rounded-[24%] shrink-0
-                               shadow-[0_10px_22px_-10px_rgba(37,99,235,0.45)]
-                               group-hover:scale-[1.04] group-hover:shadow-[0_14px_28px_-10px_rgba(37,99,235,0.55)]
-                               transition">
+              <span className="w-full aspect-square rounded-[22%] relative shrink-0
+                             overflow-hidden ring-1 ring-white/70
+                             shadow-[0_10px_22px_-10px_rgba(37,99,235,0.45)]
+                             group-hover:scale-[1.04] group-hover:shadow-[0_14px_28px_-10px_rgba(37,99,235,0.55)]
+                             transition duration-200">
                 <img
                   src="/images/free-fire.webp"
                   alt=""
                   aria-hidden
-                  className="w-full h-full object-cover rounded-[24%]"
+                  className="w-full h-full object-cover"
                 />
                 {/* ❤️ Бейҷи дил — мисли тугмаи дӯстдоштаҳои кортҳои бозӣ */}
                 <span className="absolute -top-1.5 -left-1.5 z-10 w-6 h-6 rounded-full
