@@ -71,6 +71,37 @@ class GroupToggle(BaseModel):
     enabled: bool
 
 
+class ProductVisibilityToggle(BaseModel):
+    game: str = "free-fire"
+    product_id: int
+    enabled: bool
+
+
+@router.get("/products-visibility")
+def admin_products_visibility(game: str = "free-fire", db: Session = Depends(get_db)):
+    """📦 Ҳар маҳсулот алоҳида: дастрас/нест (соҳиб 21.11.2026)."""
+    from app.services.regions import disabled_products
+    g = db.query(Game).filter(Game.slug == game).first()
+    if not g:
+        return {"game": game, "products": []}
+    off = disabled_products(game)
+    return {
+        "game": game,
+        "products": [
+            {"id": p.id, "name": p.name_tj or p.name_ru or p.name_en or str(p.id),
+             "enabled": p.id not in off}
+            for p in db.query(Product).filter(Product.game_id == g.id).order_by(Product.id).all()
+        ],
+    }
+
+
+@router.post("/products-visibility")
+def admin_set_product_visibility(body: ProductVisibilityToggle):
+    from app.services.regions import set_product_enabled
+    set_product_enabled(body.game, body.product_id, body.enabled)
+    return {"ok": True, "product_id": body.product_id, "enabled": body.enabled}
+
+
 @router.get("/groups")
 def admin_groups(game: str = "free-fire"):
     """📦 Гурӯҳҳои маҳсулот + ҳолати фаъол/хомӯш."""

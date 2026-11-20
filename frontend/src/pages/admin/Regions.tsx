@@ -4,6 +4,7 @@ import { api } from "../../api/client";
 import { useApp } from "../../context/AppContext";
 
 interface Row {
+  id?: number;
   name: string;
   enabled: boolean;
 }
@@ -73,6 +74,7 @@ export default function Regions() {
   const [game, setGame] = useState("");
   const [regions, setRegions] = useState<Row[]>([]);
   const [groups, setGroups] = useState<Row[]>([]);
+  const [products, setProducts] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState("");
   const [error, setError] = useState("");
@@ -99,11 +101,18 @@ export default function Regions() {
     let alive = true;
     setLoading(true);
     setError("");
-    Promise.all([api.adminRegions(game), api.adminGroups(game)])
-      .then(([r, g]) => {
+    Promise.all([
+      api.adminRegions(game),
+      api.adminGroups(game),
+      api.adminProductsVisibility(game),
+    ])
+      .then(([r, g, p]) => {
         if (!alive) return;
         setRegions(r.regions);
         setGroups(g.groups);
+        setProducts(
+          p.products.map((x) => ({ id: x.id, name: x.name, enabled: x.enabled })),
+        );
       })
       .catch(() => {
         if (alive) setError("Боркунӣ ноком шуд");
@@ -116,20 +125,28 @@ export default function Regions() {
     };
   }, [game]);
 
-  const toggle = async (kind: "region" | "group", row: Row) => {
+  const toggle = async (kind: "region" | "group" | "product", row: Row) => {
     if (saving || !game) return;
     const next = !row.enabled;
-    const setter = kind === "region" ? setRegions : setGroups;
+    const setter =
+      kind === "region" ? setRegions : kind === "group" ? setGroups : setProducts;
     const patch = (v: Row[]) =>
       v.map((r) => (r.name === row.name ? { ...r, enabled: next } : r));
-    setSaving(row.name);
+    setSaving(String(row.id ?? row.name));
     setError("");
     setter(patch);
     try {
       if (kind === "region") {
         await api.setAdminRegion({ game, region: row.name, enabled: next });
-      } else {
+      } else if (kind === "group") {
         await api.setAdminGroup({ game, group: row.name, enabled: next });
+      } else {
+        if (row.id != null)
+          await api.setAdminProductVisibility({
+            game,
+            product_id: row.id,
+            enabled: next,
+          });
       }
     } catch {
       setter((v: Row[]) =>
@@ -217,6 +234,31 @@ export default function Regions() {
               enabled={g.enabled}
               saving={saving === g.name}
               onToggle={() => void toggle("group", g)}
+            />
+          ))}
+        </div>
+      </section>
+
+      <section className="card p-4 sm:p-5">
+        <div className="flex items-center gap-2 mb-1">
+          <Package className="w-5 h-5 text-brand-600" aria-hidden />
+          <h2 className="text-lg font-extrabold text-slate-800">{t("products")}</h2>
+        </div>
+        <p className="text-xs text-slate-500 mb-4">
+          Ҳар баста алоҳида. Хомӯшшуда дар рӯйхати харидор нест мешавад.
+        </p>
+        {!loading && products.length === 0 && (
+          <p className="text-sm text-slate-500">Маҳсулот ёфт нашудааст.</p>
+        )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-96 overflow-y-auto pr-1">
+          {products.map((p) => (
+            <ToggleRow
+              key={p.id ?? p.name}
+              name={p.name}
+              label={`${p.name} (#${p.id})`}
+              enabled={p.enabled}
+              saving={saving === String(p.id)}
+              onToggle={() => void toggle("product", p)}
             />
           ))}
         </div>

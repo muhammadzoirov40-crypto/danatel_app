@@ -442,6 +442,15 @@ export const api = {
   userTransactions: (userId: number) =>
     request<BalanceTx[]>(`/admin/users/${userId}/transactions`),
   /** 🌍 Минтақаҳо: хомӯш/фаъол кардан аз панели админ */
+  adminProductsVisibility: (game = "free-fire") =>
+    request<{ game: string; products: { id: number; name: string; enabled: boolean }[] }>(
+      `/admin/products-visibility?game=${encodeURIComponent(game)}`,
+    ),
+  setAdminProductVisibility: (data: { game: string; product_id: number; enabled: boolean }) =>
+    request<{ ok: boolean }>("/admin/products-visibility", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
   adminGroups: (game = "free-fire") =>
     request<{ game: string; groups: { name: string; enabled: boolean }[] }>(
       `/admin/groups?game=${encodeURIComponent(game)}`,

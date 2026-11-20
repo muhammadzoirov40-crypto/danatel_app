@@ -169,9 +169,11 @@ async def game_detail(
         raise HTTPException(status_code=404, detail="Бозӣ ёфт нашуд")
 
     # 🌍 Минтақаҳои хомӯшшуда (танзIMOти админ) — маҳсулоташон дар ҳеҷ ҷой нест
-    from app.services.regions import disabled as _disabled_regions, disabled_groups, group_of
+    from app.services.regions import (disabled as _disabled_regions, disabled_groups,
+                                      disabled_products, group_of)
     _off = _disabled_regions(game.slug)
     _off_groups = disabled_groups(game.slug)
+    _off_products = disabled_products(game.slug)
 
     products = [
         ProductOut(
@@ -191,6 +193,7 @@ async def game_detail(
         if p.is_active
         and (not p.region or p.region not in _off)
         and group_of(p) not in _off_groups
+        and p.id not in _off_products
     ]
 
     # 🌍 Минтақаҳои каталоги FireLoot (хатогӣ/холӣ → [] → интихоб пинҳон мемонад)

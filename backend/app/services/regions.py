@@ -73,6 +73,25 @@ def set_group_enabled(game: str, group: str, enabled: bool) -> None:
         _FILE.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+def disabled_products(game: str) -> set[int]:
+    data = _read().get("products", {})
+    rows = data.get(game, []) if isinstance(data, dict) else []
+    return {int(x) for x in rows if str(x).isdigit()} if isinstance(rows, list) else set()
+
+
+def set_product_enabled(game: str, product_id: int, enabled: bool) -> None:
+    with _LOCK:
+        data = _read()
+        rows = set(int(x) for x in data.get("products", {}).get(game, [])
+                   if str(x).isdigit()) if isinstance(data.get("products", {}).get(game), list) else set()
+        if enabled:
+            rows.discard(int(product_id))
+        else:
+            rows.add(int(product_id))
+        data.setdefault("products", {})[game] = sorted(rows)
+        _FILE.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
 def group_of(p) -> str:
     """Гурӯҳи маҳсулот — ҳамон қоидаи `groupOf`-и OrderForm (frontend)."""
     kind = (getattr(p, "ls_kind", "") or "").strip()
