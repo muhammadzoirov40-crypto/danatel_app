@@ -2,15 +2,15 @@
 <html lang="tj">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/icons/favicon-32.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
     <meta name="description" content="donatshop.tj — Донати бозиҳо: Free Fire, PUBG Mobile, Mobile Legends" />
     <meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
     <!-- 📦 PWA — насби барнома дар телефон (Install app / Add to Home Screen) -->
-    <link rel="manifest" href="/manifest.json" />
-    <link rel="apple-touch-icon" href="/icon-180.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -267,8 +267,51 @@
         }
       } catch (e) {}
     </script>
+    <!-- 🍎 SPLASH / LOADING — соҳиб 21.11.2026: фақат шаффоф D,系统的 ранглар -->
+    <style id="splash-style">
+      #splash{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;pointer-events:none;
+        background:#F2F2F7;transition:opacity .5s cubic-bezier(.2,.8,.2,1),transform .5s cubic-bezier(.2,.8,.2,1)}
+      html.dark #splash{background:#000}
+      #splash.sp-done{opacity:0;transform:scale(1.04);pointer-events:none}
+      .sp-inner{display:flex;flex-direction:column;align-items:center;gap:18px}
+      .sp-logo{position:relative;width:96px;height:96px}
+      .sp-logo img{width:100%;height:100%;object-fit:contain;position:relative;z-index:2;
+        animation:sp-in .75s cubic-bezier(.2,.8,.2,1) both, sp-breathe 3.2s ease-in-out .8s infinite}
+      .sp-glow{position:absolute;inset:-24%;border-radius:50%;z-index:1;
+        background:radial-gradient(circle,rgba(0,122,255,.32),transparent 66%);
+        animation:sp-glow 2.4s ease-in-out infinite}
+      .sp-shine{position:absolute;inset:0;z-index:3;pointer-events:none;
+        background:linear-gradient(110deg,transparent 34%,rgba(255,255,255,.8) 50%,transparent 66%);
+        transform:translateX(-130%);animation:sp-shine 1.9s ease-in-out 1s infinite}
+      .sp-name{font:600 13px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,sans-serif;
+        letter-spacing:.01em;color:#3c3c43}
+      html.dark .sp-name{color:#ebebf5}
+      .sp-line{width:108px;height:2px;border-radius:99px;background:rgba(118,118,128,.2);overflow:hidden}
+      .sp-line span{display:block;width:38%;height:100%;border-radius:99px;background:#007AFF;
+        animation:sp-load 1.25s ease-in-out infinite}
+      #root .boot{opacity:0!important;pointer-events:none!important}
+      #root .boot.failed{opacity:1!important;pointer-events:auto!important}
+      @keyframes sp-in{from{opacity:0;filter:blur(14px);transform:scale(.78)}to{opacity:1;filter:blur(0);transform:scale(1)}}
+      @keyframes sp-breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
+      @keyframes sp-glow{0%,100%{opacity:.55;transform:scale(.92)}50%{opacity:1;transform:scale(1.08)}}
+      @keyframes sp-shine{0%{transform:translateX(-130%)}60%,100%{transform:translateX(130%)}}
+      @keyframes sp-load{0%{transform:translateX(-100%)}100%{transform:translateX(280%)}}
+      @media (prefers-reduced-motion:reduce){
+        #splash,.sp-logo img,.sp-glow,.sp-shine,.sp-line span{animation:none!important;transition:none!important}
+      }
+    </style>
   </head>
   <body>
+  <div id="splash" aria-hidden="true">
+    <div class="sp-inner">
+      <div class="sp-logo">
+        <img src="/donatshop-D-logo.png" alt="" />
+        <span class="sp-glow"></span><span class="sp-shine"></span>
+      </div>
+      <div class="sp-name">donatshop</div>
+      <div class="sp-line"><span></span></div>
+    </div>
+  </div>
     <div id="root">
       <!-- ⏳ Пеш аз боргирӣ: логотип + нуқтаҳо → React аввалин render-ро
            гузошта, ин блокро иваз мекунад (сабаби экранҳои сиёҳ/холӣ
@@ -282,5 +325,24 @@
       </div>
     </div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      /* 🍎 Splash-ро фақат визуал олиш — илова қилмайдиган/ўзгартирмайдиган логика йўқ */
+      (function(){
+        var s=document.getElementById('splash'), r=document.getElementById('root');
+        if(!s||!r) return;
+        var t0=Date.now(), done=false;
+        function finish(failed){
+          if(done)return; done=true;
+          if(failed){var b=r.querySelector('.boot'); if(b)b.classList.add('failed');}
+          s.classList.add('sp-done');
+          window.setTimeout(function(){ if(s.parentNode)s.parentNode.removeChild(s); },540);
+        }
+        var iv=setInterval(function(){
+          var mounted=r.firstElementChild && !r.querySelector('.boot');
+          var failed=!!document.getElementById('boot-retry-btn');
+          if(mounted||failed||Date.now()-t0>7000){clearInterval(iv);finish(failed);}
+        },120);
+      })();
+    </script>
   </body>
 </html>
