@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="tj">
+<html lang="tj" class="splash-active">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/icons/favicon-32.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
     <meta name="description" content="donatshop.tj — Донати бозиҳо: Free Fire, PUBG Mobile, Mobile Legends" />
-    <meta name="theme-color" content="#F2F2F7" id="theme-color-meta" />
+    <meta name="theme-color" content="#010A27" id="theme-color-meta" />
     <!-- 📦 PWA — насби барнома дар телефон (Install app / Add to Home Screen) -->
     <link rel="manifest" href="/manifest.json" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png" />
@@ -14,6 +14,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="donatshop" />
+    <!-- 🚀 Splash: ҳамаи 3 қабат пеш аз JS бор шаванд -->
+    <link rel="preload" as="image" href="/splash/splash_bg_1080x1920.webp" fetchpriority="high" />
+    <link rel="preload" as="image" href="/splash/layer_logo.webp" fetchpriority="high" />
+    <link rel="preload" as="image" href="/splash/layer_wordmark.webp" fetchpriority="high" />
     <link rel="preload" as="image" href="/donatshop-D-logo.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -26,9 +30,9 @@
          аввалин саҳифаро месозад, дохили #root-ро пурра иваз мекунад →
          индиcатор худкор нест мешавад. Матн надорад → забон умумӣ. -->
     <style>
-      /* 🍎 Boot = идомаи splash-и native: ҳамон фон, ҳамон D, бе матн/прогресс */
-      html, body { margin: 0; padding: 0; background: #F2F2F7; }
-      html.dark, html.dark body { background: #000; }
+      /* 🚀 Splash = аввалин frame: html/body navy, то CSS-и барнома ояд */
+      html, body { margin: 0; padding: 0; background: #010A27; }
+      html.splash-active, html.splash-active body { overflow: hidden; height: 100%; }
       #root { min-height: 100vh; min-height: 100dvh; }
       .boot {
         display: flex;
@@ -36,9 +40,8 @@
         justify-content: center;
         min-height: 100vh;
         min-height: 100dvh;
-        background: #F2F2F7;
+        background: #010A27;
       }
-      html.dark .boot { background: #000; }
       .boot-logo { width: 96px; height: 96px; object-fit: contain; }
       .boot-fallback {
         position: absolute;
@@ -253,12 +256,319 @@
         var dark = localStorage.getItem("danatel_theme") === "dark";
         if (dark) document.documentElement.classList.add("dark");
         var tm = document.getElementById("theme-color-meta");
-        if (tm) tm.setAttribute("content", dark ? "#000000" : "#F2F2F7");
+        if (tm) tm.setAttribute("content", "#010A27");
       } catch (e) {}
     </script>
 
+    <style>
+      /* ============ 🚀 BRANDED SPLASH (web, first paint) ============ */
+      #splash {
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        overflow: hidden;
+        background: #010A27;
+        opacity: 1;
+        transform: scale(1);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        pointer-events: none;
+      }
+      #splash.is-done {
+        opacity: 0;
+        transform: scale(1.04);
+      }
+      .splash-bg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0;
+        animation: splash-bg-in 0.3s ease-out forwards;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+      .splash-stage {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        height: 100vh;
+        height: 100dvh;
+        width: calc(100vh * 9 / 16);
+        width: calc(100dvh * 9 / 16);
+        transform: translateX(-50%);
+      }
+      .splash-glow {
+        position: absolute;
+        left: 51.8%;
+        top: 37.5%;
+        width: 66%;
+        aspect-ratio: 1;
+        transform: translate(-50%, -50%);
+        background: radial-gradient(
+          circle,
+          rgba(45, 145, 255, 0.6) 0%,
+          rgba(20, 80, 220, 0.28) 42%,
+          rgba(10, 40, 130, 0.1) 62%,
+          transparent 72%
+        );
+        filter: blur(24px);
+        mix-blend-mode: screen;
+        opacity: 0.5;
+        animation: splash-glow-pulse 2.4s ease-in-out infinite alternate;
+        will-change: opacity;
+      }
+      .splash-logo {
+        position: absolute;
+        left: 32.4%;
+        top: 25.2%;
+        width: 38.9%;
+        transform-origin: 50% 60%;
+      }
+      .splash-logo-float {
+        animation: splash-float 3.2s ease-in-out infinite;
+        will-change: transform;
+      }
+      .splash-logo-box {
+        position: relative;
+        width: 100%;
+      }
+      .splash-logo img {
+        display: block;
+        width: 100%;
+        height: auto;
+        mix-blend-mode: screen;
+        animation: splash-logo-in 0.3s ease-out both;
+      }
+      .splash-logo-sweep {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        pointer-events: none;
+        -webkit-mask: url("/splash/layer_logo.webp") center / contain no-repeat;
+        mask: url("/splash/layer_logo.webp") center / contain no-repeat;
+      }
+      .splash-logo-sweep::before {
+        content: "";
+        position: absolute;
+        top: -25%;
+        bottom: -25%;
+        left: 0;
+        width: 34%;
+        background: linear-gradient(
+          105deg,
+          transparent,
+          rgba(255, 255, 255, 0.8),
+          transparent
+        );
+        mix-blend-mode: screen;
+        transform: translateX(-150%) skewX(-18deg);
+        animation: splash-sweep 2.2s ease-in-out infinite;
+        will-change: transform;
+      }
+      .splash-wordmark {
+        position: absolute;
+        left: 17.6%;
+        top: 46.9%;
+        width: 64.8%;
+        animation: splash-word-in 0.35s ease-out 0.05s both;
+      }
+      .splash-wordmark-box {
+        position: relative;
+        width: 100%;
+      }
+      .splash-wordmark img {
+        display: block;
+        width: 100%;
+        height: auto;
+        mix-blend-mode: screen;
+      }
+      .splash-wordmark-shimmer {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        pointer-events: none;
+        -webkit-mask: url("/splash/layer_wordmark.webp") center / contain no-repeat;
+        mask: url("/splash/layer_wordmark.webp") center / contain no-repeat;
+      }
+      .splash-wordmark-shimmer::before {
+        content: "";
+        position: absolute;
+        top: -20%;
+        bottom: -20%;
+        left: 0;
+        width: 26%;
+        background: linear-gradient(
+          100deg,
+          transparent,
+          rgba(255, 255, 255, 0.85),
+          transparent
+        );
+        mix-blend-mode: screen;
+        transform: translateX(-180%) skewX(-16deg);
+        animation: splash-shimmer 2.5s ease-in-out infinite;
+        will-change: transform;
+      }
+      .splash-sparks {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+      .splash-sparks i {
+        position: absolute;
+        left: var(--x);
+        top: var(--y);
+        width: var(--s);
+        height: var(--s);
+        border-radius: 50%;
+        background: radial-gradient(
+          circle,
+          #ffffff 0%,
+          #8fd0ff 35%,
+          rgba(70, 150, 255, 0.3) 62%,
+          transparent 72%
+        );
+        opacity: 0.2;
+        animation: splash-spark var(--dur) ease-in-out var(--delay) infinite alternate;
+        will-change: transform, opacity;
+      }
+      .splash-progress {
+        position: absolute;
+        left: 50%;
+        top: 85.42%;
+        width: 59.26%;
+        height: 0.42%;
+        min-height: 3px;
+        transform: translateX(-50%);
+        border-radius: 999px;
+        background: rgba(120, 180, 255, 0.18);
+        box-shadow: 0 0 16px rgba(40, 140, 255, 0.35);
+        overflow: hidden;
+      }
+      .splash-progress span {
+        display: block;
+        width: 100%;
+        height: 100%;
+        border-radius: inherit;
+        transform: scaleX(0.02);
+        transform-origin: left center;
+        background: linear-gradient(90deg, #1c6dff, #54c8ff 55%, #a5ecff);
+        box-shadow: 0 0 14px rgba(70, 180, 255, 0.85);
+        animation: splash-bar 2.5s cubic-bezier(0.2, 0.75, 0.25, 1) forwards;
+        position: relative;
+      }
+      .splash-progress span::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 26%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.9),
+          transparent
+        );
+        transform: translateX(-170%);
+        animation: splash-bar-shine 1.6s linear infinite;
+      }
+      #splash.is-ready .splash-progress span {
+        animation: none;
+        transform: scaleX(1);
+        transition: transform 0.25s ease-out;
+      }
+      @keyframes splash-bg-in { to { opacity: 1; } }
+      @keyframes splash-logo-in {
+        from { opacity: 0; transform: scale(0.92); }
+        to { opacity: 1; transform: scale(1); }
+      }
+      @keyframes splash-float {
+        0%, 100% { transform: translateY(-1.6%); }
+        50% { transform: translateY(1.6%); }
+      }
+      @keyframes splash-glow-pulse {
+        from { opacity: 0.5; }
+        to { opacity: 1; }
+      }
+      @keyframes splash-sweep {
+        0% { transform: translateX(-150%) skewX(-18deg); }
+        42%, 100% { transform: translateX(430%) skewX(-18deg); }
+      }
+      @keyframes splash-shimmer {
+        0% { transform: translateX(-180%) skewX(-16deg); }
+        38%, 100% { transform: translateX(430%) skewX(-16deg); }
+      }
+      @keyframes splash-word-in {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: none; }
+      }
+      @keyframes splash-bar {
+        from { transform: scaleX(0.02); }
+        to { transform: scaleX(0.85); }
+      }
+      @keyframes splash-bar-shine {
+        from { transform: translateX(-170%); }
+        to { transform: translateX(430%); }
+      }
+      @keyframes splash-spark {
+        0% { opacity: 0.12; transform: translateY(5px) scale(0.65); }
+        45% { opacity: 0.95; }
+        100% { opacity: 0.18; transform: translateY(-9px) scale(1.15); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .splash-bg, .splash-logo img, .splash-wordmark {
+          animation: none !important;
+          opacity: 1 !important;
+          transform: none !important;
+        }
+        .splash-logo-float, .splash-glow,
+        .splash-logo-sweep::before, .splash-wordmark-shimmer::before,
+        .splash-sparks i {
+          animation: none !important;
+        }
+        .splash-progress span {
+          animation: none !important;
+          transform: scaleX(0.85);
+        }
+        #splash.is-ready .splash-progress span { transform: scaleX(1); }
+        #splash { transition: opacity 0.2s ease; }
+        #splash.is-done { transform: none; }
+      }
+    </style>
   </head>
   <body>
+    <!-- ============ 🚀 SPLASH (plain HTML, paints before JS) ============ -->
+    <div id="splash" role="img" aria-label="donatshop — Донат бо осонӣ!">
+      <img class="splash-bg" src="/splash/splash_bg_1080x1920.webp" alt="" fetchpriority="high" decoding="sync" />
+      <div class="splash-stage" aria-hidden="true">
+        <div class="splash-glow"></div>
+        <div class="splash-logo">
+          <div class="splash-logo-float">
+            <div class="splash-logo-box">
+              <img src="/splash/layer_logo.webp" alt="" fetchpriority="high" decoding="sync" />
+              <span class="splash-logo-sweep"></span>
+            </div>
+          </div>
+        </div>
+        <div class="splash-wordmark">
+          <div class="splash-wordmark-box">
+            <img src="/splash/layer_wordmark.webp" alt="" fetchpriority="high" decoding="sync" />
+            <span class="splash-wordmark-shimmer"></span>
+          </div>
+        </div>
+        <div class="splash-sparks">
+          <i style="--x:12%;--y:24%;--s:3px;--delay:.2s;--dur:2.6s"></i>
+          <i style="--x:86%;--y:18%;--s:2px;--delay:1.1s;--dur:2.1s"></i>
+          <i style="--x:8%;--y:62%;--s:2px;--delay:.7s;--dur:3.1s"></i>
+          <i style="--x:92%;--y:55%;--s:3px;--delay:1.6s;--dur:2.4s"></i>
+          <i style="--x:18%;--y:82%;--s:2px;--delay:.4s;--dur:2.8s"></i>
+          <i style="--x:78%;--y:78%;--s:2px;--delay:1.3s;--dur:2.2s"></i>
+          <i style="--x:50%;--y:15%;--s:2px;--delay:1.9s;--dur:3.0s"></i>
+          <i style="--x:64%;--y:36%;--s:3px;--delay:.9s;--dur:2.5s"></i>
+        </div>
+        <div class="splash-progress"><span></span></div>
+      </div>
+    </div>
     <div id="root">
       <!-- ⏳ Идомаи splash-и native (ҳамон D, ҳамон фон) — React онро иваз мекунад -->
       <div class="boot" role="status" aria-label="Боргирӣ">
@@ -269,5 +579,52 @@
       </div>
     </div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      /* 🚀 Splash hand-off: React аввалин render кард (boot нест) → баъди
+         ҳадди ақал 650ms ба 100% мерасад ва 300ms фейд мешавад. MAX 2.4s —
+         ҳатто офлайн/хато низ splash ҳеҷ гоҳ овезон намемонад. */
+      (function () {
+        var s = document.getElementById("splash");
+        var root = document.getElementById("root");
+        if (!s || !root) return;
+        var t0 = performance.now(), MIN = 650, MAX = 2400, done = false;
+        var obs = null, iv = null;
+        function setMeta() {
+          var dark = document.documentElement.classList.contains("dark");
+          var m = document.getElementById("theme-color-meta");
+          if (m) m.setAttribute("content", dark ? "#000000" : "#F2F2F7");
+        }
+        function finish() {
+          if (done) return;
+          done = true;
+          if (obs) obs.disconnect();
+          if (iv) clearInterval(iv);
+          var wait = Math.max(0, MIN - (performance.now() - t0));
+          setTimeout(function () {
+            s.classList.add("is-ready");
+            setTimeout(function () {
+              s.classList.add("is-done");
+              document.documentElement.classList.remove("splash-active");
+              setMeta();
+              setTimeout(function () { if (s.parentNode) s.parentNode.removeChild(s); }, 330);
+            }, 260);
+          }, wait);
+        }
+        function check() {
+          if (root.children.length > 0 && !root.querySelector(".boot")) {
+            finish();
+            return true;
+          }
+          return false;
+        }
+        try {
+          obs = new MutationObserver(check);
+          obs.observe(root, { childList: true, subtree: true });
+        } catch (e) { /* кӯҳна браузер */ }
+        iv = setInterval(check, 80);
+        check();
+        setTimeout(finish, MAX);
+      })();
+    </script>
   </body>
 </html>

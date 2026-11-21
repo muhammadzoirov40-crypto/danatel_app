@@ -17,6 +17,7 @@ const CACHE = "donatshop-v3"; // v3 (20.11.2026): iOS/WebKit `waitUntil`-и ба
 const STATIC = [
   /^\/assets\//,
   /^\/face-models\//,
+  /^\/splash\//,
   /^\/icons\//,
   /^\/donatshop-D-logo\.png$/,
   /^\/icon-.*\.png$/,
