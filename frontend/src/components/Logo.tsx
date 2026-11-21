@@ -106,16 +106,39 @@ export default function Logo({
   const pal = onDark ? PAL_ICE : PAL_LIGHT;
   const { t } = useApp();
 
+  const crownW = Math.round(size * 0.6);
+  const crownH = Math.round(crownW * 164 / 232);
+  const crownOffset = Math.round(size * 0.364);
+
   return (
     <span className="flex items-center gap-2 shrink-0">
-      <svg
-        width={size}
-        height={size}
-        viewBox="6 10 188 188"
-        role="img"
-        aria-label="donatshop"
-        className="shrink-0"
+      <span
+        className="relative inline-block shrink-0"
+        style={{ width: size, height: size, overflow: "visible" }}
       >
+        {onDark && (
+          <img
+            src="/brand/logo_crown.png"
+            srcSet="/brand/logo_crown.png 1x, /brand/logo_crown.png 2x, /brand/logo_crown.png 3x"
+            sizes={`${crownW}px`}
+            width={crownW}
+            height={crownH}
+            alt=""
+            aria-hidden
+            decoding="async"
+            className="absolute left-[20%] top-0 pointer-events-none select-none"
+            style={{ width: crownW, height: "auto", transform: `translateY(-${crownOffset}px)` }}
+          />
+        )}
+        <svg
+          width={size}
+          height={size}
+          viewBox="6 10 188 188"
+          role="img"
+          aria-label="donatshop"
+          className="shrink-0"
+          style={{ position: "relative", top: onDark ? crownOffset : 0 }}
+        >
         <defs>
           <clipPath id={clip}>
             <path d={D_PATH} fillRule="evenodd" clipRule="evenodd" />
@@ -155,6 +178,7 @@ export default function Logo({
           )}
         </g>
       </svg>
+      </span>
 
       {withText && (
         <span
