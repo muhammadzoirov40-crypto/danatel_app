@@ -79,6 +79,8 @@ export default function GameDetail() {
   if (loading) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-6 sm:py-10">
+        {/* ← Ҳамеша дастрас: корбар дар вақти боргирӣ низ баргардад */}
+        <BackButton iconOnly className="mb-4" />
         <div className="rounded-3xl h-56 sm:h-72 animate-pulse" style={{ background: FALLBACK_BG }} />
         <div className="grid grid-cols-1 gap-5 mt-5">
           <div className="rounded-3xl h-96 animate-pulse bg-white" />
@@ -90,6 +92,9 @@ export default function GameDetail() {
   if (error || !game) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16 text-center">
+        <div className="mb-4 flex justify-start">
+          <BackButton iconOnly />
+        </div>
         <div className="card p-6">
           <div className="flex justify-center mb-3 text-slate-300">
             <Ic icon={Frown} size="2xl" strokeWidth={1.75} />

@@ -1,26 +1,38 @@
-import { ShieldAlert } from "lucide-react";
-import { useEffect } from "react";
-import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { AppProvider } from "./context/AppContext";
-import ErrorBoundary from "./components/ErrorBoundary";
-import Navbar from "./components/Navbar";
+import { ShieldAlert } from "lucide-react";
+
+import { lazy, Suspense, useEffect } from "react";
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
+
+import { AppProvider } from "./context/AppContext";
+
+import ErrorBoundary from "./components/ErrorBoundary";
+
+import Navbar from "./components/Navbar";
+
 import BottomNav from "./components/BottomNav";
-import ScrollProgress from "./components/ScrollProgress";
-import Footer from "./components/Footer";
+import ScrollProgress from "./components/ScrollProgress";
+
+import Footer from "./components/Footer";
+
 import Logo from "./components/Logo";
 import UpdateToast from "./components/UpdateToast";
 import GameOpenAnim from "./components/GameOpenAnim";
 import { Ic } from "./components/Icons";
-import Home from "./pages/Home";
-import GameDetail from "./pages/GameDetail";
-import OrderPage from "./pages/OrderPage";
-import Admin from "./pages/admin/Admin";
-import Login from "./pages/Login";
-import MyOrders from "./pages/MyOrders";
-import Profile from "./pages/Profile";
-import Wheel from "./pages/Wheel";
-import ReviewsPage from "./pages/ReviewsPage";
-
+import Home from "./pages/Home";
+
+const GameDetail = lazy(() => import("./pages/GameDetail"));
+
+const OrderPage = lazy(() => import("./pages/OrderPage"));
+
+const Admin = lazy(() => import("./pages/admin/Admin"));
+
+const Login = lazy(() => import("./pages/Login"));
+const MyOrders = lazy(() => import("./pages/MyOrders"));
+const Profile = lazy(() => import("./pages/Profile"));
+const Wheel = lazy(() => import("./pages/Wheel"));
+const ReviewsPage = lazy(() => import("./pages/ReviewsPage"));
+
+
 /**
  * 🦶 Футер танҳо дар саҳифаи асосӣ.
  * `useLocation` бояд дар дохили Router истифода шавад → ҷудо карда шуд.
@@ -90,15 +102,24 @@ export default function App() {
         <UpdateToast />
         <Navbar />
         <ScrollProgress />
-        <main className="relative min-h-[calc(100dvh-4rem)] w-full max-w-full overflow-x-clip pb-[calc(84px+env(safe-area-inset-bottom))] md:pb-0">
-          {/* 🌅 Камарбанди кабуди ягона — дар ҳамаи саҳифаҳо якхела */}
-          <div className="page-band" aria-hidden />
-          <ErrorBoundary>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/game/:slug" element={<GameDetail />} />
-              <Route path="/order/:id" element={<OrderPage />} />
-              <Route path="/login" element={<Login />} />
+        <main className="relative min-h-[calc(100dvh-4rem)] w-full max-w-full overflow-x-clip pb-[calc(84px+env(safe-area-inset-bottom))] md:pb-0">
+
+          {/* 🌅 Камарбанди кабуди ягона — дар ҳамаи саҳифаҳо якхела */}
+
+          <div className="page-band" aria-hidden />
+
+          <ErrorBoundary>
+            <Suspense fallback={<div className="min-h-[60vh]" aria-hidden />}>
+            <Routes>
+
+              <Route path="/" element={<Home />} />
+
+              <Route path="/game/:slug" element={<GameDetail />} />
+
+              <Route path="/order/:id" element={<OrderPage />} />
+
+              <Route path="/login" element={<Login />} />
+
               <Route path="/profile" element={<Profile />} />
               {/* 📦 Фармоишҳои ман — саҳифаи алоҳида (аз сарлавҳа) */}
               <Route path="/orders" element={<MyOrders />} />
@@ -107,26 +128,45 @@ export default function App() {
               {/* 📇 Муштариёни мо + Тақризҳои муштариён — саҳифаи алоҳида */}
               <Route path="/reviews" element={<ReviewsPage />} />
               <Route path="/admin" element={<Admin />} />
-
-              {/* 🔁 Роҳҳои нопурра → ба саҳифаи асосӣ */}
-              <Route path="/index.html" element={<Navigate to="/" replace />} />
-              <Route path="/game" element={<Navigate to="/" replace />} />
-              <Route path="/game/" element={<Navigate to="/" replace />} />
-              <Route path="/catalog" element={<Navigate to="/" replace />} />
-
-              {/* 🔁 Ҳар роҳи номаълум → ба асосӣ (ба ҷои 404) */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </ErrorBoundary>
-        </main>
-
-        {/* 📱 Навигатсияи поёнӣ дар телефон */}
-        <BottomNav />
-
+
+
+              {/* 🔁 Роҳҳои нопурра → ба саҳифаи асосӣ */}
+
+              <Route path="/index.html" element={<Navigate to="/" replace />} />
+
+              <Route path="/game" element={<Navigate to="/" replace />} />
+
+              <Route path="/game/" element={<Navigate to="/" replace />} />
+
+              <Route path="/catalog" element={<Navigate to="/" replace />} />
+
+
+
+              {/* 🔁 Ҳар роҳи номаълум → ба асосӣ (ба ҷои 404) */}
+
+              <Route path="*" element={<Navigate to="/" replace />} />
+
+            </Routes>
+            </Suspense>
+          </ErrorBoundary>
+
+        </main>
+
+
+
+        {/* 📱 Навигатсияи поёнӣ дар телефон */}
+
+        <BottomNav />
+
+
+
         {/* 🦶 Футер — ТАНҲО дар саҳифаи асосӣ (тибқи дархости корбар):
             дар /game/…, /admin, /reviews, /login, /profile футер НЕСТ */}
         <FooterOnlyHome />
       </BrowserRouter>
-    </AppProvider>
-  );
-}
+    </AppProvider>
+
+  );
+
+}
+

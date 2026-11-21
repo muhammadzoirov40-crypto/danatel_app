@@ -14,7 +14,13 @@
 const CACHE = "donatshop-v3"; // v3 (20.11.2026): iOS/WebKit `waitUntil`-и баъди
 // await-ро рад мекунад → SW меафтад → саҳифа «Боргирӣ қатъ шуд» мемонад.
 // v1/v2 пок мешаванд (activate: ҳамаи калидҳои ғайри CACHE).
-const STATIC = [/^\/assets\//, /^\/face-models\//, /^\/icon-.*\.png$/];
+const STATIC = [
+  /^\/assets\//,
+  /^\/face-models\//,
+  /^\/icons\//,
+  /^\/donatshop-D-logo\.png$/,
+  /^\/icon-.*\.png$/,
+];
 
 self.addEventListener("install", () => {
   self.skipWaiting(); // фаъол шудан бе бастани табҳои кушода
@@ -40,25 +46,24 @@ self.addEventListener("fetch", (e) => {
   if (url.pathname.startsWith("/api/")) return; // network only
 
   if (req.mode === "navigate") {
+    // ⚡ Stale-while-revalidate: HTML-и кэшшуда ФАВРАН (native splash зуд
+    //    меравад), нусхаи нав дар замина гирифта мешавад. UpdateToast
+    //    версияи навро мебинад → бехатар reload мекунад.
+    const network = fetch(req)
+      .then(async (res) => {
+        if (res.ok) {
+          const c = await caches.open(CACHE);
+          await c.put("/", res.clone()).catch(() => {});
+        }
+        return res;
+      })
+      .catch(() => null);
+    e.waitUntil(network.catch(() => {}));
     e.respondWith(
       (async () => {
-        try {
-          const res = await fetch(req);
-          if (res.ok) {
-            const c = await caches.open(CACHE);
-            // 20.11.2026: `await` дар дохили respondWith — SW то тамом шудани
-            // навишт зинда мемонад. `waitUntil`-и баъди await дар iOS меафтад!
-            await c.put(req, res.clone()).catch(() => {});
-          }
-          return res;
-        } catch {
-          const c = await caches.open(CACHE);
-          return (
-            (await c.match(req)) ||
-            (await c.match("/")) ||
-            Response.error()
-          );
-        }
+        const c = await caches.open(CACHE);
+        const cached = (await c.match("/")) || (await c.match(req));
+        return cached || (await network) || Response.error();
       })(),
     );
     return;

@@ -33,11 +33,11 @@ const DELAY_MS = 2_500;
 const AUTORELOAD_KEY = "ut_reload_n";
 const AUTORELOAD_MAX = 2;
 
-/** Номи файли JS-и асосӣ аз HTML (масалан `index-C9MDDFs-.js`) ё бо
- *  суолиш (`index-C9MDDFs-.js?b=…`) — суолиш ҳам муқоиса мешавад →
- *  ҳар борборсозӣ URL-и нав = такрори худкори саҳифа (09.11.2026). */
+/** Номи файли JS-и асосӣ аз HTML (масалан `index-C9MDDFs-.js`).
+ *  ⚠️ `?b=`-и cache-bust НАМУНАИ версия нест (ҳар build тағйир меёбад) —
+ *  бо SW cache-first он ҳалқаи бепоёни reload месозад. Версия = hash. */
 function pickJsAsset(html: string): string | null {
-  const m = html.match(/assets\/(index-[^"'?]+\.js(?:\?[^"']*)?)/);
+  const m = html.match(/assets\/(index-[^"'?]+\.js)/);
   return m ? m[1] : null;
 }
 
