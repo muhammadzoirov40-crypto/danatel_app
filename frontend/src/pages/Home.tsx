@@ -7,7 +7,7 @@ import GameCard from "../components/GameCard";
 import CoinsCard from "../components/CoinsCard";
 import PromoCarousel from "../components/PromoCarousel";
 import TrustTicker from "../components/TrustTicker";
-import SeoBlock from "../components/SeoBlock";
+import { KEEP_BANNER_ON_HOME } from "../components/InfoSections";
 import { useApp } from "../context/AppContext";
 import { Ic, CreditCard3D, Diamond3D, Gamepad3D, GiftBox3D, IdBadge3D, TajikFlag } from "../components/Icons";
 
@@ -497,16 +497,15 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Огоҳиномаи бехатарӣ */}
-        <div className="mt-8 mb-4 rounded-2xl bg-amber-50/80 border border-amber-200 p-4 sm:p-5 text-sm text-amber-900 flex items-center gap-3">
-          <Ic icon={ShieldAlert} size="md" className="text-amber-500" />
-          <span className="font-medium">{t("secureNote")}</span>
-        </div>
+        {/* Огоҳиномаи бехатарӣ — танҳо агар KEEP_BANNER_ON_HOME = true бошад */}
+        {KEEP_BANNER_ON_HOME && (
+          <div className="mt-8 mb-4 rounded-2xl bg-amber-50/80 border border-amber-200 p-4 sm:p-5 text-sm text-amber-900 flex items-center gap-3">
+            <Ic icon={ShieldAlert} size="md" className="text-amber-500" />
+            <span className="font-medium">{t("secureNote")}</span>
+          </div>
+        )}
 
         {/* 👥 Муштариёни воқеӣ ва ⭐ тақризҳо → акнун дар саҳифаи алоҳидаи /reviews */}
-
-        {/* 📝 Блоки SEO — маълумоти воқеӣ (мисли persshop) */}
-        {!loading && !error && games.length > 0 && <SeoBlock games={games} />}
       </div>
     </div>
   );

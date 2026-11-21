@@ -169,19 +169,10 @@ export default function Navbar() {
   const avg = sum?.rating_avg ?? 0;
   const total = sum?.reviews_total ?? 0;
 
-  /** ➡️ «Дар бораи мo» — ба бахши SEO дар саҳифаи асосӣ */
-  const goAbout = (e: React.MouseEvent) => {
-    e.preventDefault();
-    const scroll = () => {
-      const el = document.getElementById("about");
-      if (el) el.scrollIntoView({ behavior: "smooth" });
-    };
-    if (pathname !== "/") {
-      nav("/");
-      setTimeout(scroll, 150);
-    } else {
-      scroll();
-    }
+  /** ➡️ «Дар бораи мo» — саҳифаи алоҳидаи /about */
+  const goAbout = (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+    nav("/about");
   };
 
   /** Пайвандҳои пилюлавӣ (мисли «Феҳрист / Харидхо / Тақризхо») */

@@ -207,20 +207,9 @@ export default function SidebarMenu({
     });
   };
 
-  /** ➡️ «Дар бораи мo» — ба бахши SEO дар саҳифаи асосӣ */
+  /** ➡️ «Дар бораи мo» — саҳифаи алоҳидаи /about */
   const goAbout = () => {
-    onClose(() => {
-      const scroll = () => {
-        const el = document.getElementById("about");
-        if (el) el.scrollIntoView({ behavior: "smooth" });
-      };
-      if (pathname !== "/") {
-        nav("/");
-        setTimeout(scroll, 150);
-      } else {
-        scroll();
-      }
-    });
+    go("/about");
   };
 
   /** 🎁 «Линки даъват» — ба бахши даъват дар саҳифаи Чарҳ (#invite).

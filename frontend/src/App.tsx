@@ -31,6 +31,7 @@ const MyOrders = lazy(() => import("./pages/MyOrders"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Wheel = lazy(() => import("./pages/Wheel"));
 const ReviewsPage = lazy(() => import("./pages/ReviewsPage"));
+const About = lazy(() => import("./pages/About"));
 
 
 /**
@@ -127,6 +128,8 @@ export default function App() {
               <Route path="/wheel" element={<Wheel />} />
               {/* 📇 Муштариёни мо + Тақризҳои муштариён — саҳифаи алоҳида */}
               <Route path="/reviews" element={<ReviewsPage />} />
+              {/* 📄 Дар бораи мо — маълумоти дароз (SEO/FAQ/тамос) */}
+              <Route path="/about" element={<About />} />
               <Route path="/admin" element={<Admin />} />
 
 
