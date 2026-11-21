@@ -16,6 +16,7 @@
     <meta name="apple-mobile-web-app-title" content="donatshop" />
     <!-- 🚀 Splash: ҳамаи 3 қабат пеш аз JS бор шаванд -->
     <link rel="preload" as="image" href="/splash/splash_bg_1080x1920.webp" fetchpriority="high" />
+    <link rel="preload" as="image" href="/splash/splash_logo.webp" fetchpriority="high" />
     <link rel="preload" as="image" href="/splash/layer_logo.webp" fetchpriority="high" />
     <link rel="preload" as="image" href="/splash/layer_wordmark.webp" fetchpriority="high" />
     <link rel="preload" as="image" href="/donatshop-D-logo.png" />
@@ -30,9 +31,10 @@
          аввалин саҳифаро месозад, дохили #root-ро пурра иваз мекунад →
          индиcатор худкор нест мешавад. Матн надорад → забон умумӣ. -->
     <style>
-      /* 🚀 Splash = аввалин frame: html/body navy, то CSS-и барнома ояд */
-      html, body { margin: 0; padding: 0; background: #010A27; }
-      html.splash-active, html.splash-active body { overflow: hidden; height: 100%; }
+      /* 🚀 Splash = аввалин frame: танҳо ҳангоми splash navy; баъд ранги барнома */
+      html, body { margin: 0; padding: 0; background: #F2F2F7; }
+      html.dark, html.dark body { background: #000; }
+      html.splash-active, html.splash-active body { background: #010A27; overflow: hidden; height: 100%; }
       #root { min-height: 100vh; min-height: 100dvh; }
       .boot {
         display: flex;
@@ -312,8 +314,8 @@
           rgba(10, 40, 130, 0.1) 62%,
           transparent 72%
         );
-        filter: blur(24px);
-        mix-blend-mode: screen;
+        /* no filter */
+        /* normal compositing: real alpha */
         opacity: 0.5;
         animation: splash-glow-pulse 2.4s ease-in-out infinite alternate;
         will-change: opacity;
@@ -337,7 +339,7 @@
         display: block;
         width: 100%;
         height: auto;
-        mix-blend-mode: screen;
+        /* normal compositing: real alpha */
         animation: splash-logo-in 0.3s ease-out both;
       }
       .splash-logo-sweep {
@@ -345,8 +347,8 @@
         inset: 0;
         overflow: hidden;
         pointer-events: none;
-        -webkit-mask: url("/splash/layer_logo.webp") center / contain no-repeat;
-        mask: url("/splash/layer_logo.webp") center / contain no-repeat;
+        -webkit-mask: url("/splash/splash_logo.webp") center / contain no-repeat;
+        mask: url("/splash/splash_logo.webp") center / contain no-repeat;
       }
       .splash-logo-sweep::before {
         content: "";
@@ -361,7 +363,7 @@
           rgba(255, 255, 255, 0.8),
           transparent
         );
-        mix-blend-mode: screen;
+        /* normal compositing: real alpha */
         transform: translateX(-150%) skewX(-18deg);
         animation: splash-sweep 2.2s ease-in-out infinite;
         will-change: transform;
@@ -381,7 +383,7 @@
         display: block;
         width: 100%;
         height: auto;
-        mix-blend-mode: screen;
+        /* normal compositing: real alpha */
       }
       .splash-wordmark-shimmer {
         position: absolute;
@@ -404,7 +406,7 @@
           rgba(255, 255, 255, 0.85),
           transparent
         );
-        mix-blend-mode: screen;
+        /* normal compositing: real alpha */
         transform: translateX(-180%) skewX(-16deg);
         animation: splash-shimmer 2.5s ease-in-out infinite;
         will-change: transform;
@@ -442,7 +444,7 @@
         transform: translateX(-50%);
         border-radius: 999px;
         background: rgba(120, 180, 255, 0.18);
-        box-shadow: 0 0 16px rgba(40, 140, 255, 0.35);
+        /* no box-shadow */
         overflow: hidden;
       }
       .splash-progress span {
@@ -453,7 +455,7 @@
         transform: scaleX(0.02);
         transform-origin: left center;
         background: linear-gradient(90deg, #1c6dff, #54c8ff 55%, #a5ecff);
-        box-shadow: 0 0 14px rgba(70, 180, 255, 0.85);
+        /* no box-shadow */
         animation: splash-bar 2.5s cubic-bezier(0.2, 0.75, 0.25, 1) forwards;
         position: relative;
       }
@@ -545,7 +547,7 @@
         <div class="splash-logo">
           <div class="splash-logo-float">
             <div class="splash-logo-box">
-              <img src="/splash/layer_logo.webp" alt="" fetchpriority="high" decoding="sync" />
+              <img src="/splash/splash_logo.webp" alt="" fetchpriority="high" decoding="sync" />
               <span class="splash-logo-sweep"></span>
             </div>
           </div>
