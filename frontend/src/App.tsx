@@ -4,7 +4,8 @@ import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-route
 import { AppProvider } from "./context/AppContext";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Navbar from "./components/Navbar";
-import BottomNav from "./components/BottomNav";
+import BottomNav from "./components/BottomNav";
+import ScrollProgress from "./components/ScrollProgress";
 import Footer from "./components/Footer";
 import Logo from "./components/Logo";
 import UpdateToast from "./components/UpdateToast";
@@ -88,6 +89,7 @@ export default function App() {
         {/* 🔄 Авто-навсозӣ: версияи нав омад → тост + худаш reload */}
         <UpdateToast />
         <Navbar />
+        <ScrollProgress />
         <main className="relative min-h-[calc(100vh-4rem)] w-full max-w-full overflow-x-clip pb-20 md:pb-0">
           {/* 🌅 Камарбанди кабуди ягона — дар ҳамаи саҳифаҳо якхела */}
           <div className="page-band" aria-hidden />
