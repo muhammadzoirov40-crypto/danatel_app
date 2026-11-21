@@ -127,12 +127,9 @@ body {
   overscroll-behavior-y: contain;
 }
 
-body::before,
-.page-band,
-.profile-soft,
-.aurora {
-  display: none !important;
-}
+/* 🩵 Ёрӯғ режимдаги кўк→оқ градиент (соҳиб 22.11.2026: «сафед ҳамон
+   градиенти кабуду сафедро мон») — index.css таърифи ишлайди.
+   Торик режимда .dark .page-band / .dark body::before ишлайди. */
 
 .font-extrabold,
 .font-black {
