@@ -115,7 +115,9 @@ html.dark {
 /* ---------- Global canvas / typography ---------- */
 html,
 body {
-  overflow-x: hidden !important;
+  /* `hidden` vertical scrollни ҳам_block қилади (overflow-y: auto бўлиб қолади)
+     → скролл ишлмайди. `clip` эса фақат gorizontal ташқарини кесади. */
+  overflow-x: clip !important;
   background: var(--ios-bg) !important;
   color: var(--ios-label) !important;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
