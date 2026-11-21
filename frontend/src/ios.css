@@ -86,31 +86,6 @@ html.dark {
   --ios-shadow-bar: 0 8px 30px rgba(0, 0, 0, 0.5);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not(.light) {
-    color-scheme: dark;
-    --ios-bg: #000000;
-    --ios-elevated: #1c1c1e;
-    --ios-elevated-2: #2c2c2e;
-    --ios-label: #ffffff;
-    --ios-label-2: rgba(235, 235, 245, 0.6);
-    --ios-label-3: rgba(235, 235, 245, 0.3);
-    --ios-separator: rgba(84, 84, 88, 0.65);
-    --ios-fill: rgba(118, 118, 128, 0.24);
-    --ios-fill-2: rgba(118, 118, 128, 0.36);
-    --ios-blue: #0a84ff;
-    --ios-blue-tint: rgba(10, 132, 255, 0.18);
-    --ios-green: #30d158;
-    --ios-green-tint: rgba(48, 209, 88, 0.16);
-    --ios-red: #ff453a;
-    --ios-red-tint: rgba(255, 69, 58, 0.16);
-    --ios-material: rgba(28, 28, 30, 0.72);
-    --ios-material-strong: rgba(28, 28, 30, 0.86);
-    --ios-material-border: rgba(255, 255, 255, 0.08);
-    --ios-shadow-1: none;
-    --ios-shadow-2: none;
-  }
-}
 
 /* ---------- Global canvas / typography ---------- */
 html,
