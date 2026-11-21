@@ -3,6 +3,8 @@ import { api } from "../api/client";
 import type { Game } from "../types";
 import { useApp } from "../context/AppContext";
 import SeoBlock from "./SeoBlock";
+import StatsBlock from "./StatsBlock";
+import HowItWorks from "./HowItWorks";
 import { Ic } from "./Icons";
 import { ShieldAlert } from "lucide-react";
 
@@ -17,13 +19,25 @@ export const KEEP_BANNER_ON_HOME = false;
  * (when moved), divider and the long informational/SEO section.
  * Fetches the game list itself so Home no longer requests it for this block.
  */
-export default function InfoSections({ includeBanner = !KEEP_BANNER_ON_HOME }: { includeBanner?: boolean }) {
+export default function InfoSections({
+  includeBanner = !KEEP_BANNER_ON_HOME,
+  games: providedGames,
+}: {
+  includeBanner?: boolean;
+  games?: Game[];
+}) {
   const { t, lang } = useApp();
-  const [games, setGames] = useState<Game[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [games, setGames] = useState<Game[]>(providedGames ?? []);
+  const [loading, setLoading] = useState(!providedGames);
   const [error, setError] = useState("");
 
   useEffect(() => {
+    if (providedGames) {
+      setGames(providedGames);
+      setLoading(false);
+      setError("");
+      return;
+    }
     let alive = true;
     setLoading(true);
     setError("");
@@ -42,7 +56,7 @@ export default function InfoSections({ includeBanner = !KEEP_BANNER_ON_HOME }: {
     return () => {
       alive = false;
     };
-  }, [lang, t]);
+  }, [providedGames, lang, t]);
 
   return (
     <div className="mt-10 sm:mt-14 space-y-6">
@@ -59,9 +73,13 @@ export default function InfoSections({ includeBanner = !KEEP_BANNER_ON_HOME }: {
           <div className="h-24 rounded-2xl bg-slate-100 animate-pulse" />
           <div className="h-24 rounded-2xl bg-slate-100 animate-pulse" />
         </div>
-      ) : error ? null : games.length > 0 ? (
-        <SeoBlock games={games} />
-      ) : null}
+      ) : error ? null : (
+        <>
+          {games.length > 0 && <SeoBlock games={games} />}
+          <StatsBlock games={games} loading={loading} />
+          <HowItWorks />
+        </>
+      )}
     </div>
   );
 }

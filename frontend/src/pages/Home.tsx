@@ -9,7 +9,7 @@ import PromoCarousel from "../components/PromoCarousel";
 import TrustTicker from "../components/TrustTicker";
 import { KEEP_BANNER_ON_HOME } from "../components/InfoSections";
 import { useApp } from "../context/AppContext";
-import { Ic, CreditCard3D, Diamond3D, Gamepad3D, GiftBox3D, IdBadge3D, TajikFlag } from "../components/Icons";
+import { Ic, TajikFlag } from "../components/Icons";
 
 /**
  * Саҳифаи асосӣ — тарҳи мисли persshop.com:
@@ -178,12 +178,6 @@ export default function Home() {
     const rest = games.filter((g) => !g.is_popular);
     return [...pop, ...rest].slice(0, 6);
   }, [games]);
-
-  /** Ҳамаи маҳсулотҳо (рақами ҳақиқӣ) */
-  const totalProducts = useMemo(
-    () => games.reduce((s, g) => s + (g.products_count ?? 0), 0),
-    [games],
-  );
 
   /** Бейҷаи чап — мисли тикери persshop: «⭐ 4,9 1360 тақриз»
    *  Ҳама аз ҷадвали отзывҳои тасдиқшуда — рақами воқеӣ.
@@ -424,76 +418,6 @@ export default function Home() {
                 {t("secLikes")}
               </span>
             </Link>
-          </div>
-        </section>
-
-        {!loading && !error && (
-          <section className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <Tile
-              icon={<Gamepad3D className="w-8 h-8" />}
-              value={String(games.length || 8)}
-              label={t("statGames")}
-            />
-            <Tile
-              icon={<Diamond3D className="w-8 h-8" />}
-              value={totalProducts > 100 ? String(totalProducts) : "128"}
-              label={t("statProducts")}
-              color="text-sky-600"
-            />
-            <Tile
-              icon={<IdBadge3D className="w-8 h-8" />}
-              label={t("trustId")}
-            />
-            <Tile
-              icon={
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-50 ring-1 ring-emerald-200/60 shadow-xs">
-                  <TajikFlag className="w-5 h-3.5 rounded-xs" />
-                  <span className="text-xs font-black text-emerald-800 tracking-wide">TJS</span>
-                </div>
-              }
-              label={t("trustSomoni")}
-            />
-          </section>
-        )}
-
-        {/* ===== 5) ЧӢ ТАВР КОР МЕКУНАД ===== */}
-        <section className="mt-10 sm:mt-14">
-          <h2 className="text-xl sm:text-2xl font-bold text-center mb-6">
-            {t("howItWorks")}
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            {[
-              {
-                n: 1,
-                icon: <Gamepad3D className="w-8 h-8" />,
-                bg: "bg-blue-50 ring-1 ring-blue-100",
-              },
-              {
-                n: 2,
-                icon: <IdBadge3D className="w-8 h-8" />,
-                bg: "bg-purple-50 ring-1 ring-purple-100",
-              },
-              {
-                n: 3,
-                icon: <CreditCard3D className="w-8 h-8" />,
-                bg: "bg-amber-50 ring-1 ring-amber-100",
-              },
-              {
-                n: 4,
-                icon: <GiftBox3D className="w-8 h-8" />,
-                bg: "bg-rose-50 ring-1 ring-rose-100",
-              },
-            ].map((s) => (
-              <div key={s.n} className="card p-5 text-center flex flex-col items-center">
-                <div className={`grid place-items-center w-14 h-14 rounded-2xl ${s.bg} mb-3 shadow-xs`}>
-                  {s.icon}
-                </div>
-                <div className="font-bold text-sm mb-1">{t(`step${s.n}`)}</div>
-                <div className="text-xs text-slate-500 leading-relaxed">
-                  {t(`step${s.n}d`)}
-                </div>
-              </div>
-            ))}
           </div>
         </section>
 
