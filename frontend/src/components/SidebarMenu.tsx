@@ -488,35 +488,45 @@ export default function SidebarMenu({
         </div>
 
         {/* ⚙️ Панели поёнӣ: мавзӯ + забон (мисли RentHub) */}
-        <div className="border-t border-slate-100 dark:border-slate-800 px-4 py-3.5 flex items-center gap-2">
-          {/* 🌙 Мавзӯи равшан / торик — ТАНҲО ИКОНКА (бе матн), то бо
-              флагҳои забон якхела ва зебо шавад (талаби соҳиб, 28.10.2026).
-              `aria-label` + `title` барои screen-reader/tooltip боқӣ. */}
-          <button
-            type="button"
-            onClick={toggleTheme}
-            aria-label={theme === "dark" ? t("themeLight") : t("themeDark")}
-            title={theme === "dark" ? t("themeLight") : t("themeDark")}
-            className="grid place-items-center w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800
-                       text-slate-600 dark:text-slate-300
-                       ring-1 ring-slate-200 dark:ring-slate-700 shrink-0
-                       hover:bg-slate-200 dark:hover:bg-slate-700 active:scale-95 transition
-                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
-          >
-            <Ic
-              icon={theme === "dark" ? Sun : Moon}
-              size="sm"
-              className={theme === "dark" ? "text-amber-400" : "text-slate-500"}
-            />
-          </button>
+        <div className="border-t border-slate-100 dark:border-slate-800 px-4 py-3 flex flex-col gap-2.5">
+          {/* ☀️/🌙 ИККИ АЛОҲИДА ТУГМА — ҳарду мавзӯро бевосита фаъол мекунад */}
+          <div className="flex items-center gap-2" role="group" aria-label={t("theme")}>
+            {([
+              { key: "light" as const, icon: Sun, label: t("themeLight") },
+              { key: "dark" as const, icon: Moon, label: t("themeDark") },
+            ]).map((m) => {
+              const active = theme === m.key;
+              return (
+                <button
+                  key={m.key}
+                  type="button"
+                  onClick={() => {
+                    if (theme !== m.key) toggleTheme();
+                  }}
+                  aria-pressed={active}
+                  aria-label={m.label}
+                  title={m.label}
+                  className={`inline-flex items-center justify-center gap-1.5 min-h-10 flex-1 rounded-xl px-3
+                              text-[13px] font-semibold transition active:scale-[0.97]
+                              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${
+                                active
+                                  ? "bg-blue-500 text-white shadow-sm"
+                                  : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                              }`}
+                >
+                  <Ic icon={m.icon} size="xs" />
+                  {m.label}
+                </button>
+              );
+            })}
+          </div>
 
-          <div className="flex-1" />
 
           {/* 🌐 Забон — 4 доира (флаг) */}
           <div
             role="group"
             aria-label={t("language")}
-            className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 rounded-full p-1"
+            className="flex items-center justify-center gap-1.5 bg-slate-100 dark:bg-slate-800 rounded-full p-1"
           >
             {LANGS.map((l) => {
               const active = lang === l.code;
