@@ -331,15 +331,36 @@ button.bg-blue-600 {
   border-bottom: 0.5px solid var(--ios-material-border);
   color: var(--ios-label) !important;
 }
+/* 🩵 Навбар — соҳиб 22.11.2026 «олдингидек кўк→оқ градиент»:
+   мобилӣ/ёруғда кўк градиент + оқ матн; торикда material. */
 .nav-blue,
-.sticky-header,
 header[class*="bg-brand"],
 header[class*="bg-blue"] {
+  background: linear-gradient(
+    100deg,
+    #1546dd 0%,
+    #1f5fea 28%,
+    #3b82f6 62%,
+    #7db0f8 100%
+  ) !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-bottom: 0 !important;
+  color: #ffffff !important;
+}
+.dark .nav-blue,
+.dark header[class*="bg-brand"],
+.dark header[class*="bg-blue"] {
+  background: var(--ios-material) !important;
+  -webkit-backdrop-filter: saturate(180%) blur(24px);
+  backdrop-filter: saturate(180%) blur(24px);
+  color: var(--ios-label) !important;
+}
+.sticky-header {
   background: var(--ios-material) !important;
   -webkit-backdrop-filter: saturate(180%) blur(24px);
   backdrop-filter: saturate(180%) blur(24px);
   border-bottom: 0.5px solid var(--ios-material-border);
-  color: var(--ios-label) !important;
 }
 
 /* iOS back button: chevron + text, no pill */
