@@ -751,14 +751,6 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
     setShowBank(true);
   };
 
-  /** Сарлавҳаи бахш — фақат унвон (кўк рақамли доирача бардошта шуд, соҳиб 22.11.2026) */
-  const SectionHead = ({ n: _n, title, hint }: { n: number; title: string; hint?: string }) => (
-    <div className="mb-4">
-      <h3 className="font-bold text-slate-800 text-base sm:text-lg leading-tight">{title}</h3>
-      {hint && <p className="text-xs text-slate-500 mt-0.5">{hint}</p>}
-    </div>
-  );
-
   return (
     <>
       {/* ============ 2 СУТУН: ЧАП — МАЗМУН · РОСТ — ФАРМОИШИ ШУМО ============ */}
@@ -767,7 +759,6 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
         <div className="min-w-0 space-y-5">
           <div className="glass rounded-3xl p-4 sm:p-6">
             {/* ============ 1. ДАННЫЕ АККАУНТА ============ */}
-            <SectionHead n={1} title={t("accountData")} hint={t("accountDataHint")} />
 
             {/* 🌍 Минтақа — танҳо вақте ки каталог зиёда аз 1 минтақа дорад (FF, MLBB) */}
             {game.regions && game.regions.length > 1 && (
