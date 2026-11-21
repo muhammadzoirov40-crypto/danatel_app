@@ -751,20 +751,11 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
     setShowBank(true);
   };
 
-  /** Сарлавҳаи бахш — рақам + унвон (глассморфизм) */
-  const SectionHead = ({ n, title, hint }: { n: number; title: string; hint?: string }) => (
-    <div className="flex items-center gap-3 mb-4">
-      <span
-        className="w-8 h-8 shrink-0 rounded-full bg-gradient-to-br from-brand-500 to-brand-700
-                   text-white text-sm font-bold flex items-center justify-center
-                   shadow-[0_8px_18px_-8px_rgba(37,99,235,0.95)]"
-      >
-        {n}
-      </span>
-      <div className="min-w-0">
-        <h3 className="font-bold text-slate-800 text-base sm:text-lg leading-tight">{title}</h3>
-        {hint && <p className="text-xs text-slate-500 mt-0.5">{hint}</p>}
-      </div>
+  /** Сарлавҳаи бахш — фақат унвон (кўк рақамли доирача бардошта шуд, соҳиб 22.11.2026) */
+  const SectionHead = ({ n: _n, title, hint }: { n: number; title: string; hint?: string }) => (
+    <div className="mb-4">
+      <h3 className="font-bold text-slate-800 text-base sm:text-lg leading-tight">{title}</h3>
+      {hint && <p className="text-xs text-slate-500 mt-0.5">{hint}</p>}
     </div>
   );
 
