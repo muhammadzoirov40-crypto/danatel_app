@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useRef,
   useState,
   type FormEvent,
 } from "react";
@@ -56,14 +57,90 @@ import { copyText } from "../utils/clipboard";
 /** 🗂️ Кадом панели гурӯҳӣ кушода аст (як вақт якто) */
 type PanelKey = "info" | "security" | "bonuses";
 
+/**
+ * 💰 Формати бехатари маблағ — NaN / string / null ҳеҷ гоҳ саҳифаро намепартояд.
+ * Ҳамеша 2 рақами даҳӣ + вергули тоҷикӣ (605,96).
+ */
+function formatMoney(value: unknown): string | null {
+  const n =
+    typeof value === "number"
+      ? value
+      : typeof value === "string" && value.trim() !== ""
+        ? Number(value.replace(/\s/g, "").replace(",", "."))
+        : Number.NaN;
+  if (!Number.isFinite(n)) return null;
+  return n.toLocaleString("tj-TJ", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
 export default function Profile() {
-  const { t, lang, user, balance, isAdmin, authReady, logout } = useApp();
+  const {
+    t,
+    lang,
+    user,
+    balance,
+    balanceLoading,
+    isAdmin,
+    authReady,
+    refreshUser,
+    logout,
+  } = useApp();
   const nav = useNavigate();
 
   const [phoneCopied, setPhoneCopied] = useState(false);
   const [idCopied, setIdCopied] = useState(false);
   /** 📋 Кадом ID-и бозӣ дар панел нусха шуд (фақат ӯст) */
   const [topUpOpen, setTopUpOpen] = useState(false);
+
+  // 💳 Баланси часпак: sentinel 1px пеш аз корт → compact ҳангоми аз
+  //    сари саҳифа (header + safe-area) гузаштан.
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const [compact, setCompact] = useState(false);
+  const balanceText = formatMoney(balance);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+    let observer: IntersectionObserver | null = null;
+
+    const connect = () => {
+      observer?.disconnect();
+
+      // 📏 Баландии воқеии header: --header-h + env(safe-area-inset-top)
+      const rootStyle = getComputedStyle(document.documentElement);
+      const headerH =
+        Number.parseFloat(rootStyle.getPropertyValue("--header-h")) || 56;
+      const probe = document.createElement("div");
+      probe.style.cssText =
+        "position:absolute;visibility:hidden;pointer-events:none;height:env(safe-area-inset-top,0px)";
+      document.body.appendChild(probe);
+      const safeTop = probe.getBoundingClientRect().height;
+      probe.remove();
+
+      observer = new IntersectionObserver(
+        (entries) => {
+          const entry = entries[0];
+          if (entry) setCompact(!entry.isIntersecting);
+        },
+        {
+          root: null,
+          rootMargin: `-${Math.round(headerH + safeTop)}px 0px 0px 0px`,
+          threshold: 0,
+        },
+      );
+      observer.observe(sentinel);
+    };
+
+    connect();
+    window.addEventListener("resize", connect);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", connect);
+    };
+    // `user` — sentinel танҳо баъди боргирии корбар ба DOM меояд
+  }, [user]);
 
   // 🪙 Pers Coins — худи корт дар компоненти `CoinsCard` (ҳамон дар Home)
   const [coins, setCoins] = useState<CoinsInfo | null>(null);
@@ -173,7 +250,7 @@ export default function Profile() {
   if (!user) {
     if (authReady) return null; // → эффект боло ба `/login` меафтонад
     return (
-      <div className="profile-soft min-h-[calc(100vh-4rem)] w-full max-w-full overflow-x-clip">
+      <div className="profile-soft min-h-[calc(100dvh-4rem)] w-full max-w-full overflow-x-clip">
         <div className="mx-auto max-w-3xl px-4 py-6 sm:py-8 grid gap-4 sm:gap-5">
           <div className="glass rounded-2xl h-44 animate-pulse" aria-hidden />
           <div className="glass rounded-2xl h-64 animate-pulse" aria-hidden />
@@ -198,7 +275,7 @@ export default function Profile() {
 
   return (
     /* 🌅 Заминаи мулоими кабуди градиентӣ (дар торик — таркиби торик) */
-    <div className="profile-soft min-h-[calc(100vh-4rem)] w-full max-w-full overflow-x-clip">
+    <div className="profile-soft min-h-[calc(100dvh-4rem)] w-full max-w-full overflow-x-clip">
       {/* 📌 Сари саҳифаи часпак (талаби соҳиб 11.11.2026: «dar hamash haminxel») */}
       <StickyHeader title={t("profile")} />
       <div className="mx-auto max-w-3xl px-4 py-6 sm:py-8 grid gap-4 sm:gap-5">
@@ -287,45 +364,6 @@ export default function Profile() {
             </div>
           </div>
 
-          {/* 💰 ЗЕР-КАРТИ БАЛАНС — кӯлобӣ + тугмаҳои «Пур кардан» · «Фармоишҳои ман»
-             (Тугмаи тағйир додани ном НЕСТ — талаботи корбар) */}
-          <div
-            className="mt-4 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 p-4
-                       text-white shadow-lg shadow-blue-700/30 ring-1 ring-white/20
-                       dark:from-blue-700 dark:to-indigo-800 dark:shadow-none"
-          >
-            {/* ✒️ Кикер — хурд, фишурда, сафед */}
-            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-blue-100/90">
-              <Ic icon={Wallet} size="xs" />
-              {t("balance")}
-            </div>
-            {/* ✒️ Маблағ — калон, рақамҳои баробар (tabular), фишурда */}
-            <div className="mt-1 text-[2rem] sm:text-4xl font-black leading-none tracking-[-0.02em] tabular-nums [text-shadow:0_2px_14px_rgba(15,23,42,0.28)]">
-              {balance.toLocaleString("tj-TJ")}
-              <span className="ml-1.5 text-base sm:text-lg font-semibold text-blue-200 [text-shadow:none]">
-                {t("currency")}
-              </span>
-            </div>
-
-            {/* 📱 Мобилӣ: тугма ТАГ БА ТАГ пурарӯза;
-               тугмаи «Фармоишҳои ман» БАРДОШТА ШУД (талаби корбар) —
-               фармоишҳо тавассути BottomNav («Фармоишҳо») дастрасанд */}
-            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-              <button
-                type="button"
-                onClick={() => setTopUpOpen(true)}
-                className="flex min-w-0 flex-1 items-center justify-center gap-1.5
-                           rounded-xl bg-white px-2 py-2.5 text-[13px] sm:px-3 sm:text-sm font-bold tracking-wide text-blue-700
-                           shadow-md shadow-blue-900/20
-                           transition hover:bg-blue-50 active:scale-[0.98]
-                           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
-              >
-                <Ic icon={Plus} className="shrink-0 text-blue-600" />
-                <span className="text-center leading-tight">{t("topup")}</span>
-              </button>
-            </div>
-          </div>
-
           {/* 🪙 КОРТИ PERS COINS — аз профил БАРДОШТА ШУД (талаби корбар);
               тангаҳо/чарх тавассути BottomNav дастрасанд */}
 
@@ -342,6 +380,68 @@ export default function Profile() {
             >
               <Ic icon={LogOut} />
               {t("logout")}
+            </button>
+          </div>
+        </section>
+
+        {/* 📌 SENTINEL — 1px; аз болои он гузашт → баланс compact мешавад */}
+        <div ref={sentinelRef} aria-hidden className="h-px" />
+
+        {/* 💳 БАЛАНСИ ЧАСПАК — зери header мемонад (Megafon Life услуб).
+             Корт берун аз корти сафеди профил аст, то sticky кор кунад. */}
+        <section
+          className={`balance-sticky${compact ? " is-compact" : ""}`}
+          aria-labelledby="balance-label"
+        >
+          <div id="balance-label" className="balance-sticky__kicker">
+            <Ic icon={Wallet} size="xs" />
+            {t("balance")}
+          </div>
+
+          <div className="balance-sticky__row">
+            <div
+              className="balance-sticky__amount"
+              role="status"
+              aria-live="polite"
+            >
+              {balanceLoading ? (
+                <>
+                  <span className="balance-sticky__skeleton" aria-hidden />
+                  <span className="sr-only">{t("loading")}</span>
+                </>
+              ) : balanceText !== null ? (
+                <>
+                  {balanceText}
+                  <span className="balance-sticky__currency">
+                    {t("currency")}
+                  </span>
+                </>
+              ) : (
+                <span aria-hidden>—</span>
+              )}
+            </div>
+
+            {!balanceLoading && balanceText === null && (
+              <button
+                type="button"
+                onClick={() => {
+                  void refreshUser();
+                }}
+                className="balance-sticky__retry"
+              >
+                {t("retry")}
+              </button>
+            )}
+          </div>
+
+          <div className="balance-sticky__actions">
+            <button
+              type="button"
+              onClick={() => setTopUpOpen(true)}
+              className="balance-sticky__topup"
+            >
+              <Ic icon={Plus} className="shrink-0" />
+              <span className="text-center leading-tight">{t("topup")}</span>
             </button>
           </div>
         </section>

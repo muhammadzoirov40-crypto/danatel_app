@@ -21,6 +21,8 @@ interface AppState {
   isAdmin: boolean;
   /** 💰 Баланси ҷорӣ (сонияҳо аз backend гирифта мешавад) */
   balance: number;
+  /** ⏳ Оё баланс ҳоло аз backend боргирӣ мешавад? (skeleton дар Profile) */
+  balanceLoading: boolean;
   /**
    * ⏳ Оё боргирии аввалияи сессия (`/me`) анҷом ёфт?
    * Саҳифаҳои ҳифзшуда бояд интизор шаванд → F5 дар `/profile`
@@ -80,6 +82,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   });
   const [balance, setBalance] = useState<number>(0);
+  const [balanceLoading, setBalanceLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>("");
   /** ⏳ Оё боргирии аввалияи сессия анҷом ёфт? (танҳо як маротиба) */
   const [authReady, setAuthReady] = useState(false);
@@ -121,6 +124,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // 🔄 Боргирӣ вақти оғоз (агар токен бошад)
   const refreshUser = useCallback(async () => {
+    setBalanceLoading(true);
     try {
       if (!getToken()) {
         setUser(null);
@@ -144,6 +148,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       // Ҳамеша — ҳато ҳангоми хатогӣ ҳам, то роҳҳои ҳифзшуда вақти бекор
       // натавонанд `user === null`-ро «вуруд накардааст» ҳисобанд.
       setAuthReady(true);
+      setBalanceLoading(false);
     }
   }, []);
 
@@ -190,6 +195,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setToken(null);
     setUser(null);
     setBalance(0);
+    setBalanceLoading(false);
     setIsAdmin(false);
   }, []);
 
@@ -203,6 +209,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       user,
       isAdmin,
       balance,
+      balanceLoading,
       authReady,
       refreshUser,
       login,
@@ -214,7 +221,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       theme,
       toggleTheme,
     }),
-    [lang, setLang, t, user, isAdmin, balance, authReady, refreshUser, login, register, logout, search, theme, toggleTheme],
+    [lang, setLang, t, user, isAdmin, balance, balanceLoading, authReady, refreshUser, login, register, logout, search, theme, toggleTheme],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

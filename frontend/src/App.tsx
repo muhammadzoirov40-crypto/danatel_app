@@ -90,7 +90,7 @@ export default function App() {
         <UpdateToast />
         <Navbar />
         <ScrollProgress />
-        <main className="relative min-h-[calc(100vh-4rem)] w-full max-w-full overflow-x-clip pb-20 md:pb-0">
+        <main className="relative min-h-[calc(100dvh-4rem)] w-full max-w-full overflow-x-clip pb-[calc(84px+env(safe-area-inset-bottom))] md:pb-0">
           {/* 🌅 Камарбанди кабуди ягона — дар ҳамаи саҳифаҳо якхела */}
           <div className="page-band" aria-hidden />
           <ErrorBoundary>

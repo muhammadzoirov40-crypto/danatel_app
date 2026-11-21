@@ -37,16 +37,16 @@ export default function StickyHeader({ title }: { title: string }) {
   return (
     <div
       aria-hidden={!show}
-      className={`fixed inset-x-0 top-0 z-40 md:hidden transition-all duration-200 ease-out ${
+      className={`fixed inset-x-0 top-0 z-30 md:hidden transition-all duration-200 ease-out ${
         show
           ? "translate-y-0 opacity-100 visible"
           : "-translate-y-full opacity-0 invisible"
       }`}
     >
-      <div className="border-b border-slate-200/80 bg-white/90 shadow-[0_6px_18px_-12px_rgba(15,23,42,0.45)] backdrop-blur-md">
+      <div className="sticky-header border-b border-slate-200/80 bg-white/90 shadow-[0_6px_18px_-12px_rgba(15,23,42,0.45)] backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-6xl items-center gap-2.5 px-3 sm:px-4">
           <BackButton iconOnly />
-          <p className="min-w-0 truncate text-lg font-extrabold text-slate-900">
+          <p className="min-w-0 truncate text-lg font-extrabold text-slate-900 dark:text-slate-100">
             {title}
           </p>
         </div>
