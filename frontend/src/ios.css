@@ -88,12 +88,18 @@ html.dark {
 
 
 /* ---------- Global canvas / typography ---------- */
+html {
+  background: var(--ios-bg) !important;
+}
+
 html,
 body {
   /* `hidden` vertical scrollни ҳам_block қилади (overflow-y: auto бўлиб қолади)
      → скролл ишлмайди. `clip` эса фақат gorizontal ташқарини кесади. */
   overflow-x: clip !important;
-  background: var(--ios-bg) !important;
+  /* Фонни <html> га бердик — `.page-band`/`body::before` (z-index:-1)
+     опақ фон ортида қолиб, кўк→оқ градиент кўринмай қолган эди. */
+  background: transparent !important;
   color: var(--ios-label) !important;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
     Inter, "Onest", system-ui, sans-serif !important;
