@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { House, LayoutGrid, Package, Plus, User } from "lucide-react";
+import { Headphones, House, Package, Plus, User } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import TopUpModal from "./TopUpModal";
 import OrderSearchModal from "./OrderSearchModal";
 import { Ic } from "./Icons";
+import SupportSheet from "./SupportSheet";
 
 /**
  * Навигатсияи поёнӣ (Bottom Navigation Bar) — glassmorphism + градиенти
@@ -34,6 +35,7 @@ export default function BottomNav() {
   const { user, lang, t } = useApp();
 
   const [topUpOpen, setTopUpOpen] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);
   const [orderSearchOpen, setOrderSearchOpen] = useState(false);
 
   const isHome = pathname === "/";
@@ -50,9 +52,13 @@ export default function BottomNav() {
    */
   const hideNav = pathname.startsWith("/order/") || isLogin || pathname === "/admin";
 
+  useEffect(() => {
+    setSupportOpen(false);
+  }, [pathname]);
+
   const labels = {
     home: lang === "ru" ? "Главная" : lang === "uz" ? "Asosiy" : lang === "en" ? "Home" : "Асосӣ",
-    catalog: lang === "ru" ? "Каталог" : lang === "uz" ? "Katalog" : lang === "en" ? "Catalog" : "Каталог",
+    support: t("support"),
     topup: lang === "ru" ? "Пополнить" : lang === "uz" ? "To'ldirish" : lang === "en" ? "Top up" : "Пур кардан",
     // Сабад дар ин лоиҳа вуҷуд надорад → номи рост: «Фармоишҳо»
     orders: t("orders"),
@@ -64,24 +70,6 @@ export default function BottomNav() {
     if (isHome) {
       e.preventDefault();
       window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  };
-
-  /** 2) Каталог — гузариш ба бахши бозиҳо (#games) */
-  const handleCatalogClick = (e: React.MouseEvent) => {
-    if (isHome) {
-      e.preventDefault();
-      const el = document.getElementById("games");
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth" });
-      }
-    } else {
-      e.preventDefault();
-      nav("/");
-      setTimeout(() => {
-        const el = document.getElementById("games");
-        if (el) el.scrollIntoView({ behavior: "smooth" });
-      }, 100);
     }
   };
 
@@ -137,16 +125,16 @@ export default function BottomNav() {
           <span className={labelCls(isHome)}>{labels.home}</span>
         </Link>
 
-        {/* 2) Каталог */}
+        {/* 2) Дастгирӣ — bottom sheet */}
         <button
           type="button"
-          onClick={handleCatalogClick}
-          aria-label={labels.catalog}
-          title={labels.catalog}
-          className={itemCls(false)}
+          onClick={() => setSupportOpen(true)}
+          aria-label={labels.support}
+          title={labels.support}
+          className={itemCls(supportOpen)}
         >
-          <Ic icon={LayoutGrid} size="md" strokeWidth={1.75} />
-          <span className={labelCls(false)}>{labels.catalog}</span>
+          <Ic icon={Headphones} size="md" strokeWidth={1.75} />
+          <span className={labelCls(supportOpen)}>{labels.support}</span>
         </button>
 
         {/* 3) Тугмаи калони марказӣ «Пур кардан» — CTA бо градиент + FAB бардошта */}
@@ -192,6 +180,7 @@ export default function BottomNav() {
           <Ic icon={User} size="md" strokeWidth={1.75} />
           <span className={labelCls((isProfile || isLogin) && !isHome)}>{labels.profile}</span>
         </Link>
+      <SupportSheet open={supportOpen} onClose={() => setSupportOpen(false)} />
       </nav>
     </>
   );
