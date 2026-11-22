@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
+  ChevronDown,
   Disc3,
   Download,
   Info,
@@ -80,6 +81,7 @@ export default function SidebarMenu({
   const [installed, setInstalled] = useState<boolean>(() => isStandalone());
   const [installBusy, setInstallBusy] = useState(false);
   const [iosHint, setIosHint] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);
   // 📱 Боргирии APK — тавассути /api/apk (токени админ дар header);
   //    файли статикӣ дар nginx баста аст (сирри webhook дар дохили APK).
 
@@ -347,42 +349,65 @@ export default function SidebarMenu({
               </button>
             )}
 
-            {/* 📣 Дастгирӣ — 3 шабака */}
+            {/* 📣 Дастгирӣ — accordion: tap → 3 шабака пайдо мешаванд */}
             <div className="rounded-2xl bg-slate-50 p-3 dark:bg-white/5">
-              <div className="mb-2 text-[13px] font-semibold uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
-                Дастгирӣ
-              </div>
-              <p className="mb-3 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-                Саволе доред? Ба мо нависед.
-              </p>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { label: "Telegram", href: TELEGRAM_URL, bg: "#229ED9", icon: <Send className="h-5 w-5" /> },
-                  { label: "WhatsApp", href: WHATSAPP_URL, bg: "#25D366", icon: <MessageCircle className="h-5 w-5" /> },
-                  { label: "Instagram", href: INSTAGRAM_URL, bg: "#E4405F", icon: <InstagramIcon className="h-5 w-5" /> },
-                ].map((item) => (
-                  <a
-                    key={item.label}
-                    href={item.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={item.label}
-                    className="flex h-11 items-center justify-center gap-1.5 rounded-xl text-white text-xs font-semibold transition active:scale-95"
-                    style={{ background: item.bg }}
-                  >
-                    {item.icon}
-                    <span className="truncate">{item.label}</span>
-                  </a>
-                ))}
-              </div>
-              <a
-                href="tel:+992002119831"
-                aria-label="+992 002 119 831"
-                className="mt-3 flex h-11 items-center justify-center gap-2 rounded-xl bg-slate-100 text-sm font-semibold text-slate-700 transition active:scale-95 dark:bg-slate-800 dark:text-slate-200"
+              <button
+                type="button"
+                onClick={() => setSupportOpen((v) => !v)}
+                aria-expanded={supportOpen}
+                aria-controls="sidebar-support-panel"
+                className="flex w-full items-center justify-between gap-3 rounded-xl px-1 py-1 text-left transition active:scale-[0.99]"
               >
-                <Ic icon={Send} size="sm" className="text-[var(--ios-blue)]" />
-                +992 002 119 831
-              </a>
+                <span className="text-[13px] font-semibold uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
+                  Дастгирӣ
+                </span>
+                <Ic
+                  icon={ChevronDown}
+                  size="sm"
+                  className={`text-slate-400 transition-transform duration-200 ${supportOpen ? "rotate-180" : ""}`}
+                />
+              </button>
+
+              <div
+                id="sidebar-support-panel"
+                className={`grid transition-[grid-template-rows,opacity] duration-200 ease-out ${
+                  supportOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                }`}
+              >
+                <div className="overflow-hidden">
+                  <p className="mb-3 mt-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+                    Саволе доред? Ба мо нависед.
+                  </p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { label: "Telegram", href: TELEGRAM_URL, bg: "#229ED9", icon: <Send className="h-5 w-5" /> },
+                      { label: "WhatsApp", href: WHATSAPP_URL, bg: "#25D366", icon: <MessageCircle className="h-5 w-5" /> },
+                      { label: "Instagram", href: INSTAGRAM_URL, bg: "#E4405F", icon: <InstagramIcon className="h-5 w-5" /> },
+                    ].map((item) => (
+                      <a
+                        key={item.label}
+                        href={item.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={item.label}
+                        className="flex h-11 items-center justify-center gap-1.5 rounded-xl text-white text-xs font-semibold transition active:scale-95"
+                        style={{ background: item.bg }}
+                      >
+                        {item.icon}
+                        <span className="truncate">{item.label}</span>
+                      </a>
+                    ))}
+                  </div>
+                  <a
+                    href="tel:+992002119831"
+                    aria-label="+992 002 119 831"
+                    className="mt-3 flex h-11 items-center justify-center gap-2 rounded-xl bg-slate-100 text-sm font-semibold text-slate-700 transition active:scale-95 dark:bg-slate-800 dark:text-slate-200"
+                  >
+                    <Ic icon={Send} size="sm" className="text-[var(--ios-blue)]" />
+                    +992 002 119 831
+                  </a>
+                </div>
+              </div>
             </div>
 
             {isAdmin && (
