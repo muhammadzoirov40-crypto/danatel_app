@@ -3,13 +3,8 @@ import { Link } from "react-router-dom";
 import {
   ArrowUp,
   Check,
-  ChevronRight,
-  House,
-  LayoutGrid,
-  Package,
   Send,
   Share2,
-  User,
 } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { Ic } from "./Icons";
@@ -83,13 +78,6 @@ export default function Footer() {
     return () => io.disconnect();
   }, []);
 
-  const navItems = [
-    { to: "/", icon: House, label: t("goHome") },
-    { to: "/#games", icon: LayoutGrid, label: t("navCatalog") },
-    { to: user ? "/orders" : "/login", icon: Package, label: user ? t("navOrders") : t("login") },
-    { to: user ? "/profile" : "/login", icon: User, label: user ? t("profile") : t("login") },
-  ];
-
   const reveal = (delay: number) => ({
     opacity: visible ? 1 : 0,
     transform: visible ? "translateY(0)" : "translateY(8px)",
@@ -114,7 +102,7 @@ export default function Footer() {
                      border border-[rgba(255,255,255,0.6)] dark:border-[rgba(255,255,255,0.08)]
                      shadow-[var(--ios-shadow-2)]
                      lg:rounded-none lg:border-t lg:border-[var(--ios-separator)] lg:bg-transparent
-                     lg:backdrop-blur-none lg:shadow-none lg:p-0 lg:grid lg:grid-cols-3 lg:gap-8"
+                     lg:backdrop-blur-none lg:shadow-none lg:p-0 lg:grid lg:grid-cols-2 lg:gap-8"
         >
           {/* 1️⃣ Brand */}
           <section className="space-y-3 lg:space-y-4" style={reveal(0)}>
@@ -141,34 +129,8 @@ export default function Footer() {
             </button>
           </section>
 
-          {/* 2️⃣ Навигатсия */}
-          <section className="lg:mt-0" style={reveal(60)}>
-            <h5 className="text-[13px] font-semibold uppercase tracking-[0.06em] text-[var(--ios-label-2)] mb-2">
-              Навигатсия
-            </h5>
-            <div className="overflow-hidden rounded-[14px] bg-[var(--ios-elevated)]/60 dark:bg-[var(--ios-elevated)]/40 lg:bg-transparent">
-              <ul className="divide-y divide-[var(--ios-separator)]">
-                {navItems.map((item, i) => (
-                  <li key={item.to + item.label} className={i === 0 ? "" : "border-t border-[var(--ios-separator)]"}>
-                    <Link
-                      to={item.to}
-                      aria-label={item.label}
-                      className="flex items-center gap-3 h-12 px-4 active:bg-black/5 dark:active:bg-white/5 active:scale-[0.99] transition duration-120"
-                    >
-                      <span className="grid place-items-center w-[30px] h-[30px] rounded-lg shrink-0" style={{ background: "var(--ios-blue-tint)" }}>
-                        <Ic icon={item.icon} size="sm" className="text-[var(--ios-blue)]" />
-                      </span>
-                      <span className="flex-1 text-[16px] font-medium text-[var(--ios-label)]">{item.label}</span>
-                      <Ic icon={ChevronRight} size="xs" className="text-[var(--ios-label-3)]" />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </section>
-
           {/* 4️⃣ Тамос */}
-          <section className="mt-6 lg:mt-0" style={reveal(120)}>
+          <section className="mt-6 lg:mt-0" style={reveal(60)}>
             <h5 className="text-[13px] font-semibold uppercase tracking-[0.06em] text-[var(--ios-label-2)] mb-2">
               Тамос ва дастгирӣ
             </h5>
@@ -200,7 +162,7 @@ export default function Footer() {
         </div>
 
         {/* 🔻 Поёнтарин сатр */}
-        <div className="mt-6 text-center text-xs text-[var(--ios-label-2)]" style={reveal(180)}>
+        <div className="mt-6 text-center text-xs text-[var(--ios-label-2)]" style={reveal(120)}>
           © {new Date().getFullYear()} donatshop
         </div>
       </div>
