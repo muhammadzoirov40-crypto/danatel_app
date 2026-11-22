@@ -1,21 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
-  Check,
-  ChevronDown,
-  Copy,
   Disc3,
   Download,
-  Headphones,
   Info,
   LayoutGrid,
   LogIn,
-  Phone,
   LogOut,
-  MessageCircle,
   Moon,
   Package,
-  Send,
   Settings,
   Star,
   Sun,
@@ -38,7 +31,6 @@ import {
   UzbekFlag,
 } from "./Icons";
 import Logo from "./Logo";
-import { INSTAGRAM_URL, TELEGRAM_URL, WHATSAPP_URL } from "../config/constants";
 
 /**
  * 🍔 SIDEBAR-MENЮ (чап → рост) — услуби «RentHub».
@@ -85,8 +77,6 @@ export default function SidebarMenu({
   const [installed, setInstalled] = useState<boolean>(() => isStandalone());
   const [installBusy, setInstallBusy] = useState(false);
   const [iosHint, setIosHint] = useState(false);
-  const [supportOpen, setSupportOpen] = useState(true);
-  const [phoneCopied, setPhoneCopied] = useState(false);
   // 📱 Боргирии APK — тавассути /api/apk (токени админ дар header);
   //    файли статикӣ дар nginx баста аст (сирри webhook дар дохили APK).
 
@@ -173,28 +163,6 @@ export default function SidebarMenu({
     });
   };
 
-  const copyPhone = async () => {
-    const phone = "+992002119831";
-    try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(phone);
-      } else {
-        const input = document.createElement("textarea");
-        input.value = phone;
-        input.setAttribute("readonly", "");
-        input.style.position = "absolute";
-        input.style.left = "-9999px";
-        document.body.appendChild(input);
-        input.select();
-        document.execCommand("copy");
-        document.body.removeChild(input);
-      }
-      setPhoneCopied(true);
-      window.setTimeout(() => setPhoneCopied(false), 1500);
-    } catch {
-      /* clipboard unavailable */
-    }
-  };
 
   /** ➡️ «Дар бораи мo» — саҳифаи алоҳидаи /about */
   const goAbout = () => {
@@ -377,118 +345,6 @@ export default function SidebarMenu({
               </button>
             )}
 
-            {/* support card */}
-            <section
-              className="rounded-[24px] p-4"
-              style={{
-                background: "var(--ios-material)",
-                backdropFilter: "saturate(180%) blur(24px)",
-                WebkitBackdropFilter: "saturate(180%) blur(24px)",
-                border: "0.5px solid var(--ios-material-border)",
-                boxShadow: "var(--ios-shadow-2)",
-              }}
-            >
-              <button
-                type="button"
-                onClick={() => setSupportOpen((v) => !v)}
-                aria-expanded={supportOpen}
-                aria-controls="sidebar-support-panel"
-                className="flex h-[56px] w-full items-center gap-3 rounded-[14px] px-1 text-left transition active:scale-[0.99]"
-              >
-                <span
-                  className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px]"
-                  style={{ background: "var(--ios-blue-tint)" }}
-                  aria-hidden
-                >
-                  <Ic icon={Headphones} size="md" className="text-[#007aff]" strokeWidth={1.75} />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-[16px] font-semibold leading-tight text-[var(--ios-label)]">
-                    Дастгирӣ
-                  </span>
-                  <span className="block text-[13px] leading-tight text-[var(--ios-label-2)]">
-                    Саволе доред? Ба мо нависед.
-                  </span>
-                </span>
-                <Ic
-                  icon={ChevronDown}
-                  size="sm"
-                  className={`text-[var(--ios-label-3)] transition-transform duration-300 ${supportOpen ? "rotate-180" : ""}`}
-                />
-              </button>
-
-              <div
-                id="sidebar-support-panel"
-                className={`grid transition-[grid-template-rows,opacity] duration-[350ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${
-                  supportOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
-                }`}
-              >
-                <div className="overflow-hidden">
-                  <div className="pt-3">
-                    <div className="grid grid-cols-3 gap-[10px]">
-                      {[
-                        { label: "Telegram", href: TELEGRAM_URL, bg: "#229ED9", icon: <Send className="h-5 w-5" /> },
-                        { label: "WhatsApp", href: WHATSAPP_URL, bg: "#25D366", icon: <MessageCircle className="h-5 w-5" /> },
-                        { label: "Instagram", href: INSTAGRAM_URL, bg: "linear-gradient(135deg,#F58529,#DD2A7B,#8134AF)", icon: <InstagramIcon className="h-5 w-5" /> },
-                      ].map((item, index) => (
-                        <a
-                          key={item.label}
-                          href={item.href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          aria-label={item.label}
-                          className="flex h-[84px] flex-col items-center justify-center gap-2 rounded-[18px] border border-[var(--ios-material-border)] bg-[var(--ios-fill)] text-center transition duration-120 active:scale-[0.96] hover:-translate-y-0.5 hover:shadow-md dark:bg-[var(--ios-fill)]"
-                          style={{
-                            opacity: supportOpen ? 1 : 0,
-                            transform: supportOpen ? "translateY(0)" : "translateY(6px)",
-                            transition: `opacity 240ms var(--ios-ease) ${index * 50}ms, transform 240ms var(--ios-ease) ${index * 50}ms, background-color 120ms, box-shadow 120ms`,
-                          }}
-                        >
-                          <span
-                            className="grid h-10 w-10 place-items-center rounded-full text-white"
-                            style={{ background: item.bg }}
-                            aria-hidden
-                          >
-                            {item.icon}
-                          </span>
-                          <span className="text-[13px] font-semibold leading-none text-[var(--ios-label)]">
-                            {item.label}
-                          </span>
-                        </a>
-                      ))}
-                    </div>
-
-                    <div className="mt-3 flex h-[52px] items-center gap-2 rounded-[16px] bg-[var(--ios-blue-tint)] px-3">
-                      <a
-                        href="tel:+992002119831"
-                        aria-label="+992 002 119 831"
-                        className="flex min-w-0 flex-1 items-center gap-2 text-[16px] font-semibold tabular-nums text-[#007aff] transition active:scale-[0.99]"
-                      >
-                        <Ic icon={Phone} size="md" className="text-[#007aff]" strokeWidth={1.75} />
-                        <span className="truncate">+992 002 119 831</span>
-                      </a>
-                      <button
-                        type="button"
-                        onClick={() => void copyPhone()}
-                        aria-label="Нусхабардорӣ"
-                        className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-white/70 text-[#007aff] transition active:scale-95 dark:bg-white/10"
-                      >
-                        <Ic icon={phoneCopied ? Check : Copy} size="sm" strokeWidth={2} />
-                      </button>
-                    </div>
-                    {phoneCopied && (
-                      <div
-                        role="status"
-                        aria-live="polite"
-                        className="mt-2 text-center text-xs font-medium text-[var(--ios-label-2)]"
-                      >
-                        Нусхабардорӣ шуд
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </section>
 
             {isAdmin && (
               <button type="button" onClick={() => go("/admin")} className={rowCls}>
