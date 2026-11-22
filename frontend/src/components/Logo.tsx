@@ -140,7 +140,7 @@ export default function Logo({
     <span className="flex items-center gap-2 shrink-0">
       <span
         className="relative inline-block shrink-0"
-        style={{ width: size, height: size + crownOffset, overflow: "visible" }}
+        style={{ width: size, height: size + crownOffset, overflow: "visible", marginTop: -4 }}
       >
         {withCrown && (
           <img
@@ -153,7 +153,7 @@ export default function Logo({
             aria-hidden
             decoding="async"
             className="absolute left-0 pointer-events-none select-none"
-            style={{ width: crownW, height: "auto", top: -4 }}
+            style={{ width: crownW, height: "auto", top: 0 }}
           />
         )}
         <svg
@@ -163,7 +163,7 @@ export default function Logo({
           role="img"
           aria-label="donatshop"
           className="shrink-0"
-          style={{ position: "relative", top: 4 }}
+          style={{ position: "relative", top: 8 }}
         >
         <defs>
           <clipPath id={clip}>
