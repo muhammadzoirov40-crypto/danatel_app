@@ -59,7 +59,7 @@ export default function Footer() {
         {/* Сутуни 1: Логотип ва тавсиф */}
         <div className="md:col-span-1 space-y-3">
           <Link to="/" className="inline-block" title="donatshop">
-            <Logo size={28} withText textClass="text-base font-black" />
+            <Logo size={76} variant="color" withText textClass="text-base font-black" />
           </Link>
           <p className="text-xs text-slate-500 leading-relaxed">
             Аввалин платформаи миллии хариди донат ва пули бозиҳо дар Тоҷикистон.

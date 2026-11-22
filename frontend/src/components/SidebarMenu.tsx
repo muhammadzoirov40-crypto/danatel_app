@@ -279,16 +279,7 @@ export default function SidebarMenu({
         {/* 🔝 Сарлавҳа: логотип + ном + ✕ */}
         <div className="flex items-center gap-3 px-5 pt-6 pb-4">
           <span className="grid place-items-center w-11 h-11 rounded-full bg-blue-50 dark:bg-brand-900/30 ring-1 ring-blue-100 dark:ring-brand-700/40 shrink-0 overflow-hidden">
-            <img
-              src="/brand/logo_color.webp"
-              alt=""
-              aria-hidden
-              width={33}
-              height={37}
-              className="w-[75%] h-auto"
-              loading="lazy"
-              decoding="async"
-            />
+            <Logo size={33} variant="color" />
           </span>
           <span className="flex-1 min-w-0 font-black text-[17px] tracking-tight text-slate-900 dark:text-white truncate">
             {t("brand")}

@@ -95,14 +95,15 @@ export default function Logo({
   withText?: boolean;
   /** Классҳои иловагӣ барои матн */
   textClass?: string;
-  variant?: "onLight" | "onDark";
+  variant?: "onLight" | "onDark" | "header" | "color";
   /** 💎 Аниматсияи «шинои кристалл» — тасмаи равшан мегузарад */
   animate?: boolean;
 }) {
   const uid = useId().replace(/[:]/g, "");
   const clip = `dClip${uid}`;
   const shine = `dShine${uid}`;
-  const onDark = variant === "onDark";
+  const onDark = variant === "onDark" || variant === "header";
+  const withCrown = variant === "header";
   const pal = onDark ? PAL_ICE : PAL_LIGHT;
   const { t } = useApp();
 
@@ -110,13 +111,29 @@ export default function Logo({
   const crownH = Math.round(crownW * 164 / 232);
   const crownOffset = Math.round(size * 0.364);
 
+  if (variant === "color") {
+    const colorW = Math.round(size * 438 / 338);
+    return (
+      <img
+        src="/brand/logo_color.webp"
+        alt="donatshop"
+        width={colorW}
+        height={size}
+        loading="lazy"
+        decoding="async"
+        className="shrink-0"
+        style={{ height: size, width: "auto" }}
+      />
+    );
+  }
+
   return (
     <span className="flex items-center gap-2 shrink-0">
       <span
         className="relative inline-block shrink-0"
         style={{ width: size, height: size, overflow: "visible" }}
       >
-        {onDark && (
+        {withCrown && (
           <img
             src="/brand/logo_crown.png"
             srcSet="/brand/logo_crown.png 1x, /brand/logo_crown.png 2x, /brand/logo_crown.png 3x"
@@ -126,7 +143,7 @@ export default function Logo({
             alt=""
             aria-hidden
             decoding="async"
-            className="absolute left-[20%] top-0 pointer-events-none select-none"
+            className="absolute left-0 top-0 pointer-events-none select-none"
             style={{ width: crownW, height: "auto", transform: `translateY(-${crownOffset}px)` }}
           />
         )}
@@ -137,7 +154,7 @@ export default function Logo({
           role="img"
           aria-label="donatshop"
           className="shrink-0"
-          style={{ position: "relative", top: onDark ? crownOffset : 0 }}
+          style={{ position: "relative", top: withCrown ? crownOffset : 0 }}
         >
         <defs>
           <clipPath id={clip}>
