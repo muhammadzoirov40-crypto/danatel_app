@@ -95,7 +95,7 @@ export default function Logo({
   withText?: boolean;
   /** Классҳои иловагӣ барои матн */
   textClass?: string;
-  variant?: "onLight" | "onDark" | "header" | "color";
+  variant?: "onLight" | "onDark" | "header" | "color" | "plain";
   /** 💎 Аниматсияи «шинои кристалл» — тасмаи равшан мегузарад */
   animate?: boolean;
 }) {
@@ -119,6 +119,34 @@ export default function Logo({
           src="/brand/logo_color.webp"
           alt="donatshop"
           width={colorW}
+          height={size}
+          loading="lazy"
+          decoding="async"
+          className="shrink-0"
+          style={{ height: size, width: "auto" }}
+          onError={(e) => {
+            e.currentTarget.src = "/icons/favicon-32.png";
+            e.currentTarget.onerror = null;
+          }}
+        />
+        {withText && (
+          <span
+            className={`font-black tracking-tight leading-none whitespace-nowrap ${textClass}`}
+          >
+            {t("brand")}
+          </span>
+        )}
+      </span>
+    );
+  }
+
+  if (variant === "plain") {
+    return (
+      <span className="inline-flex items-center gap-2 shrink-0">
+        <img
+          src="/icons/donatshop-D-logo.png"
+          alt="donatshop"
+          width={size}
           height={size}
           loading="lazy"
           decoding="async"
