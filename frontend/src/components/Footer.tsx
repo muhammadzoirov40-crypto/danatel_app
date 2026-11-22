@@ -270,15 +270,15 @@ export default function Footer() {
                 </div>
               </div>
               <a
-                href="https://t.me/ONLAYN_ALMAZ_TJ_bot"
+                href="https://t.me/muhammaf_bekkend"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="@ONLAYN_ALMAZ_TJ_bot"
+                aria-label="@muhammaf_bekkend"
                 className="flex items-center justify-center gap-2 w-full h-[50px] rounded-[14px] text-white text-sm font-bold transition active:scale-[0.98]"
                 style={{ background: "var(--ios-blue)" }}
               >
                 <Ic icon={Send} size="sm" />
-                <span>@ONLAYN_ALMAZ_TJ_bot</span>
+                <span>@muhammaf_bekkend</span>
               </a>
             </div>
           </section>
