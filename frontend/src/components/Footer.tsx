@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import {
   ArrowUp,
   Check,
-  Send,
   Share2,
 } from "lucide-react";
 import { useApp } from "../context/AppContext";
@@ -129,36 +128,6 @@ export default function Footer() {
             </button>
           </section>
 
-          {/* 4️⃣ Тамос */}
-          <section className="mt-6 lg:mt-0" style={reveal(60)}>
-            <h5 className="text-[13px] font-semibold uppercase tracking-[0.06em] text-[var(--ios-label-2)] mb-2">
-              Тамос ва дастгирӣ
-            </h5>
-            <div className="rounded-[14px] p-4" style={{ background: "var(--ios-elevated)", border: "0.5px solid var(--ios-separator)" }}>
-              <div className="flex items-center gap-3 mb-3">
-                <span className="grid place-items-center w-[40px] h-[40px] rounded-xl shrink-0" style={{ background: "var(--ios-blue-tint)" }}>
-                  <Ic icon={Send} size="sm" className="text-[var(--ios-blue)]" />
-                </span>
-                <div className="min-w-0">
-                  <div className="text-[16px] font-semibold text-[var(--ios-label)]">Саволе доред?</div>
-                  <div className="text-xs text-[var(--ios-label-2)] leading-relaxed">
-                    Ба боти Telegram-и мо муроҷиат кунед.
-                  </div>
-                </div>
-              </div>
-              <a
-                href="https://t.me/muhammaf_bekkend"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="@muhammaf_bekkend"
-                className="flex items-center justify-center gap-2 w-full h-[50px] rounded-[14px] text-white text-sm font-bold transition active:scale-[0.98]"
-                style={{ background: "var(--ios-blue)" }}
-              >
-                <Ic icon={Send} size="sm" />
-                <span>@muhammaf_bekkend</span>
-              </a>
-            </div>
-          </section>
         </div>
 
         {/* 🔻 Поёнтарин сатр */}
