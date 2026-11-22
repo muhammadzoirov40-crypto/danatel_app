@@ -207,7 +207,7 @@ export default function Navbar() {
             ⚠️ 28.10.2026 (талаби соҳиб): калимаи бренда ҲАМЕША намоён
             (қаблӣ дар мобилӣ `hidden sm:inline` буд → танҳо нишонаи D). */}
         <Link to="/" className="shrink-0" title="donatshop" aria-label="donatshop">
-          <Logo size={32} variant="onDark" withText textClass="text-[15px] sm:text-base" />
+          <Logo size={22} variant="header" withText textClass="text-[15px] sm:text-base" />
         </Link>
 
         {/* 🔗 Пайвандҳо — танҳо аз lg (дар экранҳои хурд дар меню) */}

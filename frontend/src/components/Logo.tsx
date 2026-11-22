@@ -114,16 +114,25 @@ export default function Logo({
   if (variant === "color") {
     const colorW = Math.round(size * 438 / 338);
     return (
-      <img
-        src="/brand/logo_color.webp"
-        alt="donatshop"
-        width={colorW}
-        height={size}
-        loading="lazy"
-        decoding="async"
-        className="shrink-0"
-        style={{ height: size, width: "auto" }}
-      />
+      <span className="inline-flex items-center shrink-0">
+        <img
+          src="/brand/logo_color.webp"
+          alt="donatshop"
+          width={colorW}
+          height={size}
+          loading="lazy"
+          decoding="async"
+          className="shrink-0"
+          style={{ height: size, width: "auto" }}
+        />
+        {withText && (
+          <span
+            className={`font-black tracking-tight leading-none whitespace-nowrap ${textClass}`}
+          >
+            {t("brand")}
+          </span>
+        )}
+      </span>
     );
   }
 
@@ -131,7 +140,7 @@ export default function Logo({
     <span className="flex items-center gap-2 shrink-0">
       <span
         className="relative inline-block shrink-0"
-        style={{ width: size, height: size, overflow: "visible" }}
+        style={{ width: size, height: size + crownOffset, overflow: "visible" }}
       >
         {withCrown && (
           <img
@@ -143,8 +152,8 @@ export default function Logo({
             alt=""
             aria-hidden
             decoding="async"
-            className="absolute left-0 top-0 pointer-events-none select-none"
-            style={{ width: crownW, height: "auto", transform: `translateY(-${crownOffset}px)` }}
+            className="absolute left-0 pointer-events-none select-none"
+            style={{ width: crownW, height: "auto", top: -4 }}
           />
         )}
         <svg
@@ -154,7 +163,7 @@ export default function Logo({
           role="img"
           aria-label="donatshop"
           className="shrink-0"
-          style={{ position: "relative", top: withCrown ? crownOffset : 0 }}
+          style={{ position: "relative", top: 4 }}
         >
         <defs>
           <clipPath id={clip}>
