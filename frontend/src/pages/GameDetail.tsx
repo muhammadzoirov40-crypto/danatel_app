@@ -114,7 +114,7 @@ export default function GameDetail() {
       <StickyHeader title={game.name} />
       {/* ============ САРПӯШИ БОЗӢ (COVER) ============ */}
       <div
-        className="relative rounded-3xl overflow-hidden shadow-[0_22px_50px_-25px_rgba(37,99,235,0.7)] mb-5"
+        className="relative rounded-3xl overflow-hidden shadow-[0_22px_50px_-25px_rgba(37,99,235,0.7)] mb-4"
         style={{ background: bg }}
       >
         {/* Тасвири бозӣ дар тарафи рост бо маска */}

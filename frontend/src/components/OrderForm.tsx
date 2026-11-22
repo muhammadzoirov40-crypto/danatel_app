@@ -756,13 +756,13 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
       {/* ============ 2 СУТУН: ЧАП — МАЗМУН · РОСТ — ФАРМОИШИ ШУМО ============ */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
         {/* ---------- ЧАП: ҲИСОБ + БАХШҲОИ МАҲСУЛОТ ---------- */}
-        <div className="min-w-0 space-y-5">
-          <div className="glass rounded-3xl p-4 sm:p-6">
-            {/* ============ 1. ДАННЫЕ АККАУНТА ============ */}
+        <div className="min-w-0 space-y-4">
+          {game.regions && game.regions.length > 0 && (
+            <div className="glass rounded-3xl p-4 sm:p-6">
+              {/* ============ 1. ДАННЫЕ АККАУНТА ============ */}
 
-            {/* 🌍 Минтақа — танҳо вақте ки каталог зиёда аз 1 минтақа дорад (FF, MLBB) */}
-            {game.regions && game.regions.length > 1 && (
-              <div className="mb-4">
+              {/* 🌍 Минтақа — танҳо вақте ки бозӣ region дорад */}
+              <div>
                 <label className="label" htmlFor="region-select">
                   <span className="inline-flex items-center gap-1.5">
                     <Ic icon={Globe} size="xs" />
@@ -783,10 +783,8 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                   ))}
                 </select>
               </div>
-            )}
-
-
-          </div>
+            </div>
+          )}
 
           {/* 🗂 Табҳои категорияҳо — ТАНҲО мобилӣ (талаби соҳиб10.11.2026:
               «1 Алмосҳо,2 Ваучерҳо,3 Пропускҳо») — як вақт танҳо як бахш;
