@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Disc3,
   Download,
-  History,
   Info,
   LayoutGrid,
   LogIn,
@@ -12,7 +11,6 @@ import {
   Package,
   Send,
   Settings,
-  Smartphone,
   Star,
   Sun,
   UserPlus,
@@ -82,7 +80,6 @@ export default function SidebarMenu({
   const [iosHint, setIosHint] = useState(false);
   // 📱 Боргирии APK — тавассути /api/apk (токени админ дар header);
   //    файли статикӣ дар nginx баста аст (сирри webhook дар дохили APK).
-  const [apkBusy, setApkBusy] = useState(false);
 
   useEffect(() => {
     const onPrompt = (e: Event) => {
@@ -142,46 +139,6 @@ export default function SidebarMenu({
       (2) пас аз зеркашӣ дар Android роҳнамои возеҳ (Notifications → танҳо
       v1.5 → иҷозати Chrome → агар нопурра = аз нав); (3) 401/403 → паёми
       мушаххас ба ҷои «Хато»-и умумӣ. */
-  const onApkDownload = async () => {
-    if (apkBusy) return;
-    setApkBusy(true);
-    try {
-      const token = localStorage.getItem("danatel_token") || "";
-      const res = await fetch("/api/apk", {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      if (res.status === 401) {
-        window.alert(t("apkSessionExpired"));
-        go("/login");
-        return;
-      }
-      if (res.status === 403) {
-        window.alert(t("apkNoPerm"));
-        return;
-      }
-      if (!res.ok) throw new Error(String(res.status));
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      // ⚠️ БО ВЕРСИЯ — ҳаминро ҳангоми баромади версияи нав иваз кунед
-      // (бо build.gradle.kts versionName якхела бошад).
-      a.download = "AutoDonat-v1.8.apk";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 60000);
-      // Android: роҳнамо — чаро насб «кор намекунад» = файл-и кӯҳна/нопурра
-      // кушода шуд ё иҷозати Chrome барои насб дода нашудааст.
-      if (/Android/i.test(navigator.userAgent)) {
-        window.alert(t("apkSavedHelp"));
-      }
-    } catch {
-      window.alert(t("autodonatError"));
-    } finally {
-      setApkBusy(false);
-    }
-  };
 
   // 🔒 Escape + lock-и скролл + focus ба ✕ ҳангоми кушодан
   useEffect(() => {
@@ -408,40 +365,6 @@ export default function SidebarMenu({
                 <Ic icon={Settings} className="text-slate-500 shrink-0" />
                 {t("adminPanel")}
               </button>
-            )}
-
-            {/* 📱 Насби AutoDonat (APK) — ТАНҲО барои админ (талаби соҳиб,
-                07.11.2026; 08.11.2026: боргирӣ тавассути /api/apk бо токени
-                админ — файл дар nginx баста, зеро APK сирри webhook дорад). */}
-            {isAdmin && (
-              <button
-                type="button"
-                onClick={() => void onApkDownload()}
-                disabled={apkBusy}
-                aria-label={t("autodonatInstall")}
-                title={t("autodonatInstall")}
-                className={`${rowCls} disabled:cursor-wait disabled:opacity-60`}
-              >
-                <Ic icon={Smartphone} className="text-emerald-600 shrink-0" />
-                {apkBusy ? "⏳ …" : t("autodonatInstall")}
-              </button>
-            )}
-
-            {/* 📜 Таърихи AutoDonat — саҳифаи сервер /autodonat/history:
-                ҳамаи хабарномаҳо бо нарх/корта барои проверка, чизе
-                пинҳон намешавад (талаби соҳиб, 08.11.2026). */}
-            {isAdmin && (
-              <a
-                href="/autodonat/history"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={t("autodonatHistory")}
-                title={t("autodonatHistory")}
-                className={rowCls}
-              >
-                <Ic icon={History} className="text-amber-600 shrink-0" />
-                {t("autodonatHistory")}
-              </a>
             )}
 
             {/* 📦 Насб кардани барнома (PWA) — танҳо вақте роҳи насб ВОҚЕӢ
