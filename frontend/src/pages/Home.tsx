@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Gamepad2, Heart, LayoutGrid, Search, SearchX, ShieldAlert, Star, TriangleAlert, X } from "lucide-react";
+import { Gamepad2, Search, SearchX, ShieldAlert, Star, TriangleAlert, X } from "lucide-react";
 import { api } from "../api/client";
 import type { Game, Review } from "../types";
 import GameCard from "../components/GameCard";
@@ -73,27 +73,6 @@ export default function Home() {
     reviews_total: number;
   } | null>(() => homeCache.get(lang)?.reviewSum ?? null);
 
-  /** ❤️ Дӯстдоштаҳо (нигоҳдорӣ дар хотираи браузер) */
-  const [favorites, setFavorites] = useState<string[]>(() => {
-    try {
-      return JSON.parse(localStorage.getItem("danatel_favorites") || "[]");
-    } catch {
-      return [];
-    }
-  });
-
-  const [filterTab, setFilterTab] = useState<"all" | "favorites">("all");
-
-  const toggleFavorite = (slug: string) => {
-    setFavorites((prev) => {
-      const next = prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug];
-      try {
-        localStorage.setItem("danatel_favorites", JSON.stringify(next));
-      } catch {}
-      return next;
-    });
-  };
-
   useEffect(() => {
     let alive = true;
     const save = (patch: Partial<HomeCache>) => {
@@ -154,21 +133,17 @@ export default function Home() {
     warmGameImages(games);
   }, [games]);
 
-  /** Ҷустуҷӯи зинда ва филтр — ҳама / машҳур / дӯстдоштаҳо */
+  /** Ҷустуҷӯи зинда — ҳамаи бозиҳо бо филтри матнӣ */
   const filtered = useMemo(() => {
-    let list = games;
-    if (filterTab === "favorites") {
-      list = list.filter((g) => favorites.includes(g.slug));
-    }
     const q = query.trim().toLowerCase();
-    if (!q) return list;
-    return list.filter(
+    if (!q) return games;
+    return games.filter(
       (g) =>
         g.name.toLowerCase().includes(q) ||
         g.slug.toLowerCase().includes(q) ||
         (g.currency ?? "").toLowerCase().includes(q),
     );
-  }, [games, query, filterTab, favorites]);
+  }, [games, query]);
 
   /** Промо-карусел: аввал машҳур, баъд боқӣ — 6 та */
   const promo = useMemo(() => {
@@ -269,7 +244,7 @@ export default function Home() {
 
         {/* ===== 4) РӮЙХАТИ БОЗИҲО ===== */}
         <section id="games" className="mt-8 sm:mt-12 scroll-mt-20">
-          <div className="flex items-center justify-between mb-3 flex-wrap gap-2.5">
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-2.5">
             {/* 🎮 Сарлавҳа — икона дар badge-и gradient + матни зебо */}
             <h2 className="text-base sm:text-xl font-extrabold tracking-tight inline-flex items-center gap-2.5">
               <span className="grid h-8 w-8 sm:h-9 sm:w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-md shadow-brand-500/35">
@@ -280,43 +255,6 @@ export default function Home() {
               </span>
             </h2>
 
-            {/* 🎚️ Чипҳои филтр — ҳар як ранги худ, фаъол = gradient + соя */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-0.5 -mx-1 px-1">
-              <button
-                type="button"
-                onClick={() => setFilterTab("all")}
-                aria-pressed={filterTab === "all"}
-                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-[13px] font-bold transition active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 ${
-                  filterTab === "all"
-                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/35"
-                    : "bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:ring-white/10 dark:hover:bg-white/10"
-                }`}
-              >
-                <Ic icon={LayoutGrid} size="xs" />
-                <span>{lang === "ru" ? "Все" : lang === "uz" ? "Barchasi" : lang === "en" ? "All" : "Ҳама"}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setFilterTab("favorites")}
-                aria-pressed={filterTab === "favorites"}
-                /* Мобилӣ (≤420px) чип танҳо иконка мешавад — матн дар 320px бурида мешуд.
-                   aria-label номи дастрасиро нигоҳ дорад, вақте матн пинҳон аст. */
-                aria-label={lang === "ru" ? "Избранное" : lang === "uz" ? "Sevimlilar" : lang === "en" ? "Favorites" : "Дӯстдоштаҳо"}
-                className={`inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full px-3.5 py-2 text-[13px] font-bold transition active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-400 max-[420px]:min-h-9 ${
-                  filterTab === "favorites"
-                    ? "bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-md shadow-pink-500/35"
-                    : "bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:ring-white/10 dark:hover:bg-white/10"
-                }`}
-              >
-                {favorites.length > 0 && (
-                  <Ic icon={Heart} size="xs" className="text-rose-500 fill-rose-500" />
-                )}
-                <span className="max-[420px]:hidden">{lang === "ru" ? "Избранное" : lang === "uz" ? "Sevimlilar" : lang === "en" ? "Favorites" : "Дӯстдоштаҳо"}</span>
-                {favorites.length > 0 && (
-                  <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] bg-white/20">{favorites.length}</span>
-                )}
-              </button>
-            </div>
           </div>
 
           {loading && (
@@ -362,7 +300,7 @@ export default function Home() {
           {!loading && !error && filtered.length > 0 && (
             <div className="grid grid-cols-4 gap-x-3 gap-y-5 sm:grid-cols-6 sm:gap-x-5 lg:grid-cols-9 lg:gap-x-5">
               {filtered.map((g) => (
-                <GameCard key={g.id} game={g} isFavorite={favorites.includes(g.slug)} onToggleFavorite={toggleFavorite} />
+                <GameCard key={g.id} game={g} />
               ))}
             </div>
           )}
