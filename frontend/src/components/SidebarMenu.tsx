@@ -8,7 +8,6 @@ import {
   LogIn,
   LogOut,
   Moon,
-  Package,
   Settings,
   Star,
   Sun,
@@ -277,10 +276,9 @@ export default function SidebarMenu({
               ⚠️ Унвони «МЕНЮ» АЗ САТР БАРДОРДА ШУД (талаби соҳиб, 28.10.2026);
               `aria-label` дар <nav> барои screen-reader боқӣ мондааст. */}
           <nav className="flex flex-col" aria-label={t("menu")}>
-            {/* ⚠️ «Феҳрист» ва «Фармоишҳои ман» — танҳо дар экранҳои
-                калон (PC, >420px). Дар мобилии 320–420px ПИНҲОН
-                (талаби соҳиб, 28.10.2026), зеро ҳар ду аллакай дар
-                BottomNav ҳастанд. `max-[420px]:hidden` = Tailwind arbitrary. */}
+            {/* ⚠️ «Феҳрист» — танҳо дар экранҳои калон (PC, >420px).
+                Дар мобилии 320–420px ПИНҲОН (талаби соҳиб, 28.10.2026),
+                зеро дар BottomNav ҳаст. `max-[420px]:hidden` = Tailwind. */}
             <button
               type="button"
               onClick={() => go("/")}
@@ -288,15 +286,6 @@ export default function SidebarMenu({
             >
               <Ic icon={LayoutGrid} className="text-blue-500 shrink-0" />
               {t("navCatalog")}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => go(user ? "/orders" : "/login")}
-              className={`${rowCls} max-[420px]:hidden`}
-            >
-              <Ic icon={Package} className="text-indigo-500 shrink-0" />
-              {t("navOrders")}
             </button>
 
             <button type="button" onClick={() => go("/wheel")} className={rowCls}>
