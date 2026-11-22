@@ -114,7 +114,7 @@ export default function Logo({
   if (variant === "color") {
     const colorW = Math.round(size * 438 / 338);
     return (
-      <span className="inline-flex items-center shrink-0">
+      <span className="inline-flex items-center gap-2 shrink-0">
         <img
           src="/brand/logo_color.webp"
           alt="donatshop"
@@ -124,6 +124,10 @@ export default function Logo({
           decoding="async"
           className="shrink-0"
           style={{ height: size, width: "auto" }}
+          onError={(e) => {
+            e.currentTarget.src = "/icons/favicon-32.png";
+            e.currentTarget.onerror = null;
+          }}
         />
         {withText && (
           <span

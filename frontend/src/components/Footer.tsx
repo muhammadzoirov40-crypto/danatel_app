@@ -15,6 +15,7 @@ import { useApp } from "../context/AppContext";
 import { api } from "../api/client";
 import type { Game } from "../types";
 import { Ic } from "./Icons";
+import Logo from "./Logo";
 import { copyText } from "../utils/clipboard";
 
 /**
@@ -143,15 +144,7 @@ export default function Footer() {
           {/* 1️⃣ Brand */}
           <section className="space-y-3 lg:space-y-4" style={reveal(0)}>
             <Link to="/" className="inline-flex items-center gap-4" title="donatshop">
-              <img
-                src="/icons/donatshop-D-logo.png"
-                alt=""
-                aria-hidden
-                width={40}
-                height={40}
-                className="shrink-0"
-                style={{ height: 40, width: "auto" }}
-              />
+              <Logo size={40} variant="color" />
               <span className="text-[17px] font-bold leading-none text-[var(--ios-label)]">
                 donatshop
               </span>
