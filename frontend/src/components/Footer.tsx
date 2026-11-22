@@ -12,8 +12,6 @@ import {
   User,
 } from "lucide-react";
 import { useApp } from "../context/AppContext";
-import { api } from "../api/client";
-import type { Game } from "../types";
 import { Ic } from "./Icons";
 import Logo from "./Logo";
 import { copyText } from "../utils/clipboard";
@@ -25,7 +23,6 @@ import { copyText } from "../utils/clipboard";
 export default function Footer() {
   const { t, lang, user } = useApp();
   const [copied, setCopied] = useState(false);
-  const [games, setGames] = useState<Game[]>([]);
   const [visible, setVisible] = useState(false);
   const rootRef = useRef<HTMLElement>(null);
   const reducedMotion =
@@ -58,20 +55,6 @@ export default function Footer() {
     } catch {}
   };
 
-  // Маълумоти бозиҳо барои нишон додани «аз X сомонӣ»
-  useEffect(() => {
-    let alive = true;
-    api
-      .games(lang)
-      .then((d) => {
-        if (alive) setGames(d);
-      })
-      .catch(() => {});
-    return () => {
-      alive = false;
-    };
-  }, [lang]);
-
   // Аниматсияи fade + translateY(8px) ҳангоми ба экран омадан
   useEffect(() => {
     const el = rootRef.current;
@@ -99,14 +82,6 @@ export default function Footer() {
     io.observe(el);
     return () => io.disconnect();
   }, []);
-
-  const gameBySlug = (slug: string) => games.find((g) => g.slug === slug);
-  const popular = [
-    { slug: "free-fire", label: "Free Fire Diamonds" },
-    { slug: "pubg-mobile", label: "PUBG Mobile UC" },
-    { slug: "mobile-legends", label: "Mobile Legends Diamonds" },
-    { slug: "blood-strike", label: "Blood Strike Gold" },
-  ];
 
   const navItems = [
     { to: "/", icon: House, label: t("goHome") },
@@ -139,7 +114,7 @@ export default function Footer() {
                      border border-[rgba(255,255,255,0.6)] dark:border-[rgba(255,255,255,0.08)]
                      shadow-[var(--ios-shadow-2)]
                      lg:rounded-none lg:border-t lg:border-[var(--ios-separator)] lg:bg-transparent
-                     lg:backdrop-blur-none lg:shadow-none lg:p-0 lg:grid lg:grid-cols-4 lg:gap-8"
+                     lg:backdrop-blur-none lg:shadow-none lg:p-0 lg:grid lg:grid-cols-3 lg:gap-8"
         >
           {/* 1️⃣ Brand */}
           <section className="space-y-3 lg:space-y-4" style={reveal(0)}>
@@ -166,9 +141,8 @@ export default function Footer() {
             </button>
           </section>
 
-          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 lg:contents">
-            {/* 2️⃣ Навигатсия */}
-            <section className="lg:mt-0" style={reveal(60)}>
+          {/* 2️⃣ Навигатсия */}
+          <section className="lg:mt-0" style={reveal(60)}>
             <h5 className="text-[13px] font-semibold uppercase tracking-[0.06em] text-[var(--ios-label-2)] mb-2">
               Навигатсия
             </h5>
@@ -193,60 +167,8 @@ export default function Footer() {
             </div>
           </section>
 
-          {/* 3️⃣ Бозиҳо */}
-          <section className="mt-6 lg:mt-0" style={reveal(120)}>
-            <h5 className="text-[13px] font-semibold uppercase tracking-[0.06em] text-[var(--ios-label-2)] mb-2">
-              Бозиҳои машҳур
-            </h5>
-            <div className="overflow-hidden rounded-[14px] bg-[var(--ios-elevated)]/60 dark:bg-[var(--ios-elevated)]/40 lg:bg-transparent">
-              <ul className="divide-y divide-[var(--ios-separator)]">
-                {popular.map((p, i) => {
-                  const g = gameBySlug(p.slug);
-                  return (
-                    <li key={p.slug} className={i === 0 ? "" : "border-t border-[var(--ios-separator)]"}>
-                      <Link
-                        to={`/game/${p.slug}`}
-                        aria-label={p.label}
-                        className="flex items-center gap-3 h-12 px-4 active:bg-black/5 dark:active:bg-white/5 active:scale-[0.99] transition duration-120"
-                      >
-                        {g?.image_url ? (
-                          <img
-                            src={g.image_url}
-                            alt=""
-                            aria-hidden
-                            width={32}
-                            height={32}
-                            className="w-8 h-8 rounded-[22%] object-cover shrink-0"
-                            loading="lazy"
-                            decoding="async"
-                          />
-                        ) : (
-                          <span className="grid place-items-center w-8 h-8 rounded-[22%] bg-[var(--ios-fill)] text-sm shrink-0">
-                            {g?.emoji ?? "🎮"}
-                          </span>
-                        )}
-                        <span className="flex-1 min-w-0">
-                          <span className="block text-[16px] font-medium text-[var(--ios-label)] truncate">
-                            {g?.name ?? p.label}
-                          </span>
-                          {g?.min_price_tjs ? (
-                            <span className="block text-xs text-[var(--ios-label-2)]">
-                              аз {Number(g.min_price_tjs).toFixed(2)} {t("currency")}
-                            </span>
-                          ) : null}
-                        </span>
-                        <Ic icon={ChevronRight} size="xs" className="text-[var(--ios-label-3)]" />
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          </section>
-          </div>
-
           {/* 4️⃣ Тамос */}
-          <section className="mt-6 lg:mt-0" style={reveal(180)}>
+          <section className="mt-6 lg:mt-0" style={reveal(120)}>
             <h5 className="text-[13px] font-semibold uppercase tracking-[0.06em] text-[var(--ios-label-2)] mb-2">
               Тамос ва дастгирӣ
             </h5>
@@ -278,7 +200,7 @@ export default function Footer() {
         </div>
 
         {/* 🔻 Поёнтарин сатр */}
-        <div className="mt-6 text-center text-xs text-[var(--ios-label-2)]" style={reveal(240)}>
+        <div className="mt-6 text-center text-xs text-[var(--ios-label-2)]" style={reveal(180)}>
           © {new Date().getFullYear()} donatshop
         </div>
       </div>
