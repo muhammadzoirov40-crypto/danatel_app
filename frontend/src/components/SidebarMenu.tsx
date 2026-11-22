@@ -7,6 +7,7 @@ import {
   LayoutGrid,
   LogIn,
   LogOut,
+  MessageCircle,
   Moon,
   Package,
   Send,
@@ -32,6 +33,7 @@ import {
   UzbekFlag,
 } from "./Icons";
 import Logo from "./Logo";
+import { INSTAGRAM_URL, TELEGRAM_URL, WHATSAPP_URL } from "../config/constants";
 
 /**
  * 🍔 SIDEBAR-MENЮ (чап → рост) — услуби «RentHub».
@@ -345,20 +347,43 @@ export default function SidebarMenu({
               </button>
             )}
 
-            {/* ✈️ Дастгирӣ дар Telegram — пайванди воқеӣ ба бот (кушода
-                дар таби нав). Қаблан тугмаи шинокунанда дар саҳифа буд;
-                аккун дар меню, то саҳифа тоза шавад (талаби соҳиб, 28.10.2026). */}
-            <a
-              href="https://t.me/ONLAYN_ALMAZ_TJ_bot"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Дастгирӣ дар Telegram"
-              title="Дастгирӣ дар Telegram"
-              className={rowCls}
-            >
-              <Ic icon={Send} className="text-sky-500 shrink-0" />
-              Дастгирӣ дар Telegram
-            </a>
+            {/* 📣 Дастгирӣ — 3 шабака */}
+            <div className="rounded-2xl bg-slate-50 p-3 dark:bg-white/5">
+              <div className="mb-2 text-[13px] font-semibold uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
+                Дастгирӣ
+              </div>
+              <p className="mb-3 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+                Саволе доред? Ба мо нависед.
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { label: "Telegram", href: TELEGRAM_URL, bg: "#229ED9", icon: <Send className="h-5 w-5" /> },
+                  { label: "WhatsApp", href: WHATSAPP_URL, bg: "#25D366", icon: <MessageCircle className="h-5 w-5" /> },
+                  { label: "Instagram", href: INSTAGRAM_URL, bg: "#E4405F", icon: <InstagramIcon className="h-5 w-5" /> },
+                ].map((item) => (
+                  <a
+                    key={item.label}
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={item.label}
+                    className="flex h-11 items-center justify-center gap-1.5 rounded-xl text-white text-xs font-semibold transition active:scale-95"
+                    style={{ background: item.bg }}
+                  >
+                    {item.icon}
+                    <span className="truncate">{item.label}</span>
+                  </a>
+                ))}
+              </div>
+              <a
+                href="tel:+992002119831"
+                aria-label="+992 002 119 831"
+                className="mt-3 flex h-11 items-center justify-center gap-2 rounded-xl bg-slate-100 text-sm font-semibold text-slate-700 transition active:scale-95 dark:bg-slate-800 dark:text-slate-200"
+              >
+                <Ic icon={Send} size="sm" className="text-[var(--ios-blue)]" />
+                +992 002 119 831
+              </a>
+            </div>
 
             {isAdmin && (
               <button type="button" onClick={() => go("/admin")} className={rowCls}>
@@ -465,5 +490,13 @@ export default function SidebarMenu({
         </div>
       </div>
     </>
+  );
+}
+
+function InstagramIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden>
+      <path d="M12 2.2c3.2 0 3.6 0 4.8.1 1.2.1 2 .2 2.7.5.7.3 1.3.7 1.9 1.3.6.6 1 1.2 1.3 1.9.3.7.4 1.5.5 2.7.1 1.2.1 1.6.1 4.8s0 3.6-.1 4.8c-.1 1.2-.2 2-.5 2.7-.3.7-.7 1.3-1.3 1.9-.6.6-1.2 1-1.9 1.3-.7.3-1.5.4-2.7.5-1.2.1-1.6.1-4.8.1s-3.6 0-4.8-.1c-1.2-.1-2-.2-2.7-.5-.7-.3-1.3-.7-1.9-1.3-.6-.6-1-1.2-1.3-1.9-.3-.7-.4-1.5-.5-2.7C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.8c.1-1.2.2-2 .5-2.7.3-.7.7-1.3 1.3-1.9.6-.6 1.2-1 1.9-1.3.7-.3 1.5-.4 2.7-.5C8.4 2.2 8.8 2.2 12 2.2zm0 1.8c-3.2 0-3.5 0-4.7.1-1.1.1-1.7.2-2.1.4-.5.2-.9.4-1.3.8-.4.4-.6.8-.8 1.3-.2.4-.3 1-.4 2.1-.1 1.2-.1 1.5-.1 4.7s0 3.5.1 4.7c.1 1.1.2 1.7.4 2.1.2.5.4.9.8 1.3.4.4.8.6 1.3.8.4.2 1 .3 2.1.4 1.2.1 1.5.1 4.7.1s3.5 0 4.7-.1c1.1-.1 1.7-.2 2.1-.4.5-.2.9-.4 1.3-.8.4-.4.6-.8.8-1.3.2-.4.3-1 .4-2.1.1-1.2.1-1.5.1-4.7s0-3.5-.1-4.7c-.1-1.1-.2-1.7-.4-2.1-.2-.5-.4-.9-.8-1.3-.4-.4-.8-.6-1.3-.8-.4-.2-1-.3-2.1-.4-1.2-.1-1.5-.1-4.7-.1zm0 3.1a4.9 4.9 0 1 1 0 9.8 4.9 4.9 0 0 1 0-9.8zm0 1.8a3.1 3.1 0 1 0 0 6.2 3.1 3.1 0 0 0 0-6.2zm6.3-.2a1.1 1.1 0 1 1-2.2 0 1.1 1.1 0 0 1 2.2 0z" />
+    </svg>
   );
 }
