@@ -1,6 +1,6 @@
 import { ShieldAlert } from "lucide-react";
 
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 
 import { AppProvider } from "./context/AppContext";
@@ -19,6 +19,7 @@ import UpdateToast from "./components/UpdateToast";
 import GameOpenAnim from "./components/GameOpenAnim";
 import { Ic } from "./components/Icons";
 import Home from "./pages/Home";
+import LoadingScreen from "./components/LoadingScreen";
 
 const GameDetail = lazy(() => import("./pages/GameDetail"));
 
@@ -75,6 +76,8 @@ function RefCapture() {
 }
 
 export default function App() {
+  // ⏳ Экрани боргирӣ — то 100% + fade-out (як state)
+  const [loading, setLoading] = useState(true);
   // 📦 PWA Service Worker — танҳо дар HTTPS (secure context) + production
   useEffect(() => {
     if (!import.meta.env.PROD) return;
@@ -95,6 +98,7 @@ export default function App() {
 
   return (
     <AppProvider>
+      {loading && <LoadingScreen onDone={() => setLoading(false)} />}
       <BrowserRouter>
         <RefCapture />
         {/* 🎞️ Кушодани бозӣ (зери корта) = аз поён ба боло (талаби соҳиб 17.11) */}

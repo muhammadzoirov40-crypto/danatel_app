@@ -38,13 +38,35 @@
       #root { min-height: 100vh; min-height: 100dvh; }
       .boot {
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
+        gap: 14px;
         min-height: 100vh;
         min-height: 100dvh;
         background: #010A27;
       }
       .boot-logo { width: 96px; height: 96px; object-fit: contain; }
+      .boot-progress {
+        width: 176px;
+        height: 4px;
+        border-radius: 999px;
+        background: rgba(120, 180, 255, 0.18);
+        overflow: hidden;
+      }
+      .boot-progress span {
+        display: block;
+        width: 0;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #1c6dff, #54c8ff);
+        transition: width 0.2s ease;
+      }
+      .boot-pct {
+        font: 600 12.5px/1 system-ui, sans-serif;
+        color: #8fa3d9;
+        font-variant-numeric: tabular-nums;
+      }
       .boot-fallback {
         position: absolute;
         bottom: 24%;
@@ -79,6 +101,7 @@
       .boot-retry-btn:focus-visible { outline: 3px solid #93c5fd; outline-offset: 2px; }
       @media (prefers-reduced-motion: reduce) {
         .boot-retry-btn { transition: none; }
+        .boot-progress span { transition: none; }
       }
     </style>
     <!-- 🔄 Худкор бозхонӣ v4 (18.11.2026 — скриншотҳои соҳиб: логотип +
@@ -476,7 +499,7 @@
       }
       #splash.is-ready .splash-progress span {
         animation: none;
-        transform: scaleX(1);
+        transform: scaleX(0.9);
         transition: transform 0.25s ease-out;
       }
       @keyframes splash-bg-in { to { opacity: 1; } }
@@ -532,7 +555,7 @@
           animation: none !important;
           transform: scaleX(0.85);
         }
-        #splash.is-ready .splash-progress span { transform: scaleX(1); }
+        #splash.is-ready .splash-progress span { transform: scaleX(0.9); }
         #splash { transition: opacity 0.2s ease; }
         #splash.is-done { transform: none; }
       }
@@ -575,11 +598,34 @@
       <!-- ⏳ Идомаи splash-и native (ҳамон D, ҳамон фон) — React онро иваз мекунад -->
       <div class="boot" role="status" aria-label="Боргирӣ">
         <img class="boot-logo" src="/donatshop-D-logo.png" alt="donatshop" />
+        <div class="boot-progress" aria-hidden="true"><span id="boot-bar"></span></div>
+        <div class="boot-pct" id="boot-pct" aria-hidden="true">0%</div>
         <noscript>
           <p class="boot-fallback">JavaScript кушода кунед — сайт бе он кор намекунад.</p>
         </noscript>
       </div>
     </div>
+    <script>
+      /* 📊 Пешрафти боргирӣ: зуд то 90% ва меистад; 100% танҳо дар React
+         (LoadingScreen) вақти auth check воқеӣ анҷом шуд. */
+      (function () {
+        var bar = document.getElementById("boot-bar");
+        var num = document.getElementById("boot-pct");
+        if (!bar || !num) return;
+        var pct = 0;
+        window.__bootPct = 0;
+        var iv = setInterval(function () {
+          if (!document.body.contains(bar) || pct >= 90) {
+            clearInterval(iv);
+            return;
+          }
+          pct = Math.min(90, pct + 8);
+          window.__bootPct = pct;
+          bar.style.width = pct + "%";
+          num.textContent = pct + "%";
+        }, 40);
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
     <script>
       /* 🚀 Splash hand-off: React аввалин render кард (boot нест) → баъди
