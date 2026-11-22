@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Flame, Gamepad2, Heart, LayoutGrid, Search, SearchX, ShieldAlert, Star, TriangleAlert, X } from "lucide-react";
+import { Gamepad2, Heart, LayoutGrid, Search, SearchX, ShieldAlert, Star, TriangleAlert, X } from "lucide-react";
 import { api } from "../api/client";
 import type { Game, Review } from "../types";
 import GameCard from "../components/GameCard";
@@ -82,7 +82,7 @@ export default function Home() {
     }
   });
 
-  const [filterTab, setFilterTab] = useState<"all" | "popular" | "favorites">("all");
+  const [filterTab, setFilterTab] = useState<"all" | "favorites">("all");
 
   const toggleFavorite = (slug: string) => {
     setFavorites((prev) => {
@@ -157,9 +157,7 @@ export default function Home() {
   /** Ҷустуҷӯи зинда ва филтр — ҳама / машҳур / дӯстдоштаҳо */
   const filtered = useMemo(() => {
     let list = games;
-    if (filterTab === "popular") {
-      list = list.filter((g) => g.is_popular);
-    } else if (filterTab === "favorites") {
+    if (filterTab === "favorites") {
       list = list.filter((g) => favorites.includes(g.slug));
     }
     const q = query.trim().toLowerCase();
@@ -299,19 +297,6 @@ export default function Home() {
               </button>
               <button
                 type="button"
-                onClick={() => setFilterTab("popular")}
-                aria-pressed={filterTab === "popular"}
-                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-[13px] font-bold transition active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 ${
-                  filterTab === "popular"
-                    ? "bg-gradient-to-r from-rose-500 to-orange-500 text-white shadow-md shadow-rose-500/35"
-                    : "bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:ring-white/10 dark:hover:bg-white/10"
-                }`}
-              >
-                <Ic icon={Flame} size="xs" />
-                <span>{lang === "ru" ? "Популярные" : lang === "uz" ? "Ommabop" : lang === "en" ? "Popular" : "Машҳур"}</span>
-              </button>
-              <button
-                type="button"
                 onClick={() => setFilterTab("favorites")}
                 aria-pressed={filterTab === "favorites"}
                 /* Мобилӣ (≤420px) чип танҳо иконка мешавад — матн дар 320px бурида мешуд.
@@ -323,7 +308,9 @@ export default function Home() {
                     : "bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:ring-white/10 dark:hover:bg-white/10"
                 }`}
               >
-                <Ic icon={Heart} size="xs" className={favorites.length ? "fill-current" : ""} />
+                {favorites.length > 0 && (
+                  <Ic icon={Heart} size="xs" className="text-rose-500 fill-rose-500" />
+                )}
                 <span className="max-[420px]:hidden">{lang === "ru" ? "Избранное" : lang === "uz" ? "Sevimlilar" : lang === "en" ? "Favorites" : "Дӯстдоштаҳо"}</span>
                 {favorites.length > 0 && (
                   <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] bg-white/20">{favorites.length}</span>
