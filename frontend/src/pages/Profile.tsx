@@ -1,15 +1,7 @@
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type FormEvent,
-} from "react";
-import { Link, useNavigate } from "react-router-dom";
-import type { LucideIcon } from "lucide-react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Check,
-  ChevronRight,
   CircleCheck,
   CircleX,
   Copy,
@@ -17,12 +9,9 @@ import {
   History,
   Loader2,
   LogOut,
-  Plus,
   Save,
   ShieldCheck,
-  Smartphone,
   UserRound,
-  Wallet,
 } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { api, ApiError } from "../api/client";
@@ -30,29 +19,27 @@ import type { CoinsInfo } from "../types";
 import { Ic } from "../components/Icons";
 import TopUpModal from "../components/TopUpModal";
 import InstallApp from "../components/InstallApp";
-import BackButton from "../components/BackButton";
-import StickyHeader from "../components/StickyHeader";
+import SupportSheet from "../components/SupportSheet";
+import ProfileHeader from "../components/profile/ProfileHeader";
+import UserInfo from "../components/profile/UserInfo";
+import BalanceCard from "../components/profile/BalanceCard";
+import QuickActions from "../components/profile/QuickActions";
+import ProfileMenu, { type ProfileMenuRow } from "../components/profile/ProfileMenu";
 import { copyText } from "../utils/clipboard";
 
 /**
- * 👤 ПРОФИЛИ КОРБАР
+ * 👤 ПРОФИЛИ КОРБАР — услуби MegaFon (dark theme, танҳо layout + ранг):
  *
- * Тарҳ (ба талаботи тасвир):
- *   1) Картҳои гурӯҳӣ бо рӯйхатҳои иттилоотӣ (accordion):
- *      Фармоишҳо · IDҳои бозии ман | Маълумоти шахсӣ · Амният |
- *      Бонусҳо ва даъватҳо
- *   2) Карткаи асосӣ: аватар + ном + телефон + «ID-и шумо» бо нусха +
- *      «Кушодашуда: <сана>» (user.created_at),
- *      зер-карти баланси КӯЛобӢ бо ду тугма: «Пур кардан» (TopUpModal) +
- *      «Фармоишҳои ман» (/orders); Тугмаи тағйир додани ном НЕСТ (backend нест),
- *      корти `CoinsCard` (Pers Coins + «То гардиш» + тугмаи «Гардондан» → /wheel)
+ *   1) Сари часпак 56px: ← + «Профил» 20px;
+ *   2) Сатри корбар: аватар 44px · ном 18px · телефон · «>» · бейҷи АДМИН;
+ *   3) «ID-и шумо» + «Санаи қайд» бо тугмаи нусха (16px);
+ *   4) Корти баланс: «БАЛАНС» · 28px · «сомонӣ» · тугмаи сабзи «+»;
+ *   5) Се тил: Пур кардан · Дастгирӣ · Фармоишҳо;
+ *   6) Ягона корти меню (Маълумоти шахсӣ · Амният · Бонусҳо ва даъватҳо);
+ *   7) «Баромад» — сатри пурраи бо матни сурхи #FF453A.
  *
- * ҲЕҶ маълумоти сохта нест:
- *   • баланс / тангаҳо / коди даъват / таърих ҳама аз backend;
- *   • IDҳои бозӣ аз фармоишҳои воқеии корбар;
- *   • «Муштариёни мо» аз профил БАРҲАМ ДОДА ШУД (талаби корбар) —
- *     ҳамон компонент дар саҳифаҳои дигар (ReviewsPage · OrderPage · GameDetail) монд;
- *   • «Пур кардан» → TopUpModal (ҳамон модале, ки дар BottomNav аст).
+ * Рангҳо: CSS-переменнаҳои `--mf-*` (index.css). ҲЕҶ маълумоти сохта нест —
+ * баланс / тангаҳо / коди даъват / таърих ҳама аз backend; API дастнахӯрда.
  */
 /** 🗂️ Кадом панели гурӯҳӣ кушода аст (як вақт якто) */
 type PanelKey = "info" | "security" | "bonuses";
@@ -75,6 +62,18 @@ function formatMoney(value: unknown): string | null {
   });
 }
 
+/** 🪙 Навъи эътибори тангаҳо → калиди тарҷума */
+const KIND_KEY: Record<string, string> = {
+  cashback: "kindCashback",
+  referral: "kindReferral",
+  referral_welcome: "kindReferralWelcome",
+  admin_grant: "kindAdminGrant",
+  exchange: "kindExchange",
+  exchange_in: "kindExchangeIn",
+  spin: "kindSpin",
+  spin_reward: "kindSpinReward",
+};
+
 export default function Profile() {
   const {
     t,
@@ -89,83 +88,27 @@ export default function Profile() {
   } = useApp();
   const nav = useNavigate();
 
-  const [phoneCopied, setPhoneCopied] = useState(false);
   const [idCopied, setIdCopied] = useState(false);
-  /** 📋 Кадом ID-и бозӣ дар панел нусха шуд (фақат ӯст) */
+  const [dateCopied, setDateCopied] = useState(false);
   const [topUpOpen, setTopUpOpen] = useState(false);
-
-  // 💳 Баланси часпак: sentinel 1px пеш аз корт → compact ҳангоми аз
-  //    сари саҳифа (header + safe-area) гузаштан.
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
-  const [compact, setCompact] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);
   const balanceText = formatMoney(balance);
 
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel) return;
-    let observer: IntersectionObserver | null = null;
-
-    const connect = () => {
-      observer?.disconnect();
-
-      // 📏 Баландии воқеии header: --header-h + env(safe-area-inset-top)
-      const rootStyle = getComputedStyle(document.documentElement);
-      const headerH =
-        Number.parseFloat(rootStyle.getPropertyValue("--header-h")) || 56;
-      const probe = document.createElement("div");
-      probe.style.cssText =
-        "position:absolute;visibility:hidden;pointer-events:none;height:env(safe-area-inset-top,0px)";
-      document.body.appendChild(probe);
-      const safeTop = probe.getBoundingClientRect().height;
-      probe.remove();
-
-      observer = new IntersectionObserver(
-        (entries) => {
-          const entry = entries[0];
-          if (entry) setCompact(!entry.isIntersecting);
-        },
-        {
-          root: null,
-          rootMargin: `-${Math.round(headerH + safeTop)}px 0px 0px 0px`,
-          threshold: 0,
-        },
-      );
-      observer.observe(sentinel);
-    };
-
-    connect();
-    window.addEventListener("resize", connect);
-    return () => {
-      observer?.disconnect();
-      window.removeEventListener("resize", connect);
-    };
-    // `user` — sentinel танҳо баъди боргирии корбар ба DOM меояд
-  }, [user]);
-
-  // 🪙 Pers Coins — худи корт дар компоненти `CoinsCard` (ҳамон дар Home)
-  const [coins, setCoins] = useState<CoinsInfo | null>(null);
-  const [inviteCopied, setInviteCopied] = useState(false);
-
-  // 🗂️ Як панели кушода (accordion)
-  const [panel, setPanel] = useState<PanelKey | null>(null);
-  const toggle = (key: PanelKey) =>
-    setPanel((cur) => (cur === key ? null : key));
-
-  // 📋 Нусхаи рақами телефон (маҳаллӣ — ягон дархост ба сервер намеравад)
-  const copyPhone = async () => {
-    if (!user?.phone) return;
-    if (await copyText(user.phone)) {
-      setPhoneCopied(true);
-      setTimeout(() => setPhoneCopied(false), 1800);
-    }
-  };
-
-  // 📋 Нусхаи ID
+  // 📋 Нусхаи ID (маҳаллӣ — ягон дархост ба сервер намеравад)
   const copyId = async () => {
     if (!user) return;
     if (await copyText(String(user.id))) {
       setIdCopied(true);
       setTimeout(() => setIdCopied(false), 1800);
+    }
+  };
+
+  // 📋 Нусхаи санаи қайд (ҳамон матне, ки дар саҳифа нишон дода мешавад)
+  const copyDate = async () => {
+    if (!user) return;
+    if (await copyText(new Date(user.created_at).toLocaleDateString(lang))) {
+      setDateCopied(true);
+      setTimeout(() => setDateCopied(false), 1800);
     }
   };
 
@@ -220,6 +163,9 @@ export default function Profile() {
   }, [user, authReady, nav]);
 
   // 🪙 Тангаҳо + қоидаҳо + коди даъват (як дафъа ҳангоми вуруд)
+  const [coins, setCoins] = useState<CoinsInfo | null>(null);
+  const [inviteCopied, setInviteCopied] = useState(false);
+
   const loadCoins = useCallback(async () => {
     if (!user) return;
     try {
@@ -246,14 +192,19 @@ export default function Profile() {
     }
   };
 
+  // 🗂️ Як панели кушода (accordion)
+  const [panel, setPanel] = useState<PanelKey | null>(null);
+  const toggle = (key: PanelKey) =>
+    setPanel((cur) => (cur === key ? null : key));
+
   // Ҳангоми боргирии аввалия → скелетон (на саҳифаи холӣ, на партофт)
   if (!user) {
     if (authReady) return null; // → эффект боло ба `/login` меафтонад
     return (
-      <div className="profile-soft min-h-[calc(100dvh-4rem)] w-full max-w-full overflow-x-clip">
-        <div className="mx-auto max-w-3xl px-4 py-6 sm:py-8 grid gap-4 sm:gap-5">
-          <div className="glass rounded-2xl h-44 animate-pulse" aria-hidden />
-          <div className="glass rounded-2xl h-64 animate-pulse" aria-hidden />
+      <div className="mf-profile min-h-[100dvh] w-full bg-[var(--mf-bg)]">
+        <div className="mx-auto max-w-3xl px-4 py-6 grid gap-3">
+          <div className="h-28 animate-pulse rounded-2xl bg-[var(--mf-card)]" aria-hidden />
+          <div className="h-44 animate-pulse rounded-2xl bg-[var(--mf-card)]" aria-hidden />
         </div>
       </div>
     );
@@ -261,478 +212,279 @@ export default function Profile() {
 
   const displayName = user.full_name || user.username || `#${user.id}`;
   const initial = displayName.trim().charAt(0).toUpperCase();
+  const registeredAt = new Date(user.created_at).toLocaleDateString(lang);
 
-  const KIND_KEY: Record<string, string> = {
-    cashback: "kindCashback",
-    referral: "kindReferral",
-    referral_welcome: "kindReferralWelcome",
-    admin_grant: "kindAdminGrant",
-    exchange: "kindExchange",
-    exchange_in: "kindExchangeIn",
-    spin: "kindSpin",
-    spin_reward: "kindSpinReward",
-  };
+  const openTopUp = () => setTopUpOpen(true);
 
-  return (
-    /* 🌅 Заминаи мулоими кабуди градиентӣ (дар торик — таркиби торик) */
-    <div className="profile-soft min-h-[calc(100dvh-4rem)] w-full max-w-full overflow-x-clip">
-      {/* 📌 Сари саҳифаи часпак (талаби соҳиб 11.11.2026: «dar hamash haminxel») */}
-      <StickyHeader title={t("profile")} />
-      <div className="mx-auto max-w-3xl px-4 py-6 sm:py-8 grid gap-4 sm:gap-5">
-        {/* ===== САРЛАВҲА: [← иконка] [ном] ДАР ЯК САТР
-             (талаби соҳиб 07.11.2026: «дар ҳамаи ҷо ҳамин хел бошад —
-             иконкаи назад ва ном», мисли /orders) ===== */}
-        <div className="flex items-center gap-2.5">
-          <BackButton iconOnly />
-          <h1 className="text-2xl md:text-3xl font-black tracking-tight">
-            {t("profile")}
-          </h1>
-        </div>
-        {/* ===== 1️⃣ КАРТОЧКАИ ПРОФИЛ ===== */}
-        <section className="glass min-w-0 rounded-2xl p-4 sm:p-6" aria-labelledby="profile-name">
-          <div className="flex items-start gap-4">
-            {/* Аватар бо ҳарфи аввали ном */}
-            <div
-              aria-hidden
-              className="grid h-16 w-16 shrink-0 select-none place-items-center rounded-full bg-gradient-to-br from-blue-100 to-blue-200 text-blue-700 text-2xl font-black ring-4 ring-white/80 shadow-lg shadow-blue-500/20 dark:from-blue-500/30 dark:to-indigo-500/30 dark:text-blue-100"
-            >
-              {initial || <Ic icon={UserRound} size="xl" strokeWidth={1.75} />}
-            </div>
+  /** 📋 Ягона корти меню — се сатр бо панели кушода дар зери ҳамон сатр */
+  const menuRows: ProfileMenuRow[] = [
+    {
+      id: "info",
+      icon: UserRound,
+      title: t("personalInfo"),
+      hint: t("personalInfoHint"),
+      open: panel === "info",
+      onToggle: () => toggle("info"),
+      children: (
+        <dl className="space-y-2 text-sm">
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-[var(--mf-divider)] px-4 py-3">
+            <dt className="text-[var(--mf-text-2)]">{t("profile")}</dt>
+            <dd className="truncate font-semibold text-[var(--mf-text)]">{displayName}</dd>
+          </div>
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-[var(--mf-divider)] px-4 py-3">
+            <dt className="text-[var(--mf-text-2)]">{t("phone")}</dt>
+            <dd className="truncate font-semibold tabular-nums text-[var(--mf-text)]">
+              {user.phone || "—"}
+            </dd>
+          </div>
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-[var(--mf-divider)] px-4 py-3">
+            <dt className="text-[var(--mf-text-2)]">{t("profileIdLabel")}</dt>
+            <dd className="font-semibold tabular-nums text-[var(--mf-text)]">{user.id}</dd>
+          </div>
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-[var(--mf-divider)] px-4 py-3">
+            <dt className="text-[var(--mf-text-2)]">{t("registeredAt")}</dt>
+            <dd className="font-semibold text-[var(--mf-text)]">{registeredAt}</dd>
+          </div>
+        </dl>
+      ),
+    },
+    {
+      id: "security",
+      icon: ShieldCheck,
+      title: t("security"),
+      hint: t("securityHint"),
+      open: panel === "security",
+      onToggle: () => toggle("security"),
+      children: (
+        <>
+          <p className="mb-3 text-[13px] text-[var(--mf-text-2)]">
+            {t("currentPassword")} → {t("newPassword")} (≥ 8)
+          </p>
+          <form onSubmit={submitPassword} className="max-w-sm space-y-3">
+            <label className="block">
+              <span className="mb-1.5 block text-[13px] font-semibold text-[var(--mf-text-2)]">
+                {t("currentPassword")}
+              </span>
+              <input
+                type="password"
+                autoComplete="current-password"
+                required
+                value={pwdCur}
+                onChange={(e) => setPwdCur(e.target.value)}
+                className="input rounded-xl border border-[var(--mf-divider)] bg-[var(--mf-divider)] px-4 py-3 text-sm text-[var(--mf-text)] placeholder:text-[var(--mf-text-2)] focus:border-[var(--mf-accent)] focus:ring-2 focus:ring-[var(--mf-accent)]"
+              />
+            </label>
+            <label className="block">
+              <span className="mb-1.5 block text-[13px] font-semibold text-[var(--mf-text-2)]">
+                {t("newPassword")}
+              </span>
+              <input
+                type="password"
+                autoComplete="new-password"
+                required
+                minLength={8}
+                value={pwdNew}
+                onChange={(e) => setPwdNew(e.target.value)}
+                className="input rounded-xl border border-[var(--mf-divider)] bg-[var(--mf-divider)] px-4 py-3 text-sm text-[var(--mf-text)] placeholder:text-[var(--mf-text-2)] focus:border-[var(--mf-accent)] focus:ring-2 focus:ring-[var(--mf-accent)]"
+              />
+            </label>
+            <label className="block">
+              <span className="mb-1.5 block text-[13px] font-semibold text-[var(--mf-text-2)]">
+                {t("confirmPassword")}
+              </span>
+              <input
+                type="password"
+                autoComplete="new-password"
+                required
+                minLength={8}
+                value={pwdCheck}
+                onChange={(e) => setPwdCheck(e.target.value)}
+                className="input rounded-xl border border-[var(--mf-divider)] bg-[var(--mf-divider)] px-4 py-3 text-sm text-[var(--mf-text)] placeholder:text-[var(--mf-text-2)] focus:border-[var(--mf-accent)] focus:ring-2 focus:ring-[var(--mf-accent)]"
+              />
+            </label>
 
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                {/* ✒️ Ном — градиенти сӯяшуда, фишурда (SaaS-ӣ) */}
-                <h2
-                  id="profile-name"
-                  className="truncate text-[1.3rem] sm:text-2xl font-extrabold tracking-tight leading-tight
-                             bg-gradient-to-br from-slate-900 via-slate-700 to-slate-500
-                             bg-clip-text text-transparent"
-                >
-                  {displayName}
-                </h2>
-                {isAdmin && (
-                  <span className="inline-flex shrink-0 items-center rounded-full
-                                   bg-gradient-to-r from-brand-500 to-indigo-500
-                                   text-white text-[10px] font-extrabold uppercase tracking-[0.12em]
-                                   px-2.5 py-1
-                                   shadow-[0_6px_14px_-6px_rgba(37,99,235,0.9)] ring-1 ring-white/25">
-                    {t("admin")}
-                  </span>
-                )}
-              </div>
-
-              {user.phone && (
-                <button
-                  type="button"
-                  onClick={copyPhone}
-                  aria-label={`${t("copy")}: ${user.phone}`}
-                  className="mt-1 -mx-1.5 inline-flex max-w-full items-center gap-1.5 rounded-lg px-1.5 py-1 text-[13px] sm:text-sm font-medium text-slate-500 transition hover:text-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 dark:text-slate-400"
-                >
-                  <Ic icon={Smartphone} className="text-slate-400" />
-                  <span className="tabular-nums break-all">{user.phone}</span>
-                  <Ic
-                    icon={phoneCopied ? Check : Copy}
-                    size="xs"
-                    className={phoneCopied ? "text-emerald-600" : "text-slate-400"}
-                  />
-                  {phoneCopied && (
-                    <span className="text-xs text-emerald-600">{t("copied")}</span>
-                  )}
-                </button>
-              )}
-
-              {/* 🪪 «ID-и шумо» бо тугмаи нусха */}
-              <button
-                type="button"
-                onClick={copyId}
-                aria-label={`${t("profileIdLabel")} ${user.id}`}
-                className="mt-1 inline-flex items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-[11px] sm:text-xs font-extrabold tracking-wide text-blue-700 transition hover:border-blue-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 dark:border-blue-400/30 dark:bg-blue-500/15 dark:text-blue-200"
+            {pwdMsg && (
+              <div
+                role="status"
+                className={`rounded-xl border px-4 py-2 text-sm ${
+                  pwdOk
+                    ? "border-emerald-500/30 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                    : "border-rose-500/30 bg-rose-500/15 text-rose-600 dark:text-rose-400"
+                }`}
               >
-                {t("profileIdLabel")} {user.id}
-                <Ic
-                  icon={idCopied ? Check : Copy}
-                  size="xs"
-                  className={idCopied ? "text-emerald-600" : "text-blue-400"}
-                />
-                {idCopied && <span className="text-emerald-600">{t("copied")}</span>}
-              </button>
-
-              {/* 📅 «Кушодашуда: <сана>» — аз backend (user.created_at) */}
-              <div className="mt-1.5 text-[11px] sm:text-xs font-medium tracking-wide text-slate-400 dark:text-slate-400">
-                {t("registeredAt")}: {new Date(user.created_at).toLocaleDateString(lang)}
+                <Ic icon={pwdOk ? CircleCheck : CircleX} size="xs" />
+                {pwdMsg}
               </div>
-            </div>
-          </div>
+            )}
 
-          {/* 🪙 КОРТИ PERS COINS — аз профил БАРДОШТА ШУД (талаби корбар);
-              тангаҳо/чарх тавассути BottomNav дастрасанд */}
-
-          {/* ⚡ Амали умумӣ — тугмаҳои «Бозиро интихоб кунед» ва «Панели идора»
-              аз профил БАРДОШТА ШУД (талаби корбар): бозӣ → BottomNav «Каталог»,
-              админ → нишонаи алоҳида. Танҳо «Баромад» монд. */}
-          <div className="mt-4 flex gap-2 flex-wrap">
-            <button
-              onClick={() => {
-                logout();
-                nav("/");
-              }}
-              className="btn-ghost text-sm"
-            >
-              <Ic icon={LogOut} />
-              {t("logout")}
-            </button>
-          </div>
-        </section>
-
-        {/* 📌 SENTINEL — 1px; аз болои он гузашт → баланс compact мешавад */}
-        <div ref={sentinelRef} aria-hidden className="h-px" />
-
-        {/* 💳 БАЛАНСИ ЧАСПАК — зери header мемонад (Megafon Life услуб).
-             Корт берун аз корти сафеди профил аст, то sticky кор кунад. */}
-        <section
-          className={`balance-sticky${compact ? " is-compact" : ""}`}
-          aria-labelledby="balance-label"
-        >
-          <div id="balance-label" className="balance-sticky__kicker">
-            <Ic icon={Wallet} size="xs" />
-            {t("balance")}
-          </div>
-
-          <div className="balance-sticky__row">
-            <div
-              className="balance-sticky__amount"
-              role="status"
-              aria-live="polite"
-            >
-              {balanceLoading ? (
+            <button type="submit" disabled={pwdBusy} className="btn-primary text-sm">
+              {pwdBusy ? (
                 <>
-                  <span className="balance-sticky__skeleton" aria-hidden />
-                  <span className="sr-only">{t("loading")}</span>
-                </>
-              ) : balanceText !== null ? (
-                <>
-                  {balanceText}
-                  <span className="balance-sticky__currency">
-                    {t("currency")}
-                  </span>
+                  <Ic icon={Loader2} className="animate-spin" /> {t("loading")}
                 </>
               ) : (
-                <span aria-hidden>—</span>
+                <>
+                  <Ic icon={Save} />
+                  {t("save")}
+                </>
               )}
-            </div>
+            </button>
+          </form>
+        </>
+      ),
+    },
+    {
+      id: "bonuses",
+      icon: Gift,
+      title: t("bonusesInvites"),
+      hint: t("bonusesInvitesHint"),
+      open: panel === "bonuses",
+      onToggle: () => toggle("bonuses"),
+      children: (
+        <div className="space-y-4">
+          {/* 🔗 Линки даъват */}
+          <div className="rounded-2xl border border-[var(--mf-divider)] bg-[var(--mf-divider)] p-4">
+            <div className="text-[15px] font-bold text-[var(--mf-text)]">{t("inviteLink")}</div>
+            <div className="mt-1 text-xs text-[var(--mf-text-2)]">{t("inviteHint")}</div>
 
-            {!balanceLoading && balanceText === null && (
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <input
+                readOnly
+                value={inviteLink}
+                onFocus={(e) => e.currentTarget.select()}
+                aria-label={t("inviteLink")}
+                className="input min-w-0 flex-1 rounded-xl border border-[var(--mf-divider)] bg-[var(--mf-card)] px-3 py-2 text-xs font-semibold text-[var(--mf-text)] focus:border-[var(--mf-accent)] focus:ring-2 focus:ring-[var(--mf-accent)]"
+              />
               <button
                 type="button"
-                onClick={() => {
-                  void refreshUser();
-                }}
-                className="balance-sticky__retry"
+                onClick={copyInvite}
+                disabled={!inviteLink}
+                className="btn-primary shrink-0 text-sm disabled:opacity-50"
               >
-                {t("retry")}
+                <Ic icon={inviteCopied ? Check : Copy} />
+                {inviteCopied ? t("copied") : t("copy")}
               </button>
+            </div>
+
+            <div className="mt-2 text-xs font-semibold text-[var(--mf-text-2)]">
+              {t("referralCount").replace("{n}", String(coins?.referred_count ?? 0))}
+              {(coins?.referred_count ?? 0) === 0 && (
+                <span className="ml-1 font-normal">— {t("noReferrals")}</span>
+              )}
+            </div>
+          </div>
+
+          {/* 🪙 Таърихи тангаҳо */}
+          <div>
+            <div className="mb-2 inline-flex items-center gap-2 text-[15px] font-bold text-[var(--mf-text)]">
+              <Ic icon={History} className="text-amber-600 dark:text-amber-400" />
+              {t("coinHistory")}
+            </div>
+
+            {!coins || coins.history.length === 0 ? (
+              <p className="rounded-xl border border-dashed border-[var(--mf-divider)] px-4 py-4 text-center text-sm text-[var(--mf-text-2)]">
+                {t("noCoins")}
+              </p>
+            ) : (
+              <ul className="space-y-2">
+                {coins.history.map((tx) => (
+                  <li
+                    key={tx.id}
+                    className="flex items-center justify-between gap-3 rounded-xl border border-[var(--mf-divider)] px-4 py-2.5"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-xs font-semibold text-[var(--mf-text)] sm:text-sm">
+                        {t(KIND_KEY[tx.kind] ?? "kindCashback")}
+                      </div>
+                      {tx.reason && (
+                        <div className="truncate text-xs text-[var(--mf-text-2)]">{tx.reason}</div>
+                      )}
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <div
+                        className={`text-sm font-black tabular-nums ${
+                          tx.amount === 0
+                            ? "text-[var(--mf-text-2)]"
+                            : tx.amount > 0
+                              ? "text-emerald-600 dark:text-emerald-400"
+                              : "text-rose-600 dark:text-rose-400"
+                        }`}
+                      >
+                        {tx.amount === 0 ? "—" : `${tx.amount > 0 ? "+" : ""}${tx.amount}`}
+                      </div>
+                      <div className="text-[11px] text-[var(--mf-text-2)]">
+                        {new Date(tx.created_at).toLocaleDateString(lang)}
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
+        </div>
+      ),
+    },
+  ];
 
-          <div className="balance-sticky__actions">
-            <button
-              type="button"
-              onClick={() => setTopUpOpen(true)}
-              className="balance-sticky__topup"
-            >
-              <Ic icon={Plus} className="shrink-0" />
-              <span className="text-center leading-tight">{t("topup")}</span>
-            </button>
-          </div>
-        </section>
+  return (
+    <div className="mf-profile min-h-[100dvh] w-full bg-[var(--mf-bg)] pb-[calc(88px+env(safe-area-inset-bottom))]">
+      {/* 1️⃣ Сари часпак: ← + «Профил» (56px + safe-area) */}
+      <ProfileHeader title={t("profile")} />
 
-        {/* ===== 3️⃣ ГУРУҲИ 2: Маълумоти шахсӣ · Амният ===== */}
-        <section
-          className="glass rounded-2xl overflow-hidden"
-          aria-label={`${t("personalInfo")} · ${t("security")}`}
-        >
-          <div className="divide-y divide-slate-100 dark:divide-white/10">
-            <MenuRow
-              icon={UserRound}
-              title={t("personalInfo")}
-              hint={t("personalInfoHint")}
-              open={panel === "info"}
-              onClick={() => toggle("info")}
-            />
-            <MenuRow
-              icon={ShieldCheck}
-              title={t("security")}
-              hint={t("securityHint")}
-              open={panel === "security"}
-              onClick={() => toggle("security")}
-            />
-          </div>
+      <div className="mx-auto grid max-w-3xl gap-3 px-4 pt-3">
+        {/* 2️⃣+3️⃣ Сатри корбар + ID/санаи қайд бо нусха */}
+        <UserInfo
+          displayName={displayName}
+          initial={initial}
+          phone={user.phone}
+          userId={user.id}
+          registeredAt={registeredAt}
+          isAdmin={isAdmin}
+          idCopied={idCopied}
+          dateCopied={dateCopied}
+          onCopyId={copyId}
+          onCopyDate={copyDate}
+        />
 
-          {/* ℹ️ Маълумоти шахсӣ */}
-          {panel === "info" && (
-            <div className="border-t border-slate-100 px-5 py-4 dark:border-white/10">
-              <dl className="space-y-3 text-sm">
-                <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 px-4 py-3 dark:border-white/10">
-                  <dt className="text-slate-500">{t("profile")}</dt>
-                  <dd className="font-semibold truncate">{displayName}</dd>
-                </div>
-                <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 px-4 py-3 dark:border-white/10">
-                  <dt className="text-slate-500">{t("phone")}</dt>
-                  <dd className="font-semibold tabular-nums">
-                    {user.phone || "—"}
-                  </dd>
-                </div>
-                <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 px-4 py-3 dark:border-white/10">
-                  <dt className="text-slate-500">{t("profileIdLabel")}</dt>
-                  <dd className="font-semibold tabular-nums">{user.id}</dd>
-                </div>
-                <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 px-4 py-3 dark:border-white/10">
-                  <dt className="text-slate-500">{t("registeredAt")}</dt>
-                  <dd className="font-semibold">
-                    {new Date(user.created_at).toLocaleDateString(lang)}
-                  </dd>
-                </div>
-              </dl>
-            </div>
-          )}
+        {/* 4️⃣ Корти баланс + тугмаи сабзи «+» */}
+        <BalanceCard
+          balanceText={balanceText}
+          loading={balanceLoading}
+          onTopUp={openTopUp}
+          onRetry={() => {
+            void refreshUser();
+          }}
+        />
 
-          {/* 🔐 Ивазкунии парол */}
-          {panel === "security" && (
-            <div className="border-t border-slate-100 px-5 py-4 dark:border-white/10">
-              <p className="mb-3 text-xs text-slate-500">
-                {t("currentPassword")} → {t("newPassword")} (≥ 8)
-              </p>
-              <form onSubmit={submitPassword} className="max-w-sm space-y-3">
-                <label className="block">
-                  <span className="label">{t("currentPassword")}</span>
-                  <input
-                    type="password"
-                    autoComplete="current-password"
-                    required
-                    value={pwdCur}
-                    onChange={(e) => setPwdCur(e.target.value)}
-                    className="input"
-                  />
-                </label>
-                <label className="block">
-                  <span className="label">{t("newPassword")}</span>
-                  <input
-                    type="password"
-                    autoComplete="new-password"
-                    required
-                    minLength={8}
-                    value={pwdNew}
-                    onChange={(e) => setPwdNew(e.target.value)}
-                    className="input"
-                  />
-                </label>
-                <label className="block">
-                  <span className="label">{t("confirmPassword")}</span>
-                  <input
-                    type="password"
-                    autoComplete="new-password"
-                    required
-                    minLength={8}
-                    value={pwdCheck}
-                    onChange={(e) => setPwdCheck(e.target.value)}
-                    className="input"
-                  />
-                </label>
+        {/* 5️⃣ Се тил: Пур кардан · Дастгирӣ · Фармоишҳо */}
+        <QuickActions onTopUp={openTopUp} onSupport={() => setSupportOpen(true)} />
 
-                {pwdMsg && (
-                  <div
-                    role="status"
-                    className={`rounded-xl px-4 py-2 text-sm ${
-                      pwdOk
-                        ? "bg-emerald-50 border border-emerald-200 text-emerald-700"
-                        : "bg-rose-50 border border-rose-200 text-rose-700"
-                    }`}
-                  >
-                    <Ic icon={pwdOk ? CircleCheck : CircleX} size="xs" />
-                    {pwdMsg}
-                  </div>
-                )}
+        {/* 6️⃣ Ягона корти меню бо се сатр */}
+        <ProfileMenu
+          rows={menuRows}
+          label={`${t("personalInfo")} · ${t("security")} · ${t("bonusesInvites")}`}
+        />
 
-                <button
-                  type="submit"
-                  disabled={pwdBusy}
-                  className="btn-primary text-sm"
-                >
-                  {pwdBusy ? (
-                    <>
-                      <Ic icon={Loader2} className="animate-spin" /> {t("loading")}
-                    </>
-                  ) : (
-                    <>
-                      <Ic icon={Save} />
-                      {t("save")}
-                    </>
-                  )}
-                </button>
-              </form>
-            </div>
-          )}
-        </section>
-
-        {/* ===== 📦 БАРНОМА (PWA) — насб дар телефон ===== */}
+        {/* 📦 Барнома (PWA) — ҳамон блоки мавҷуда, дар саҳифаи торик */}
         <InstallApp />
 
-        {/* ===== 4️⃣ ГУРУҲИ 3: Бонусҳо ва даъватҳо ===== */}
-        <section className="glass rounded-2xl overflow-hidden" aria-label={t("bonusesInvites")}>
-          <div className="divide-y divide-slate-100 dark:divide-white/10">
-            <MenuRow
-              icon={Gift}
-              title={t("bonusesInvites")}
-              hint={t("bonusesInvitesHint")}
-              open={panel === "bonuses"}
-              onClick={() => toggle("bonuses")}
-            />
-          </div>
-
-          {panel === "bonuses" && (
-            <div className="border-t border-slate-100 px-5 py-4 space-y-4 dark:border-white/10">
-              {/* 🔗 Линки даъват */}
-              <div className="rounded-2xl border border-brand-100 bg-brand-50/60 p-4 dark:border-brand-400/30 dark:bg-brand-500/10">
-                <div className="text-[15px] font-bold tracking-tight">{t("inviteLink")}</div>
-                <div className="mt-1 text-xs text-slate-600 dark:text-slate-300">
-                  {t("inviteHint")}
-                </div>
-
-                <div className="mt-3 flex items-center gap-2 flex-wrap">
-                  <input
-                    readOnly
-                    value={inviteLink}
-                    onFocus={(e) => e.currentTarget.select()}
-                    aria-label={t("inviteLink")}
-                    className="input min-w-0 flex-1 !py-2 text-xs font-semibold"
-                  />
-                  <button
-                    type="button"
-                    onClick={copyInvite}
-                    disabled={!inviteLink}
-                    className="btn-primary text-sm shrink-0 disabled:opacity-50"
-                  >
-                    <Ic icon={inviteCopied ? Check : Copy} />
-                    {inviteCopied ? t("copied") : t("copy")}
-                  </button>
-                </div>
-
-                <div className="mt-2 text-xs font-semibold text-brand-700 dark:text-brand-300">
-                  {t("referralCount").replace(
-                    "{n}",
-                    String(coins?.referred_count ?? 0),
-                  )}
-                  {(coins?.referred_count ?? 0) === 0 && (
-                    <span className="ml-1 font-normal text-slate-500">
-                      — {t("noReferrals")}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* 🪙 Таърихи тангаҳо */}
-              <div>
-                <div className="mb-2 inline-flex items-center gap-2 text-[15px] font-bold tracking-tight">
-                  <Ic icon={History} className="text-amber-600" />
-                  {t("coinHistory")}
-                </div>
-
-                {!coins || coins.history.length === 0 ? (
-                  <p className="rounded-xl border border-dashed border-slate-200 px-4 py-4 text-center text-sm text-slate-500 dark:border-white/10">
-                    {t("noCoins")}
-                  </p>
-                ) : (
-                  <ul className="space-y-2">
-                    {coins.history.map((tx) => (
-                      <li
-                        key={tx.id}
-                        className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 px-4 py-2.5 dark:border-white/10"
-                      >
-                        <div className="min-w-0 flex-1">
-                          <div className="truncate text-xs sm:text-sm font-semibold">
-                            {t(KIND_KEY[tx.kind] ?? "kindCashback")}
-                          </div>
-                          {tx.reason && (
-                            <div className="truncate text-xs text-slate-500">
-                              {tx.reason}
-                            </div>
-                          )}
-                        </div>
-                        <div className="shrink-0 text-right">
-                          <div
-                            className={`text-sm font-black tabular-nums ${
-                              tx.amount === 0
-                                ? "text-slate-400 dark:text-slate-500"
-                                : tx.amount > 0
-                                  ? "text-emerald-600 dark:text-emerald-400"
-                                  : "text-rose-600 dark:text-rose-400"
-                            }`}
-                          >
-                            {tx.amount === 0
-                              ? "—"
-                              : `${tx.amount > 0 ? "+" : ""}${tx.amount}`}
-                          </div>
-                          <div className="text-[11px] text-slate-400">
-                            {new Date(tx.created_at).toLocaleDateString(lang)}
-                          </div>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </div>
-          )}
-        </section>
+        {/* 7️⃣ «Баромад» — сатри пурраи торик бо матни сурх */}
+        <button
+          type="button"
+          onClick={() => {
+            logout();
+            nav("/");
+          }}
+          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[var(--mf-card)] px-4 py-4 text-[15px] font-semibold text-[var(--mf-danger)] transition active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mf-danger)]"
+        >
+          <Ic icon={LogOut} size="md" />
+          {t("logout")}
+        </button>
       </div>
 
-      {/* 💳 Модали пур кардани баланс (ҳамон мавҷуда дар BottomNav) */}
+      {/* Модалҳои мавҷуда */}
       <TopUpModal open={topUpOpen} onClose={() => setTopUpOpen(false)} />
+      <SupportSheet open={supportOpen} onClose={() => setSupportOpen(false)} />
     </div>
-  );
-}
-
-/* =====================================================================
- * 📋 Сатри рӯйхати гурӯҳӣ (accordion row) — клавиатура + aria-expanded
- * ====================================================================*/
-function MenuRow({
-  icon,
-  title,
-  hint,
-  open,
-  onClick,
-}: {
-  icon: LucideIcon;
-  title: string;
-  hint: string;
-  open: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-expanded={open}
-      className="flex w-full items-center gap-3 px-4 sm:px-5 py-3.5 sm:py-4 text-left transition hover:bg-slate-50 active:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-400 dark:hover:bg-white/5"
-    >
-      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600
-                       ring-1 ring-brand-100/80 shadow-sm dark:bg-white/10 dark:text-brand-300 dark:ring-white/10">
-        <Ic icon={icon} />
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block text-[15px] font-bold tracking-tight text-slate-800 dark:text-slate-100">
-          {title}
-        </span>
-        <span className="block truncate text-[11px] sm:text-xs font-medium text-slate-500 dark:text-slate-400">
-          {hint}
-        </span>
-      </span>
-      <ChevronRight
-        aria-hidden
-        className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${
-          open ? "rotate-90" : ""
-        }`}
-      />
-    </button>
   );
 }

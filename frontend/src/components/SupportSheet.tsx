@@ -1,14 +1,22 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Headphones, MessageCircle, Send, X } from "lucide-react";
+import { Headphones, X } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { Ic } from "./Icons";
+import BrandIcon, { type BrandName } from "./BrandIcon";
 import { INSTAGRAM_URL, TELEGRAM_URL, WHATSAPP_URL } from "../config/constants";
 
 interface SupportSheetProps {
   open: boolean;
   onClose: () => void;
 }
+
+/** Каналҳои дастгирӣ — логоҳои расмӣ тавассути як компоненти `BrandIcon` */
+const CHANNELS: { label: string; href: string; brand: BrandName }[] = [
+  { label: "Telegram", href: TELEGRAM_URL, brand: "telegram" },
+  { label: "WhatsApp", href: WHATSAPP_URL, brand: "whatsapp" },
+  { label: "Instagram", href: INSTAGRAM_URL, brand: "instagram" },
+];
 
 /**
  * Bottom sheet-и дастгирӣ — ҳам барои BottomNav ва ҳам SidebarMenu.
@@ -84,11 +92,8 @@ export default function SupportSheet({ open, onClose }: SupportSheetProps) {
   }, [open, mounted, onClose]);
 
 
-  const channels = [
-    { label: "Telegram", href: TELEGRAM_URL, bg: "#229ED9", icon: <Send className="h-5 w-5" /> },
-    { label: "WhatsApp", href: WHATSAPP_URL, bg: "#25D366", icon: <MessageCircle className="h-5 w-5" /> },
-    { label: "Instagram", href: INSTAGRAM_URL, bg: "linear-gradient(135deg,#F58529,#DD2A7B,#8134AF)", icon: <InstagramIcon className="h-5 w-5" /> },
-  ].filter((item) => item.href);
+  // 🔤 Логоҳои расмӣ (44px, SVG inline) — танҳо канали линкдор
+  const channels = CHANNELS.filter((item) => item.href);
 
   const gridCols =
     channels.length <= 1 ? "grid-cols-1" : channels.length === 2 ? "grid-cols-2" : "grid-cols-3";
@@ -201,13 +206,8 @@ export default function SupportSheet({ open, onClose }: SupportSheetProps) {
                       }
                 }
               >
-                <span
-                  className="grid h-10 w-10 place-items-center rounded-full text-white"
-                  style={{ background: item.bg }}
-                  aria-hidden
-                >
-                  {item.icon}
-                </span>
+                {/* Логои расмӣ бе доираи иловагии ранга («лого дар дохили лого») */}
+                <BrandIcon name={item.brand} size={44} />
                 <span className="text-[13px] font-semibold leading-none text-[var(--ios-label)]">
                   {item.label}
                 </span>
@@ -219,14 +219,6 @@ export default function SupportSheet({ open, onClose }: SupportSheetProps) {
       </div>
     </div>,
     document.body,
-  );
-}
-
-function InstagramIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden>
-      <path d="M12 2.2c3.2 0 3.6 0 4.8.1 1.2.1 2 .2 2.7.5.7.3 1.3.7 1.9 1.3.6.6 1 1.2 1.3 1.9.3.7.4 1.5.5 2.7.1 1.2.1 1.6.1 4.8s0 3.6-.1 4.8c-.1 1.2-.2 2-.5 2.7-.3.7-.7 1.3-1.3 1.9-.6.6-1.2 1-1.9 1.3-.7.3-1.5.4-2.7.5-1.2.1-1.6.1-4.8.1s-3.6 0-4.8-.1c-1.2-.1-2-.2-2.7-.5-.7-.3-1.3-.7-1.9-1.3-.6-.6-1-1.2-1.3-1.9-.3-.7-.4-1.5-.5-2.7C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.8c.1-1.2.2-2 .5-2.7.3-.7.7-1.3 1.3-1.9.6-.6 1.2-1 1.9-1.3.7-.3 1.5-.4 2.7-.5C8.4 2.2 8.8 2.2 12 2.2zm0 1.8c-3.2 0-3.5 0-4.7.1-1.1.1-1.7.2-2.1.4-.5.2-.9.4-1.3.8-.4.4-.6.8-.8 1.3-.2.4-.3 1-.4 2.1-.1 1.2-.1 1.5-.1 4.7s0 3.5.1 4.7c.1 1.1.2 1.7.4 2.1.2.5.4.9.8 1.3.4.4.8.6 1.3.8.4.2 1 .3 2.1.4 1.2.1 1.5.1 4.7.1s3.5 0 4.7-.1c1.1-.1 1.7-.2 2.1-.4.5-.2.9-.4 1.3-.8.4-.4.6-.8.8-1.3.2-.4.3-1 .4-2.1.1-1.2.1-1.5.1-4.7s0-3.5-.1-4.7c-.1-1.1-.2-1.7-.4-2.1-.2-.5-.4-.9-.8-1.3-.4-.4-.8-.6-1.3-.8-.4-.2-1-.3-2.1-.4-1.2-.1-1.5-.1-4.7-.1zm0 3.1a4.9 4.9 0 1 1 0 9.8 4.9 4.9 0 0 1 0-9.8zm0 1.8a3.1 3.1 0 1 0 0 6.2 3.1 3.1 0 0 0 0-6.2zm6.3-.2a1.1 1.1 0 1 1-2.2 0 1.1 1.1 0 0 1 2.2 0z" />
-    </svg>
   );
 }
 

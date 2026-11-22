@@ -6,6 +6,33 @@
   color-scheme: light;
 }
 
+/* ============ 📱 Саҳифаи «Профил» — услуби MegaFon ============
+   ҲАР ДУ реҷим: равшан (пешфарз) + торик (html.dark) — ҳамон калидҳо,
+   танҳо арзишҳо иваз мешаванд. Рангҳои ин саҳифа ТАНАЛО тавассути
+   ин переменнаҳо иваз карда мешаванд. */
+:root {
+  --mf-bg: #f2f2f7; /* фони саҳифа (равшан) */
+  --mf-card: #ffffff; /* картҳо */
+  --mf-text: #000000; /* матни асосӣ */
+  --mf-text-2: #8e8e93; /* матни дуюм (secondary label) */
+  --mf-divider: #e5e5ea; /* ҷудокунандаҳо */
+  --mf-accent: #3b5be8; /* аксент (кабуди барнома) */
+  --mf-danger: #ff3b30; /* «Баромад» */
+  --mf-nav: #f9f9f9; /* навигатори поёнӣ */
+  --mf-green: #34c759; /* тугмаи сабзи «+» */
+}
+.dark {
+  --mf-bg: #000000; /* фони саҳифа (торик) */
+  --mf-card: #1c1c1e;
+  --mf-text: #ffffff;
+  --mf-text-2: #8e8e93;
+  --mf-divider: #2c2c2e;
+  --mf-accent: #3b5be8;
+  --mf-danger: #ff453a;
+  --mf-nav: #111113;
+  --mf-green: #34c759;
+}
+
 body {
   /* Ранг ва фонти мисли persshop.com */
   @apply antialiased;
@@ -638,4 +665,29 @@ body::before {
    собиқ `paybar-open`), тоза кардан худкор (effect cleanup/unmount). */
 body.order-open nav[data-bottomnav] {
   display: none !important;
+}
+
+/* ============ 📱 Профил (MegaFon dark) — overrideҳои маҳаллӣ ============ */
+/* Карти PWA (InstallApp) дар саҳифаи торик: бе соя/шошаи сафед */
+.mf-profile .glass {
+  color: var(--mf-text);
+  background: var(--mf-card);
+  border-color: var(--mf-divider);
+  box-shadow: none;
+}
+.mf-profile .glass .text-slate-600 {
+  color: var(--mf-text-2);
+}
+
+/* Навигатори поёнӣ — фони MegaFon (#F9F9F9 равшан / #111113 торик).
+   `.ios-bar` бо `!important` меояд → мушаххаскунӣ баландтар лозим. */
+nav.ios-bar {
+  background: var(--mf-nav) !important;
+  border-bottom-color: var(--mf-divider) !important;
+}
+
+/* Номи корбар бояд BOLD (700) бошад — ios.css class-и `.font-bold`-ро
+   ба 600 маҷбур мекунад (талаби соҳиб: «ном bold 18px»). */
+.mf-profile #profile-name {
+  font-weight: 700 !important;
 }

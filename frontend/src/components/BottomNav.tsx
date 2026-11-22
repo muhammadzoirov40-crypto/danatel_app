@@ -17,9 +17,9 @@ import SupportSheet from "./SupportSheet";
  *   · `aria-label` барои ҳар итем МОНДАСТ (WCAG) — screen reader номҳоро
  *     мехонад, қалби тугма 44px+ меборад.
  *
- *  🎨 УСЛУБ: фони нимшиффоф + backdrop-blur (glass), қатти matched border,
- *    итеми фаъол = пилюлаи градиенти кабуд→фӣолетӣ бо сояи нарм,
- *    итеми ғайрифаъол = хокистарии мулоими TCAG (WCAG-хонда).
+ *  🎨 УСЛУБ (MegaFon dark — талаби соҳиб, 22.11.2026): фони торики
+ *    `#111113` (`--mf-nav`), итеми фаъол = аксент `#3B5BE8`,
+ *    итеми ғайрифаъол = хокистарии `#8E8E93` (`--mf-text-2`).
  *
  *  ҲАМАИ тугмаҳо ба функсияи воқеӣ пайванданд:
  *   1) Асосӣ → / (боло)
@@ -95,10 +95,10 @@ export default function BottomNav() {
   const itemCls = (active: boolean) =>
     `relative flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5
      rounded-xl px-0 py-1.5 transition-colors
-     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${
+     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mf-accent)] ${
        active
-         ? "text-blue-500 dark:text-blue-400"
-         : "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
+         ? "text-[var(--mf-accent)]"
+         : "text-[var(--mf-text-2)] hover:text-[var(--mf-text)]"
      }`;
   const labelCls = (active: boolean) =>
     `text-[10px] leading-none font-medium ${active ? "" : "opacity-90"}`;
@@ -145,15 +145,15 @@ export default function BottomNav() {
           title={labels.topup}
           className="relative flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 group
                      active:scale-95 transition-transform cursor-pointer rounded-xl
-                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mf-accent)]"
         >
           <div
-            className="w-9 h-9 rounded-full bg-blue-500 text-white flex items-center justify-center
-                       shadow-[0_2px_8px_rgba(0,122,255,0.3)] transition-transform"
+            className="w-9 h-9 rounded-full bg-[var(--mf-accent)] text-white flex items-center justify-center
+                       transition-transform"
           >
             <Ic icon={Plus} size="md" strokeWidth={2} />
           </div>
-          <span className="text-[10px] leading-none font-medium text-slate-400">
+          <span className="text-[10px] leading-none font-medium text-[var(--mf-text-2)]">
             {labels.topup}
           </span>
         </button>
