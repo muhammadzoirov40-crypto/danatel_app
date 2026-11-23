@@ -35,6 +35,7 @@ export default function Login() {
   const [fullName, setFullName] = useState("");
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
+  const [scrollable, setScrollable] = useState(false);
 
   const onPhoneChange = (v: string) => {
     if (v.trimStart().startsWith("+")) {
@@ -121,10 +122,22 @@ export default function Login() {
     };
   }, []);
 
+  // Клавиатураи мобилӣ: агар майдон пинҳон шавад, скролли дохилиро иҷозат деҳ
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const onResize = () => {
+      const keyboardOpen = vv.height < window.innerHeight * 0.75;
+      setScrollable(keyboardOpen);
+    };
+    vv.addEventListener("resize", onResize);
+    return () => vv.removeEventListener("resize", onResize);
+  }, []);
+
   const isRegister = mode === "register";
 
   return (
-    <div className="auth-page">
+    <div className={`auth-page ${scrollable ? "auth-scrollable" : ""}`}>
       {/* ⬅️ пасзамина: градиент + хатҳо + шашкунҷаҳо + дурахшҳо */}
       <div className="auth-bg" aria-hidden />
 
@@ -133,7 +146,7 @@ export default function Login() {
           {/* 🌀 ЛОГО (шаффоф, БЕ background/border-radius/overflow) */}
           <div className="auth-logo-wrap">
             <img
-              src="/icons/donatshop-D-logo.png"
+              src="/logo.svg"
               alt="donatshop"
               className="auth-logo"
               onError={(e) => {
@@ -187,16 +200,19 @@ export default function Login() {
               <label className="auth-label" htmlFor="auth-phone">
                 {t("phone")} <span className="auth-star">*</span>
               </label>
-              <div className="auth-phone-row">
+              <div className={`auth-phone-box ${err ? "auth-phone-error" : ""}`}>
                 <CountrySelect value={country.code} onChange={setCountry} />
+                <span className="auth-phone-divider" aria-hidden />
                 <input
                   id="auth-phone"
-                  className="auth-input"
-                  inputMode="tel"
+                  className="auth-phone-input"
+                  type="tel"
+                  inputMode="numeric"
                   placeholder="900000000"
                   value={phone}
-                  onChange={(e) => onPhoneChange(e.target.value)}
+                  onChange={(e) => onPhoneChange(e.target.value.replace(/\D/g, "").slice(0, 9))}
                   autoComplete="tel-national"
+                  maxLength={9}
                   aria-label={t("phone")}
                 />
               </div>
@@ -260,18 +276,7 @@ export default function Login() {
             </button>
           </form>
 
-          <p className="auth-bottom">
-            {isRegister
-              ? t("haveAccount")
-              : t("noAccount")}{" "}
-            <button
-              type="button"
-              onClick={() => { setMode(isRegister ? "login" : "register"); setErr(""); }}
-              className="auth-link"
-            >
-              {isRegister ? t("login") : t("registerNow")}
-            </button>
-          </p>
+          {/* матни поён нест — иваз танҳо бо табҳо */}
         </div>
       </div>
     </div>

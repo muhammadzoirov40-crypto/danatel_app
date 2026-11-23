@@ -69,6 +69,63 @@
   font-family: inherit;
 }
 
+/* 🚫 Scroll нест (auth screen ҳамеша як экран) */
+html:has(.auth-page),
+body:has(.auth-page) {
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+.auth-page {
+  overflow: hidden;
+}
+.auth-page.auth-scrollable {
+  overflow-y: auto;
+}
+.auth-page .auth-card {
+  max-height: calc(100dvh - 32px);
+  overflow: hidden;
+}
+.auth-page.auth-scrollable .auth-card {
+  overflow-y: auto;
+}
+
+/* 📐 Responsive (max-height: 700px) */
+@media (max-height: 700px) {
+  .auth-logo {
+    height: 72px;
+  }
+  .auth-title {
+    font-size: 22px;
+    margin: 2px 0 2px;
+  }
+  .auth-sub {
+    font-size: 13px;
+    margin: 0 0 10px;
+  }
+  .auth-tabs {
+    height: 50px;
+    margin-bottom: 10px;
+  }
+  .auth-form {
+    gap: 10px;
+  }
+  .auth-field .auth-label {
+    margin-bottom: 6px;
+  }
+  .auth-input,
+  .auth-phone-box {
+    height: 48px;
+  }
+  .auth-submit {
+    height: 50px;
+    font-size: 17px;
+  }
+  .auth-card {
+    padding: 12px;
+  }
+}
+
 /* 🌌 Пасзамина: хатҳои диагоналӣ + шашкунҷаҳо + дурахшҳо */
 .auth-bg {
   position: absolute;
@@ -226,25 +283,56 @@
 }
 .auth-star { color: var(--auth-error); }
 
-.auth-phone-row {
+/* 📞 Рақами телефон дар як контейнер */
+.auth-phone-box {
   display: flex;
-  gap: 10px;
-  align-items: stretch;
-}
-.auth-phone-row .country-select { width: 108px; flex-shrink: 0; }
-/* CountrySelect чип дар auth screen — мувофиқи майдонҳо */
-.auth-page button[aria-haspopup="listbox"] {
-  background: var(--auth-input-bg) !important;
-  border-color: var(--auth-input-border) !important;
-  color: var(--auth-ink) !important;
+  align-items: center;
   height: 52px;
   border-radius: 16px;
-  font-size: 14px;
+  background: var(--auth-input-bg);
+  border: 1px solid var(--auth-input-border);
+  overflow: hidden;
+  transition: border-color .2s ease, box-shadow .2s ease;
 }
-.auth-page button[aria-haspopup="listbox"] .dark\:bg-\[\#0f1626\] {
-  background: var(--auth-input-bg) !important;
+.auth-phone-box:focus-within {
+  border-color: var(--auth-input-focus);
+  box-shadow: 0 0 0 3px var(--auth-input-ring);
 }
-.auth-phone-row .auth-input { flex: 1; min-width: 0; }
+.auth-phone-box.auth-phone-error {
+  border-color: var(--auth-error);
+}
+/* CountrySelect чип дар auth screen — дохили контейнер */
+.auth-phone-box button[aria-haspopup="listbox"] {
+  background: transparent !important;
+  border: none !important;
+  color: var(--auth-ink) !important;
+  height: 100%;
+  border-radius: 0;
+  box-shadow: none !important;
+  flex-shrink: 0;
+  padding: 0 10px;
+}
+.auth-phone-box button[aria-haspopup="listbox"] span {
+  color: var(--auth-ink) !important;
+}
+.auth-phone-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(255,255,255,.14);
+  flex-shrink: 0;
+}
+.auth-phone-input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--auth-ink);
+  font-size: 16px;
+  padding: 0 12px;
+}
+.auth-phone-input::placeholder { color: var(--auth-placeholder); }
 
 .auth-input {
   height: 52px;
