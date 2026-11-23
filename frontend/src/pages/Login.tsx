@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Loader2, LogIn, UserPlus } from "lucide-react";
+import { Loader2, LogIn, Moon, Sun, UserPlus } from "lucide-react";
 import { useApp } from "../context/AppContext";
+import Logo from "../components/Logo";
 import { api, ApiError } from "../api/client";
 
 import { Ic } from "../components/Icons";
@@ -17,7 +18,7 @@ import { COUNTRIES, fullPhone, type Country } from "../data/countries";
  *  - Face ID 07.11.2026 ПУРААН нест карда шуд (талаби соҳиб)
  */
 export default function Login() {
-  const { t, lang, refreshUser } = useApp();
+  const { t, lang, refreshUser, theme, toggleTheme } = useApp();
   const nav = useNavigate();
 
   // 🔗 Линки даъвати дӯст (?ref=CODE) — агар мавҷуд бошад, қайдро
@@ -133,21 +134,41 @@ export default function Login() {
   };
 
   return (
-    <div className="mx-auto max-w-md px-4 py-6 -mb-20 md:mb-0">
+    <>
+    <button
+      type="button"
+      onClick={toggleTheme}
+      aria-label={theme === "dark" ? t("themeLight") : t("themeDark")}
+      title={theme === "dark" ? t("themeLight") : t("themeDark")}
+      aria-pressed={theme === "dark"}
+      className="fixed z-50 grid place-items-center w-11 h-11 rounded-full auth-glass-btn
+                 transition active:scale-95 focus-visible:outline-none focus-visible:ring-2"
+      style={{
+        top: "max(12px, env(safe-area-inset-top))",
+        right: "max(12px, env(safe-area-inset-right))",
+      }}
+    >
+      {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+    </button>
+    <div
+      className="auth-scope relative mx-auto max-w-md px-4 py-6 -mb-20 md:mb-0"
+      style={{ background: "var(--auth-bg)" }}
+    >
+      <div
+        className="pointer-events-none absolute inset-0 -z-10"
+        style={{
+          background:
+            "radial-gradient(28rem 20rem at 100% 0%, var(--overlay-1), transparent 60%), radial-gradient(24rem 18rem at 0% 100%, var(--overlay-2), transparent 60%)",
+        }}
+        aria-hidden
+      />
       {/* ⬅️ «Бозгашт» дар login/register НЕСТ — талаби соҳиб (31.10.2026).
           `-mb-20 md:mb-0` → padding-и `pb-20`-и main (ҷои navbar-и поёнӣ, ки
           дар ин саҳифа пинҳон аст) бекор мешавад → қайд бе скролл дар 320×700. */}
       <div className="card p-6 sm:p-8">
         <div className="text-center mb-4">
           <div className="flex justify-center mb-3">
-            <img
-              src="/logo.svg"
-              alt="donatshop"
-              width={116}
-              height={116}
-              className="shrink-0"
-              style={{ filter: "drop-shadow(0 12px 26px rgba(37,99,235,0.45))" }}
-            />
+            <Logo size={96} glow />
           </div>
           <h1 className="text-xl font-bold">
             {mode === "login" ? t("login") : t("register")}
@@ -254,5 +275,5 @@ export default function Login() {
         </button>
       </div>
     </div>
-  );
+    </>  );
 }

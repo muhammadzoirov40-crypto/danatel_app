@@ -4,12 +4,23 @@
 
 :root {
   color-scheme: light;
-  /* 🌙 Тугмаи мавзӯ (44×44) — CSS-тағйирёбандаҳо, тавассути data-theme on <html> */
+  /* 🌙 Тугмаи мавзӯ (44×44) */
   --tg-surface: rgba(255,255,255,0.9);
   --tg-fg: #0f172a;
   --tg-border: rgba(15,23,42,0.12);
   --tg-ring: rgba(37,99,235,0.55);
   --tg-hover: rgba(15,23,42,0.06);
+  /* 🎨 Auth screen theme tokens */
+  --auth-bg: #eceeff;
+  --auth-ink: #14163a;
+  --auth-muted: #5b5f8a;
+  --glass-card: rgba(255,255,255,0.72);
+  --border-line: rgba(20,22,58,0.12);
+  --input-fill: rgba(255,255,255,0.85);
+  --placeholder: #8a8fb8;
+  --link: #4f46e5;
+  --overlay-1: rgba(99,102,241,0.18);
+  --overlay-2: rgba(168,85,247,0.14);
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
@@ -18,6 +29,90 @@
   --tg-border: rgba(226,232,240,0.16);
   --tg-ring: rgba(96,165,250,0.6);
   --tg-hover: rgba(226,232,240,0.1);
+  --auth-bg: #080a1c;
+  --auth-ink: #e8e9ff;
+  --auth-muted: #a5a8d6;
+  --glass-card: rgba(20,22,45,0.62);
+  --border-line: rgba(165,168,230,0.18);
+  --input-fill: rgba(20,22,45,0.75);
+  --placeholder: #7a7fad;
+  --link: #a5b4fc;
+  --overlay-1: rgba(99,102,241,0.28);
+  --overlay-2: rgba(168,85,247,0.22);
+}
+
+/* 🌗 Fallback (бе flash) — система равшан, агар data-theme="dark" набошад */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --auth-bg: #eceeff;
+    --auth-ink: #14163a;
+    --auth-muted: #5b5f8a;
+    --glass-card: rgba(255,255,255,0.72);
+    --border-line: rgba(20,22,58,0.12);
+    --input-fill: rgba(255,255,255,0.85);
+    --placeholder: #8a8fb8;
+    --link: #4f46e5;
+    --overlay-1: rgba(99,102,241,0.18);
+    --overlay-2: rgba(168,85,247,0.14);
+  }
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --auth-bg: #080a1c;
+    --auth-ink: #e8e9ff;
+    --auth-muted: #a5a8d6;
+    --glass-card: rgba(20,22,45,0.62);
+    --border-line: rgba(165,168,230,0.18);
+    --input-fill: rgba(20,22,45,0.75);
+    --placeholder: #7a7fad;
+    --link: #a5b4fc;
+    --overlay-1: rgba(99,102,241,0.28);
+    --overlay-2: rgba(168,85,247,0.22);
+  }
+}
+
+/* 🎨 Auth scope — истифодаи тағйирёбандаҳо */
+.auth-scope .card {
+  background: var(--glass-card);
+  border-color: var(--border-line);
+  color: var(--auth-ink);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+.auth-scope .input {
+  background: var(--input-fill);
+  border-color: var(--border-line);
+  color: var(--auth-ink);
+}
+.auth-scope .input::placeholder {
+  color: var(--placeholder);
+}
+.auth-scope .label {
+  color: var(--auth-ink);
+}
+.auth-scope a.auth-link {
+  color: var(--link);
+}
+.auth-glass-btn {
+  background: var(--glass-card);
+  color: var(--auth-ink);
+  border: 1px solid var(--border-line);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+/* 🌊 Ҳамворӣ ҳангоми ивази мавзӯ */
+.auth-scope,
+.auth-scope .card,
+.auth-scope .input {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-scope,
+  .auth-scope .card,
+  .auth-scope .input {
+    transition: none;
+  }
 }
 
 /* ============ 📱 Саҳифаи «Профил» — услуби MegaFon ============
