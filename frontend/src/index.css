@@ -302,7 +302,8 @@ body:has(.auth-page) {
   border-color: var(--auth-error);
 }
 /* CountrySelect чип дар auth screen — дохили контейнер (зебо) */
-.auth-phone-box button[aria-haspopup="listbox"] {
+.auth-phone-box button[aria-haspopup="listbox"],
+.auth-phone-box button[aria-haspopup="dialog"] {
   background: transparent !important;
   border: none !important;
   color: var(--auth-ink) !important;
@@ -313,18 +314,22 @@ body:has(.auth-page) {
   padding: 0 10px;
   gap: 6px !important;
 }
-.auth-phone-box button[aria-haspopup="listbox"] span {
+.auth-phone-box button[aria-haspopup="listbox"] span,
+.auth-phone-box button[aria-haspopup="dialog"] span {
   color: var(--auth-ink) !important;
 }
-.auth-phone-box button[aria-haspopup="listbox"] span[aria-hidden] {
+.auth-phone-box button[aria-haspopup="listbox"] span[aria-hidden],
+.auth-phone-box button[aria-haspopup="dialog"] span[aria-hidden] {
   border-radius: 6px !important;
   box-shadow: 0 0 0 1px rgba(255,255,255,.15), 0 4px 10px rgba(0,0,0,.35) !important;
   background: rgba(255,255,255,.06) !important;
 }
-.auth-phone-box button[aria-haspopup="listbox"] img {
+.auth-phone-box button[aria-haspopup="listbox"] img,
+.auth-phone-box button[aria-haspopup="dialog"] img {
   border-radius: 4px !important;
 }
-.auth-phone-box button[aria-haspopup="listbox"] svg {
+.auth-phone-box button[aria-haspopup="listbox"] svg,
+.auth-phone-box button[aria-haspopup="dialog"] svg {
   color: rgba(255,255,255,.65) !important;
 }
 .auth-phone-divider {
