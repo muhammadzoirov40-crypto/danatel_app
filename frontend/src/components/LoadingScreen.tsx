@@ -77,7 +77,7 @@ export default function LoadingScreen({ onDone }: { onDone: () => void }) {
       style={{ transitionDuration: `${FADE}ms` }}
     >
       <img
-        src="/donatshop-D-logo.png"
+        src="/icons/donatshop-logo.png"
         alt="donatshop"
         className="h-24 w-24 object-contain"
       />

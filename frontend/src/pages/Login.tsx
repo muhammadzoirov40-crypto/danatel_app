@@ -146,7 +146,7 @@ export default function Login() {
           {/* 🌀 ЛОГО (шаффоф, БЕ background/border-radius/overflow) */}
           <div className="auth-logo-wrap">
             <img
-              src="/logo.svg"
+              src="/icons/donatshop-logo.png"
               alt="donatshop"
               className="auth-logo"
               onError={(e) => {

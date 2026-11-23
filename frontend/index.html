@@ -2,8 +2,8 @@
 <html lang="tj" class="splash-active">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
-    <link rel="icon" type="image/png" href="/icons/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
     <meta name="description" content="donatshop.tj — Донати бозиҳо: Free Fire, PUBG Mobile, Mobile Legends" />
@@ -11,6 +11,9 @@
     <!-- 📦 PWA — насби барнома дар телефон (Install app / Add to Home Screen) -->
     <link rel="manifest" href="/manifest.json" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png" />
+    <meta property="og:image" content="https://donatshop.37-27-245-216.sslip.io/og-image.png" />
+    <meta property="og:title" content="donatshop.tj — Донати бозиҳо" />
+    <meta property="og:description" content="donatshop.tj — Донати бозиҳо: Free Fire, PUBG Mobile, Mobile Legends" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -20,7 +23,7 @@
     <link rel="preload" as="image" href="/splash/splash_logo.webp" fetchpriority="high" />
     <link rel="preload" as="image" href="/splash/layer_logo.webp" fetchpriority="high" />
     <link rel="preload" as="image" href="/splash/layer_wordmark.webp" fetchpriority="high" />
-    <link rel="preload" as="image" href="/donatshop-D-logo.png" />
+    <link rel="preload" as="image" href="/icons/donatshop-logo.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800;900&display=swap" />
@@ -601,7 +604,7 @@
     <div id="root">
       <!-- ⏳ Идомаи splash-и native (ҳамон D, ҳамон фон) — React онро иваз мекунад -->
       <div class="boot" role="status" aria-label="Боргирӣ">
-        <img class="boot-logo" src="/donatshop-D-logo.png" alt="donatshop" />
+        <img class="boot-logo" src="/icons/donatshop-logo.png" alt="donatshop" />
         <div class="boot-progress" aria-hidden="true"><span id="boot-bar"></span></div>
         <div class="boot-pct" id="boot-pct" aria-hidden="true">0%</div>
         <noscript>
