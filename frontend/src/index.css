@@ -10,17 +10,7 @@
   --tg-border: rgba(15,23,42,0.12);
   --tg-ring: rgba(37,99,235,0.55);
   --tg-hover: rgba(15,23,42,0.06);
-  /* 🎨 Auth screen theme tokens */
-  --auth-bg: #eceeff;
-  --auth-ink: #14163a;
-  --auth-muted: #5b5f8a;
-  --glass-card: rgba(255,255,255,0.72);
-  --border-line: rgba(20,22,58,0.12);
-  --input-fill: rgba(255,255,255,0.85);
-  --placeholder: #8a8fb8;
-  --link: #4f46e5;
-  --overlay-1: rgba(99,102,241,0.18);
-  --overlay-2: rgba(168,85,247,0.14);
+  /* (auth tokens moved to .auth-page scope) */
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
@@ -29,90 +19,341 @@
   --tg-border: rgba(226,232,240,0.16);
   --tg-ring: rgba(96,165,250,0.6);
   --tg-hover: rgba(226,232,240,0.1);
-  --auth-bg: #080a1c;
-  --auth-ink: #e8e9ff;
-  --auth-muted: #a5a8d6;
-  --glass-card: rgba(20,22,45,0.62);
-  --border-line: rgba(165,168,230,0.18);
-  --input-fill: rgba(20,22,45,0.75);
-  --placeholder: #7a7fad;
-  --link: #a5b4fc;
-  --overlay-1: rgba(99,102,241,0.28);
-  --overlay-2: rgba(168,85,247,0.22);
+  /* (auth tokens moved to .auth-page scope) */
 }
 
-/* 🌗 Fallback (бе flash) — система равшан, агар data-theme="dark" набошад */
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) {
-    --auth-bg: #eceeff;
-    --auth-ink: #14163a;
-    --auth-muted: #5b5f8a;
-    --glass-card: rgba(255,255,255,0.72);
-    --border-line: rgba(20,22,58,0.12);
-    --input-fill: rgba(255,255,255,0.85);
-    --placeholder: #8a8fb8;
-    --link: #4f46e5;
-    --overlay-1: rgba(99,102,241,0.18);
-    --overlay-2: rgba(168,85,247,0.14);
-  }
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --auth-bg: #080a1c;
-    --auth-ink: #e8e9ff;
-    --auth-muted: #a5a8d6;
-    --glass-card: rgba(20,22,45,0.62);
-    --border-line: rgba(165,168,230,0.18);
-    --input-fill: rgba(20,22,45,0.75);
-    --placeholder: #7a7fad;
-    --link: #a5b4fc;
-    --overlay-1: rgba(99,102,241,0.28);
-    --overlay-2: rgba(168,85,247,0.22);
-  }
+/* =====================================================================
+   🎨 AUTH PAGE — саҳифаи Вуруд/Қайд шудан (ҳамеша торик).
+   Ҳамаи рангҳо ҳамчун CSS variables дар scope-и .auth-page.
+   ===================================================================== */
+.auth-page {
+  --auth-bg-top: #0A0A26;
+  --auth-bg-mid: #14103A;
+  --auth-bg-bottom: #1A1040;
+  --auth-card: rgba(20,20,52,.72);
+  --auth-card-border: rgba(130,110,255,.35);
+  --auth-card-shadow: 0 0 40px rgba(80,70,255,.18), 0 24px 60px rgba(0,0,0,.5);
+  --auth-ink: #ffffff;
+  --auth-muted: #A9A6D8;
+  --auth-muted-2: #B3B0DD;
+  --auth-muted-3: #B9B6E6;
+  --auth-input-bg: #22223F;
+  --auth-input-border: rgba(255,255,255,.12);
+  --auth-input-focus: #5B7CFF;
+  --auth-input-ring: rgba(91,124,255,.35);
+  --auth-placeholder: #6F6D9C;
+  --auth-link: #FFAE63;
+  --auth-accent-1: #2F66F0;
+  --auth-accent-2: #7B3FF0;
+  --auth-accent-glow: 0 10px 30px rgba(80,80,255,.45);
+  --auth-error: #FF5D6C;
+  --auth-error-text: #FF8A95;
+
+  --auth-overlay-glow: rgba(60,110,255,.35);
+  --auth-overlay-orange: rgba(255,140,60,.12);
+
+  position: relative;
+  min-height: 100dvh;
+  width: 100%;
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--auth-bg-top) 0%, var(--auth-bg-mid) 50%, var(--auth-bg-bottom) 100%);
+  color: var(--auth-ink);
+  padding: 16px;
+  padding-top: max(16px, env(safe-area-inset-top));
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
 }
 
-/* 🎨 Auth scope — истифодаи тағйирёбандаҳо */
-.auth-scope .card {
-  background: var(--glass-card);
-  border-color: var(--border-line);
-  color: var(--auth-ink);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+/* 🌌 Пасзамина: хатҳои диагоналӣ + шашкунҷаҳо + дурахшҳо */
+.auth-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    /* диагоналӣ норанҷӣ/бунафш */
+    repeating-linear-gradient(
+      135deg,
+      rgba(255,140,60,.25) 0px,
+      rgba(255,140,60,.25) 1px,
+      transparent 1px,
+      transparent 14px
+    ),
+    /* дурахши паси лого */
+    radial-gradient(220px 220px at 50% 18%, var(--auth-overlay-glow), transparent 70%),
+    /* рӯшноии норанҷӣ дар поён */
+    radial-gradient(320px 160px at 50% 100%, var(--auth-overlay-orange), transparent 70%),
+    linear-gradient(180deg, var(--auth-bg-top) 0%, var(--auth-bg-mid) 50%, var(--auth-bg-bottom) 100%);
+  opacity: 1;
 }
-.auth-scope .input {
-  background: var(--input-fill);
-  border-color: var(--border-line);
-  color: var(--auth-ink);
-}
-.auth-scope .input::placeholder {
-  color: var(--placeholder);
-}
-.auth-scope .label {
-  color: var(--auth-ink);
-}
-.auth-scope a.auth-link {
-  color: var(--link);
-}
-.auth-glass-btn {
-  background: var(--glass-card);
-  color: var(--auth-ink);
-  border: 1px solid var(--border-line);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+.auth-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* шабакаи шашкунҷаҳо (hex-grid) */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='56' height='48.5' viewBox='0 0 56 48.5'><path d='M28 0 L56 14 L56 34.5 L28 48.5 L0 34.5 L0 14 Z' fill='none' stroke='rgba(130,110,255,0.6)' stroke-width='0.6'/></svg>");
+  background-size: 56px 48.5px;
+  opacity: .06;
+  pointer-events: none;
 }
 
-/* 🌊 Ҳамворӣ ҳангоми ивази мавзӯ */
-.auth-scope,
-.auth-scope .card,
-.auth-scope .input {
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+.auth-wrap {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 440px;
+}
+
+.auth-card {
+  background: var(--auth-card);
+  border: 1px solid var(--auth-card-border);
+  border-radius: 28px;
+  box-shadow: var(--auth-card-shadow);
+  padding: 16px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* 🌀 Лого */
+.auth-logo-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+.auth-logo {
+  height: 100px;
+  width: 100px;
+  filter: drop-shadow(0 0 24px rgba(60,110,255,.55));
+  animation: authLogoFloat 4s ease-in-out infinite;
+}
+@keyframes authLogoFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .auth-scope,
-  .auth-scope .card,
-  .auth-scope .input {
-    transition: none;
-  }
+  .auth-logo { animation: none; }
+}
+
+/* 📝 Сарлавҳа */
+.auth-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--auth-ink);
+  text-align: center;
+  letter-spacing: -0.02em;
+  margin: 4px 0 2px;
+}
+.auth-sub {
+  font-size: 15px;
+  color: var(--auth-muted);
+  text-align: center;
+  margin: 0 0 14px;
+}
+
+/* 🔁 Таб-ҳои ивазкунӣ */
+.auth-tabs {
+  position: relative;
+  height: 58px;
+  border-radius: 20px;
+  background: rgba(30,30,60,.8);
+  border: 1px solid rgba(120,110,255,.3);
+  padding: 4px;
+  display: flex;
+  margin-bottom: 16px;
+}
+.auth-thumb {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  border-radius: 16px;
+  background: linear-gradient(90deg, var(--auth-accent-1), var(--auth-accent-2));
+  box-shadow: 0 0 24px rgba(80,90,255,.55);
+  transition: transform .35s cubic-bezier(.2,.8,.2,1);
+  z-index: 0;
+}
+.auth-thumb-left { transform: translateX(0); }
+.auth-thumb-right { transform: translateX(100%); }
+.auth-tab {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: #B3B0DD;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 16px;
+  transition: color .2s ease;
+}
+.auth-tab-active {
+  color: #ffffff;
+}
+
+/* 📋 Форма */
+.auth-form { display: flex; flex-direction: column; gap: 16px; }
+.auth-field { display: flex; flex-direction: column; }
+.auth-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--auth-muted-3);
+  margin-bottom: 8px;
+}
+.auth-star { color: var(--auth-error); }
+
+.auth-phone-row {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+.auth-phone-row .country-select { width: 108px; flex-shrink: 0; }
+/* CountrySelect чип дар auth screen — мувофиқи майдонҳо */
+.auth-page button[aria-haspopup="listbox"] {
+  background: var(--auth-input-bg) !important;
+  border-color: var(--auth-input-border) !important;
+  color: var(--auth-ink) !important;
+  height: 52px;
+  border-radius: 16px;
+  font-size: 14px;
+}
+.auth-page button[aria-haspopup="listbox"] .dark\:bg-\[\#0f1626\] {
+  background: var(--auth-input-bg) !important;
+}
+.auth-phone-row .auth-input { flex: 1; min-width: 0; }
+
+.auth-input {
+  height: 52px;
+  border-radius: 16px;
+  background: var(--auth-input-bg);
+  border: 1px solid var(--auth-input-border);
+  color: var(--auth-ink);
+  font-size: 16px;
+  padding: 0 16px;
+  outline: none;
+  transition: border-color .2s ease, box-shadow .2s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+.auth-input::placeholder { color: var(--auth-placeholder); }
+.auth-input:focus {
+  border-color: var(--auth-input-focus);
+  box-shadow: 0 0 0 3px var(--auth-input-ring);
+}
+
+/* Ном (анимацияи баландӣ) */
+.auth-name-wrap {
+  display: grid;
+  transition: grid-template-rows .3s ease, opacity .3s ease;
+  overflow: hidden;
+}
+.auth-name-open { grid-template-rows: 1fr; opacity: 1; }
+.auth-name-closed { grid-template-rows: 0fr; opacity: 0; }
+.auth-name-inner { min-height: 0; }
+
+/* ref code */
+.auth-ref {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--auth-muted);
+  background: rgba(255,255,255,.06);
+  border: 1px solid var(--auth-input-border);
+  border-radius: 12px;
+  padding: 8px 12px;
+}
+.auth-ref-code {
+  background: rgba(255,255,255,.1);
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-family: monospace;
+  color: var(--auth-ink);
+}
+
+/* Хато */
+.auth-error {
+  background: rgba(255,93,108,.12);
+  border: 1px solid rgba(255,93,108,.4);
+  color: var(--auth-error-text);
+  font-size: 13px;
+  border-radius: 14px;
+  padding: 10px 14px;
+}
+.auth-field-error .auth-input {
+  border-color: var(--auth-error);
+}
+.auth-field-error-msg {
+  font-size: 13px;
+  color: var(--auth-error-text);
+  margin-top: 6px;
+}
+
+/* 🔘 Тугмаи асосӣ */
+.auth-submit {
+  height: 54px;
+  border-radius: 18px;
+  width: 100%;
+  border: none;
+  background: linear-gradient(90deg, var(--auth-accent-1), var(--auth-accent-2));
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--auth-accent-glow);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: transform .12s ease, opacity .2s ease;
+}
+.auth-submit:active { transform: scale(.98); }
+.auth-submit:disabled { opacity: .6; cursor: not-allowed; }
+
+/* 📎 Поён */
+.auth-bottom {
+  text-align: center;
+  font-size: 15px;
+  color: var(--auth-muted-2);
+  margin: 14px 0 0;
+}
+.auth-link {
+  color: var(--auth-link);
+  font-weight: 700;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-size: 15px;
+}
+.auth-link:hover { text-decoration: underline; }
+
+/* 🌊 Анимацияи кушодан */
+.auth-card {
+  animation: authCardIn .45s ease-out both;
+}
+@keyframes authCardIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.auth-logo {
+  animation: authLogoScale .45s ease-out both;
+}
+@keyframes authLogoScale {
+  from { opacity: 0; transform: scale(.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-card, .auth-logo { animation: none; }
+  .auth-name-wrap { transition: none; }
+  .auth-thumb { transition: none; }
+  .auth-input, .auth-submit { transition: none; }
 }
 
 /* ============ 📱 Саҳифаи «Профил» — услуби MegaFon ============

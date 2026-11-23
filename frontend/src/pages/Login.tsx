@@ -1,30 +1,19 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Loader2, LogIn, Moon, Sun, UserPlus } from "lucide-react";
+import { Loader2, LogIn, UserPlus } from "lucide-react";
 import { useApp } from "../context/AppContext";
-import Logo from "../components/Logo";
 import { api, ApiError } from "../api/client";
-
 import { Ic } from "../components/Icons";
 import CountrySelect from "../components/CountrySelect";
 import { COUNTRIES, fullPhone, type Country } from "../data/countries";
 
 /**
- * 🔑 Вуруд / Қайд — як саҳифаи ягона.
- *
- *  - Вуруд: телефон + парол
- *  - Қайд: телефон + парол + ном (ихтиёрӣ)
- *  - Баланс: 0 сомонӣ ҳангоми қайд
- *  - Face ID 07.11.2026 ПУРААН нест карда шуд (талаби соҳиб)
+ * 🔑 Вуруд / Қайд — як саҳифаи ягона (эталони нав).
  */
 export default function Login() {
-  const { t, lang, refreshUser, theme, toggleTheme } = useApp();
+  const { t, lang, refreshUser } = useApp();
   const nav = useNavigate();
 
-  // 🔗 Линки даъвати дӯст (?ref=CODE) — агар мавҷуд бошад, қайдро
-  //    пешакӣ мекушоем ва кодро ҳангоми қайд мефиристем.
-  //    Дӯст линкро дар саҳифаи асосӣ кушод → RefCapture онро дар
-  //    localStorage нигоҳ дошт → дар ин ҷо хонда мешавад.
   const [searchParams] = useSearchParams();
   let savedRef: string | null = null;
   try {
@@ -36,26 +25,17 @@ export default function Login() {
     .trim()
     .slice(0, 16);
 
-  // 🔘 Аз sidebar-меню тугмаи «Ба қайд гирифтан» → /login?register=1
   const wantRegister = searchParams.get("register") === "1";
   const [mode, setMode] = useState<"login" | "register">(
     refCode || wantRegister ? "register" : "login",
   );
   const [phone, setPhone] = useState("");
-  /** 🌍 Коди кишвари телефон (талаби соҳиб: корбар кодро интихоб мекунад,
-   *    `+`-ро худаш ворид намекунад) — Тоҷикистон пешфарз */
   const [country, setCountry] = useState<Country>(COUNTRIES[0]);
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
 
-  /**
-   * 📱 Қабули рақами телефон:
-   *   · «+992…» навишта → коди кишвар худкор муайян ва интихоб мешавад,
-   *     дар майдон танҳо рақами миллӣ мемонад;
-   *   · бе «+» → танҳо рақамҳо (фосила/тире пок) → корбар `+` ворид НАмекунад.
-   */
   const onPhoneChange = (v: string) => {
     if (v.trimStart().startsWith("+")) {
       const d = v.replace(/\D/g, "");
@@ -67,7 +47,6 @@ export default function Login() {
         setPhone(d.slice(m.dial.length));
         return;
       }
-      // код ҳанӯз пурра навишта нашуда → «+» дар майдон мемонад
       setPhone(v.replace(/[^\d+]/g, ""));
       return;
     }
@@ -78,13 +57,11 @@ export default function Login() {
     e.preventDefault();
     setErr("");
 
-    // Санҷиши пешакӣ — рақами ПУРРА (коди кишвар + рақами миллӣ)
     const digits = fullPhone(country.dial, phone);
     if (digits.length < 9) {
       setErr(t("invalidPhone"));
       return;
     }
-    // Санҷиши дарозии парол ТАНҲО ҳангоми ҚАЙД (вуруд бе маҳдудияти нав)
     if (mode === "register" && password.length < 8) {
       setErr(t("passwordShort"));
       return;
@@ -108,14 +85,11 @@ export default function Login() {
           language: lang,
           referral_code: refCode || undefined,
         });
-        // Коди даъват танҳо як дафъа истифода мешавад → пок
         localStorage.removeItem("danatel_ref");
-        // 😶 Face ID нест шуд (07.11.2026) → рост ба профил
         await refreshUser();
         nav("/profile");
       }
     } catch (e2) {
-      // Паёми бехатарӣ аз рӯи коди хато — бе ифшои оё корбар вуҷуд дорад
       const status = e2 instanceof ApiError ? e2.status : 0;
       setErr(
         status === 401
@@ -133,147 +107,174 @@ export default function Login() {
     }
   };
 
+  // document.title
+  useEffect(() => {
+    document.title = mode === "login" ? "DonatShop — Вуруд" : "DonatShop — Қайд шудан";
+  }, [mode]);
+
+  // Ин саҳифа ҳамеша торик аст (новобаста аз мавзӯи сайт/OS)
+  useEffect(() => {
+    const wasDark = document.documentElement.classList.contains("dark");
+    if (!wasDark) document.documentElement.classList.add("dark");
+    return () => {
+      if (!wasDark) document.documentElement.classList.remove("dark");
+    };
+  }, []);
+
+  const isRegister = mode === "register";
+
   return (
-    <>
-    <button
-      type="button"
-      onClick={toggleTheme}
-      aria-label={theme === "dark" ? t("themeLight") : t("themeDark")}
-      title={theme === "dark" ? t("themeLight") : t("themeDark")}
-      aria-pressed={theme === "dark"}
-      className="fixed z-50 grid place-items-center w-11 h-11 rounded-full auth-glass-btn
-                 transition active:scale-95 focus-visible:outline-none focus-visible:ring-2"
-      style={{
-        top: "max(12px, env(safe-area-inset-top))",
-        right: "max(12px, env(safe-area-inset-right))",
-      }}
-    >
-      {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
-    </button>
-    <div
-      className="auth-scope relative mx-auto max-w-md px-4 py-6 -mb-20 md:mb-0"
-      style={{ background: "var(--auth-bg)" }}
-    >
-      <div
-        className="pointer-events-none absolute inset-0 -z-10"
-        style={{
-          background:
-            "radial-gradient(28rem 20rem at 100% 0%, var(--overlay-1), transparent 60%), radial-gradient(24rem 18rem at 0% 100%, var(--overlay-2), transparent 60%)",
-        }}
-        aria-hidden
-      />
-      {/* ⬅️ «Бозгашт» дар login/register НЕСТ — талаби соҳиб (31.10.2026).
-          `-mb-20 md:mb-0` → padding-и `pb-20`-и main (ҷои navbar-и поёнӣ, ки
-          дар ин саҳифа пинҳон аст) бекор мешавад → қайд бе скролл дар 320×700. */}
-      <div className="card p-6 sm:p-8">
-        <div className="text-center mb-4">
-          <div className="flex justify-center mb-3">
-            <Logo size={96} glow />
-          </div>
-          <h1 className="text-xl font-bold">
-            {mode === "login" ? t("login") : t("register")}
-          </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            {mode === "login" ? t("noAccount") : t("haveAccount")}
-          </p>
-        </div>
+    <div className="auth-page">
+      {/* ⬅️ пасзамина: градиент + хатҳо + шашкунҷаҳо + дурахшҳо */}
+      <div className="auth-bg" aria-hidden />
 
-        <form onSubmit={submit} className="space-y-3">
-          {/* 🔗 Линки даъват (?ref=… / `danatel_ref`) — коди даъвати
-              даъваткунанда дар форма нишон дода мешавад, то корбар бидонад
-              кадом код ҳангоми қайд истифода мешавад (талаби соҳиб) */}
-          {mode === "register" && refCode && (
-            <div className="flex items-center gap-2 flex-wrap rounded-xl border border-brand-100 bg-brand-50 px-3 py-2 text-xs text-brand-700">
-              <span>{t("refCodeLabel")}:</span>
-              <code className="rounded bg-white px-1.5 py-0.5 font-mono text-slate-700">
-                {refCode}
-              </code>
-            </div>
-          )}
-          <div>
-            <label className="label">{t("phone")} *</label>
-            {/* 🌍 Коди кишвар ИНТИХОБ мешавад → корбар танҳо рақами
-                миллӣ менависад, `+` лозим нест (талаби соҳиб, 05.11.2026) */}
-            <div className="flex gap-2">
-              <CountrySelect value={country.code} onChange={setCountry} />
-              <input
-                className="input flex-1 min-w-0"
-                inputMode="tel"
-                placeholder="XXXXXXXXX"
-                value={phone}
-                onChange={(e) => onPhoneChange(e.target.value)}
-                autoComplete="tel-national"
-                aria-label={t("phone")}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="label">{t("password")} *</label>
-            <input
-              className="input"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete={
-                mode === "login" ? "current-password" : "new-password"
-              }
+      <div className="auth-wrap">
+        <div className="auth-card">
+          {/* 🌀 ЛОГО */}
+          <div className="auth-logo-wrap">
+            <img
+              src="/logo.svg"
+              alt="donatshop"
+              width={100}
+              height={100}
+              className="auth-logo"
             />
           </div>
 
-          {mode === "register" && (
-            <div>
-              <label className="label">{t("fullName")}</label>
+          {/* 📝 САРЛАВҲА */}
+          <h1 className="auth-title">
+            {isRegister ? t("register") : t("login")}
+          </h1>
+          <p className="auth-sub">
+            {isRegister ? t("haveAccount") : t("authWelcome")}
+          </p>
+
+          {/* 🔁 ТАБ-ҲОИ ИВАЗКУНӢ */}
+          <div className="auth-tabs" role="tablist">
+            <span
+              className={`auth-thumb ${isRegister ? "auth-thumb-left" : "auth-thumb-right"}`}
+              aria-hidden
+            />
+            <button
+              type="button"
+              role="tab"
+              aria-selected={isRegister}
+              onClick={() => { setMode("register"); setErr(""); }}
+              className={`auth-tab ${isRegister ? "auth-tab-active" : ""}`}
+            >
+              {t("register")}
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={!isRegister}
+              onClick={() => { setMode("login"); setErr(""); }}
+              className={`auth-tab ${!isRegister ? "auth-tab-active" : ""}`}
+            >
+              {t("login")}
+            </button>
+          </div>
+
+          {/* 📋 ФОРМА */}
+          <form onSubmit={submit} className="auth-form">
+            {isRegister && refCode && (
+              <div className="auth-ref">
+                <span>{t("refCodeLabel")}:</span>
+                <code className="auth-ref-code">{refCode}</code>
+              </div>
+            )}
+
+            <div className="auth-field">
+              <label className="auth-label" htmlFor="auth-phone">
+                {t("phone")} <span className="auth-star">*</span>
+              </label>
+              <div className="auth-phone-row">
+                <CountrySelect value={country.code} onChange={setCountry} />
+                <input
+                  id="auth-phone"
+                  className="auth-input"
+                  inputMode="tel"
+                  placeholder="900000000"
+                  value={phone}
+                  onChange={(e) => onPhoneChange(e.target.value)}
+                  autoComplete="tel-national"
+                  aria-label={t("phone")}
+                />
+              </div>
+            </div>
+
+            <div className="auth-field">
+              <label className="auth-label" htmlFor="auth-password">
+                {t("password")} <span className="auth-star">*</span>
+              </label>
               <input
-                className="input"
-                placeholder={t("fullName")}
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                autoComplete="name"
+                id="auth-password"
+                className="auth-input"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete={isRegister ? "new-password" : "current-password"}
               />
             </div>
-          )}
 
-          {err && (
-            <div className="rounded-xl bg-rose-50 border border-rose-200 px-4 py-3 text-sm text-rose-700">
-              {err}
+            <div className={`auth-name-wrap ${isRegister ? "auth-name-open" : "auth-name-closed"}`}>
+              <div className="auth-name-inner">
+                <div className="auth-field">
+                  <label className="auth-label" htmlFor="auth-name">
+                    {t("fullName")}
+                  </label>
+                  <input
+                    id="auth-name"
+                    className="auth-input"
+                    placeholder={t("fullName")}
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    autoComplete="name"
+                  />
+                </div>
+              </div>
             </div>
-          )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn-primary w-full py-3"
-          >
-            {loading ? (
-              <>
-                <Ic icon={Loader2} className="animate-spin" /> {t("loading")}
-              </>
-            ) : mode === "login" ? (
-              <>
-                <Ic icon={LogIn} />
-                {t("login")}
-              </>
-            ) : (
-              <>
-                <Ic icon={UserPlus} />
-                {t("register")}
-              </>
+            {err && (
+              <div className="auth-error">{err}</div>
             )}
-          </button>
-        </form>
 
-        <button
-          onClick={() => {
-            setMode(mode === "login" ? "register" : "login");
-            setErr("");
-          }}
-          className="w-full mt-4 text-sm text-brand-600 hover:underline"
-        >
-          {mode === "login" ? t("registerNow") : t("login")}
-        </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="auth-submit"
+            >
+              {loading ? (
+                <>
+                  <Ic icon={Loader2} className="animate-spin" /> {t("loading")}
+                </>
+              ) : isRegister ? (
+                <>
+                  <Ic icon={UserPlus} /> {t("register")}
+                </>
+              ) : (
+                <>
+                  <Ic icon={LogIn} /> {t("login")}
+                </>
+              )}
+            </button>
+          </form>
+
+          <p className="auth-bottom">
+            {isRegister
+              ? t("haveAccount")
+              : t("noAccount")}{" "}
+            <button
+              type="button"
+              onClick={() => { setMode(isRegister ? "login" : "register"); setErr(""); }}
+              className="auth-link"
+            >
+              {isRegister ? t("login") : t("registerNow")}
+            </button>
+          </p>
+        </div>
       </div>
     </div>
-    </>  );
+  );
 }
