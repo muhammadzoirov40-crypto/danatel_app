@@ -262,15 +262,15 @@ export default function Login() {
             >
               {loading ? (
                 <>
-                  <Ic icon={Loader2} className="animate-spin" /> {t("loading")}
+                  <Ic icon={Loader2} size="md" className="animate-spin" /> {t("loading")}
                 </>
               ) : isRegister ? (
                 <>
-                  <Ic icon={UserPlus} /> {t("register")}
+                  <Ic icon={UserPlus} size="md" /> {t("register")}
                 </>
               ) : (
                 <>
-                  <Ic icon={LogIn} /> {t("login")}
+                  <Ic icon={LogIn} size="md" /> {t("login")}
                 </>
               )}
             </button>

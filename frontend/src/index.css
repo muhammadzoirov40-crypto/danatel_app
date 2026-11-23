@@ -189,7 +189,7 @@ body:has(.auth-page) {
   object-fit: contain;
   margin: 0 auto 20px;
   display: block;
-  filter: drop-shadow(0 0 24px rgba(60,110,255,.55));
+  filter: drop-shadow(0 0 26px rgba(80,120,255,.75)) drop-shadow(0 0 60px rgba(80,80,255,.4));
   animation: authLogoFloat 4s ease-in-out infinite;
   background: none;
   border-radius: 0;
@@ -301,7 +301,7 @@ body:has(.auth-page) {
 .auth-phone-box.auth-phone-error {
   border-color: var(--auth-error);
 }
-/* CountrySelect чип дар auth screen — дохили контейнер */
+/* CountrySelect чип дар auth screen — дохили контейнер (зебо) */
 .auth-phone-box button[aria-haspopup="listbox"] {
   background: transparent !important;
   border: none !important;
@@ -311,14 +311,26 @@ body:has(.auth-page) {
   box-shadow: none !important;
   flex-shrink: 0;
   padding: 0 10px;
+  gap: 6px !important;
 }
 .auth-phone-box button[aria-haspopup="listbox"] span {
   color: var(--auth-ink) !important;
 }
+.auth-phone-box button[aria-haspopup="listbox"] span[aria-hidden] {
+  border-radius: 6px !important;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.15), 0 4px 10px rgba(0,0,0,.35) !important;
+  background: rgba(255,255,255,.06) !important;
+}
+.auth-phone-box button[aria-haspopup="listbox"] img {
+  border-radius: 4px !important;
+}
+.auth-phone-box button[aria-haspopup="listbox"] svg {
+  color: rgba(255,255,255,.65) !important;
+}
 .auth-phone-divider {
   width: 1px;
-  height: 24px;
-  background: rgba(255,255,255,.14);
+  height: 26px;
+  background: linear-gradient(180deg, transparent, rgba(255,255,255,.22), transparent);
   flex-shrink: 0;
 }
 .auth-phone-input {
@@ -412,15 +424,22 @@ body:has(.auth-page) {
   font-size: 18px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: var(--auth-accent-glow);
+  box-shadow: var(--auth-accent-glow), 0 0 0 1px rgba(255,255,255,.08) inset;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  transition: transform .12s ease, opacity .2s ease;
+  gap: 10px;
+  transition: transform .12s ease, opacity .2s ease, box-shadow .2s ease, filter .2s ease;
+}
+.auth-submit:hover:not(:disabled) {
+  filter: brightness(1.08);
+  box-shadow: 0 12px 36px rgba(80,80,255,.55), 0 0 0 1px rgba(255,255,255,.12) inset;
 }
 .auth-submit:active { transform: scale(.98); }
 .auth-submit:disabled { opacity: .6; cursor: not-allowed; }
+.auth-submit svg {
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,.4));
+}
 
 /* 📎 Поён */
 .auth-bottom {
