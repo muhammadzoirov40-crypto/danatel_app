@@ -215,8 +215,8 @@ export default function SidebarMenu({
       >
         {/* 🔝 Сарлавҳа: логотип + ном + ✕ */}
         <div className="flex items-center gap-3 px-5 pt-6 pb-4">
-          <span className="grid place-items-center w-12 h-12 rounded-full bg-blue-50 dark:bg-brand-900/30 ring-1 ring-blue-100 dark:ring-brand-700/40 shrink-0 overflow-hidden">
-            <Logo size={38} />
+          <span className="grid place-items-center w-14 h-14 rounded-full bg-blue-50 dark:bg-brand-900/30 ring-1 ring-blue-100 dark:ring-brand-700/40 shrink-0 overflow-hidden">
+            <Logo size={44} />
           </span>
           <span className="flex-1 min-w-0 font-black text-[17px] tracking-tight text-slate-900 dark:text-white truncate">
             {t("brand")}

@@ -183,9 +183,9 @@ body:has(.auth-page) {
   margin-bottom: 8px;
 }
 .auth-logo {
-  height: 100px;
+  height: 112px;
   width: auto;
-  max-height: 104px;
+  max-height: 120px;
   object-fit: contain;
   margin: 0 auto 20px;
   display: block;

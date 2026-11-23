@@ -86,7 +86,7 @@ export default function LoadingScreen({ onDone }: { onDone: () => void }) {
       <img
         src="/icons/donatshop-logo.png"
         alt="donatshop"
-        className="h-24 w-24 object-contain"
+        className="h-28 w-28 object-contain"
       />
       <div
         className="h-1 w-44 overflow-hidden rounded-full"
