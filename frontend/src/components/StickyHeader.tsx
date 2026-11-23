@@ -15,10 +15,18 @@ import BackButton from "./BackButton";
  *   · Ҳамон BackButton-и умумӣ (aria-label + keyboard + focus-visible ✓);
  *   · Матн — `p` (ҳамчун дубликати декоративии h1-и асосӣ; h1 дар саҳифа мемонад).
  */
-export default function StickyHeader({ title }: { title: string }) {
-  const [show, setShow] = useState(false);
+export default function StickyHeader({ title, always = false }: { title: string; always?: boolean }) {
+  const [show, setShow] = useState(always);
 
   useEffect(() => {
+    // `always` — саҳифаҳои бе скролл (масалан /order/:id, ки дар 320×700
+    // бе скролл ҷой мегирад): сари часпак ҲАМЕША нишон дода мешавад,
+    // то тугмаи ← дар ҳама ҳолат мавҷуд бошад (талаби соҳиб:
+    // «dar hama gholat haminxel boshad»).
+    if (always) {
+      setShow(true);
+      return;
+    }
     // Адаптивӣ: дар саҳифаҳои кӯтоҳ (макс. скролл <120px) оғоз барвақттар —
     // вагарна тугмаи ← ҳангоми скролл нопадид мешавад.
     const onScroll = () => {
@@ -32,7 +40,7 @@ export default function StickyHeader({ title }: { title: string }) {
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [always]);
 
   return (
     <div

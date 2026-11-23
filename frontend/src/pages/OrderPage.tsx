@@ -23,6 +23,7 @@ import { api } from "../api/client";
 import type { Order, ReviewSummary } from "../types";
 import StatusBadge from "../components/StatusBadge";
 import ReviewForm from "../components/ReviewForm";
+import StickyHeader from "../components/StickyHeader";
 import { useApp } from "../context/AppContext";
 import { copyText } from "../utils/clipboard";
 import { Ic } from "../components/Icons";
@@ -218,6 +219,13 @@ export default function OrderPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 sm:py-12 -mb-20 md:mb-0">
+      {/* 📌 Сари саҳифаи часпак — якхела бо ҳамаи саҳифаҳои дигар
+          (талаби соҳиб: «dar hama gholat haminxel boshad» — ← + ном,
+          ҳарду режим light/dark). `always` → дар /order/:id, ки дар
+          320×700 бе скролл ҷой мегирад (талаби соҳиб31.10), сарлавҳа
+          ҲАМЕША нишон мешавад; футер ва navbar-и поёнӣ ҳам дар ин
+          саҳифа пинҳонанд → роҳи бозгашт танҳо аз ҳамин ҷо. */}
+      <StickyHeader title={t("orderCreated")} always />
       {/* 📱 `-mb-20 md:mb-0` → padding-и `pb-20`-и main (ҷои navbar-и поёнӣ,
           ки дар /order/:id пинҳон аст) бекор → «Фармоиш сохта шуд» бе скролл
           дар HONOR 400 LITE 320×700 (талаби соҳиб, 31.10.2026). */}
