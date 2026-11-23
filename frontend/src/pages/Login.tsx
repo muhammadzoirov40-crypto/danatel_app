@@ -130,24 +130,23 @@ export default function Login() {
 
       <div className="auth-wrap">
         <div className="auth-card">
-          {/* 🌀 ЛОГО */}
+          {/* 🌀 ЛОГО (шаффоф, БЕ background/border-radius/overflow) */}
           <div className="auth-logo-wrap">
             <img
-              src="/logo.svg"
+              src="/icons/donatshop-D-logo.png"
               alt="donatshop"
-              width={100}
-              height={100}
               className="auth-logo"
+              onError={(e) => {
+                e.currentTarget.src = "/icons/favicon-32.png";
+                e.currentTarget.onerror = null;
+              }}
             />
           </div>
 
-          {/* 📝 САРЛАВҲА */}
-          <h1 className="auth-title">
+          {/* SEO: сарлавҳаи пинҳон */}
+          <h1 className="sr-only">
             {isRegister ? t("register") : t("login")}
           </h1>
-          <p className="auth-sub">
-            {isRegister ? t("haveAccount") : t("authWelcome")}
-          </p>
 
           {/* 🔁 ТАБ-ҲОИ ИВАЗКУНӢ */}
           <div className="auth-tabs" role="tablist">

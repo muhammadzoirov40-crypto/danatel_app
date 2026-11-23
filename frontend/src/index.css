@@ -127,9 +127,27 @@
 }
 .auth-logo {
   height: 100px;
-  width: 100px;
+  width: auto;
+  max-height: 104px;
+  object-fit: contain;
+  margin: 0 auto 20px;
+  display: block;
   filter: drop-shadow(0 0 24px rgba(60,110,255,.55));
   animation: authLogoFloat 4s ease-in-out infinite;
+  background: none;
+  border-radius: 0;
+  overflow: visible;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 @keyframes authLogoFloat {
   0%, 100% { transform: translateY(0); }
