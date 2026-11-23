@@ -53,8 +53,15 @@ export default function LoadingScreen({ onDone }: { onDone: () => void }) {
     return () => window.clearInterval(id);
   }, []);
 
+  // ⏱️ Ҳифз: агар auth/assets дер кашанд, пас аз 15s маҷбуран 100%
+  const [forceReady, setForceReady] = useState(false);
+  useEffect(() => {
+    const t = window.setTimeout(() => setForceReady(true), 15000);
+    return () => window.clearTimeout(t);
+  }, []);
+
   // ✅ Воқеӣ тайёр (auth + assets) ва симуляция ба 90% расид → 100%
-  const ready = authReady && assetsReady;
+  const ready = (authReady && assetsReady) || forceReady;
   useEffect(() => {
     if (!ready || pct < TARGET) return;
     setPct(100);
