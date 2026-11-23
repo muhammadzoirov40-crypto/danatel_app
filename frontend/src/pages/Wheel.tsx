@@ -295,17 +295,20 @@ export default function Wheel() {
     <div className="profile-soft min-h-[calc(100vh-4rem)]">
       {/* 📌 Сари саҳифаи часпак (талаби соҳиб 11.11.2026: «dar hamash haminxel») */}
       <StickyHeader title={t("wheel")} />
-      <div className="mx-auto max-w-3xl px-4 py-8 space-y-4">
-        {/* ===== САРЛАВҲА: [← иконка] [ном] [монета рост] ДАР ЯК САТР
-             (талаби соҳиб 07.11.2026: «дар ҳамаи ҷо ҳамин хел бошад —
-             иконкаи назад ва ном»; «Таърих» 30.10.2026 хориҷ шуд) ===== */}
+      {/* pt: сари ҳамешагӣ (56px + safe-area) → мазмун аз зери он; md+ → аслӣ */}
+      <div className="mx-auto max-w-3xl px-4 pt-[calc(64px_+_env(safe-area-inset-top,0px))] pb-8 md:pt-8 space-y-4">
+        {/* ===== САРЛАВҲА: [← иконка] [ном] [монета рост] =====
+             Мобилӣ: ← + ном ДАР САР ҲАМЕША (сари сафед) → ин дуто пинҳон;
+             монета ҳамеша намоён (рости сатр). md+ → беғубр сатри аслӣ. */}
         <header>
           <div className="flex items-center gap-2.5 flex-wrap">
-            <BackButton iconOnly />
-            <h1 className="text-2xl md:text-3xl font-black tracking-tight inline-flex items-center gap-2">
-              <Ic icon={Sparkles} size="md" className="text-brand-600" />
-              {t("wheel")}
-            </h1>
+            <div className="hidden items-center gap-2.5 md:contents">
+              <BackButton iconOnly />
+              <h1 className="text-2xl md:text-3xl font-black tracking-tight inline-flex items-center gap-2">
+                <Ic icon={Sparkles} size="md" className="text-brand-600" />
+                {t("wheel")}
+              </h1>
+            </div>
             {mine && (
               <div
                 className="ml-auto inline-flex h-8 items-center gap-1.5 rounded-full bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 px-3 text-xs font-extrabold text-white shadow-md shadow-indigo-500/30"

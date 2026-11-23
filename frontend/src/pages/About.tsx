@@ -37,8 +37,12 @@ export default function About() {
   return (
     <div className="pb-[calc(84px+env(safe-area-inset-bottom))] md:pb-0">
       <StickyHeader title={t("navAbout")} />
-      <div className="mx-auto max-w-6xl px-4 py-5 sm:py-8">
-        <div className="flex items-center gap-2.5 mb-4">
+      {/* pt: сари ҳамешагӣ (56px + safe-area) дар мобилӣ → мазмун аз зери
+          он оғоз меёбад; дар md+ сар пинҳон → padding-и аслӣ барқарор. */}
+      <div className="mx-auto max-w-6xl px-4 pt-[calc(64px_+_env(safe-area-inset-top,0px))] pb-5 sm:pb-8 md:pt-8">
+        {/* Сатри ← + ном: дар мобилӣ САР пинҳон (такрорӣ аз сар нест),
+            дар десктоп ба ҷои он ҳамчун сарлавҳаи саҳифа кор мекунад. */}
+        <div className="mb-4 hidden items-center gap-2.5 md:flex">
           <BackButton iconOnly />
           <h1 className="text-xl sm:text-2xl font-black leading-tight">{t("navAbout")}</h1>
         </div>

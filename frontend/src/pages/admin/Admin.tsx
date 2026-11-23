@@ -83,13 +83,14 @@ export default function Admin() {
   return (
     /* 📱 `-mb-20 md:mb-0` → padding-и `pb-20`-и main (ҷои navbar-и поёнӣ,
        ки дар /admin ПИНҲОН аст) — барқарории 80px дар мобилӣ. */
-    <div className="mx-auto max-w-6xl px-4 py-6 -mb-20 md:mb-0">
-      {/* 📌 Сари саҳифаи часпак (талаби соҳиб 11.11.2026: «dar hamash haminxel») */}
+    <div className="mx-auto max-w-6xl px-4 pt-[calc(64px_+_env(safe-area-inset-top,0px))] pb-6 md:pt-6 -mb-20 md:mb-0">
+      {/* 📌 Сари саҳифаи ҲАМЕШАГӢ (талаби соҳиб 23.11.2026: «hama vaqt») */}
       <StickyHeader title={t("adminPanel")} />
       {/* 🔧 Сарлавҳа — ДАР ЯК сатр (мобилӣ 320px):
-          Тугмаи «Баромад» АЗ ИН ҶО НАСТ (талаби соҳиб 06.11.2026) —
-          баромад танҳо аз Сайдбар («Баромад») сурат мегирад. */}
-      <div className="flex items-center justify-between gap-2 mb-3">
+          Мобилӣ: ← + ном ДАР САР ҲАМЕША (сари сафед) → ин сатр танҳо
+          дар десктоп мемонад. Тугмаи «Баромад» АЗ ИН ҶО НАСТ — баромад
+          танҳо аз Сайдбар (талаби соҳиб06.11.2026). */}
+      <div className="mb-3 hidden items-center justify-between gap-2 md:flex">
         {/* ⬅️ [←] [ном] ДАР ЯК САТР — ҳамон тавр мисли саҳифаҳои корбар
             (талаби соҳиб «dar admin ham doshta boshad») */}
         <div className="flex items-center gap-2 min-w-0">

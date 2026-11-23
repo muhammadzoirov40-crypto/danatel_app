@@ -57,15 +57,18 @@ export default function ReviewsPage() {
       <StickyHeader title={t("reviewsPageTitle")} />
       {/* ===== Header-и саҳифа: ном + бейҷи рейтинги воқеӣ + номи ду бахш ===== */}
       <section className="text-white">
-        <div className="mx-auto max-w-6xl px-4 pt-4 pb-5 sm:pt-6">
-          {/* ===== САРЛАВҲА: [← иконка] [ном] [рейтинг рост] ДАР ЯК САТР
-               (талаби соҳиб 07.11.2026: «дар ҳамаи ҷо ҳамин хел бошад —
-               иконкаи назад ва ном», мисли /orders) ===== */}
+        {/* pt: сари ҳамешагӣ (56px + safe-area) → рейтинг аз зери он; md+ → аслӣ */}
+        <div className="mx-auto max-w-6xl px-4 pt-[calc(64px_+_env(safe-area-inset-top,0px))] pb-5 md:pt-6">
+          {/* ===== САРЛАВҲА: [← иконка] [ном] [рейтинг рост] =====
+               Мобилӣ: ← + ном ДАР САР ҲАМЕША (сари сафед) → ин дуто
+               пинҳон; рейтинг ҳамеша намоён (сиғтаи рост). md+ → сатри аслӣ. */}
           <div className="flex items-center gap-2.5 flex-wrap">
-            <BackButton iconOnly />
-            <h1 className="min-w-0 flex-1 text-xl sm:text-2xl font-black leading-tight">
-              {t("reviewsPageTitle")}
-            </h1>
+            <div className="hidden items-center gap-2.5 md:contents">
+              <BackButton iconOnly />
+              <h1 className="min-w-0 flex-1 text-xl sm:text-2xl font-black leading-tight">
+                {t("reviewsPageTitle")}
+              </h1>
+            </div>
 
             {/* ⭐ Рейтинги воқеӣ — ҳатто 0 бошад ҳам нишон дода мешавад.
                 Дар 320px: сатри алоҳида дар рост (мисли шумора дар /orders);

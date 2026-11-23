@@ -109,8 +109,8 @@ export default function GameDetail() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-3 sm:px-4 py-5 sm:py-8">
-      {/* 📌 Сари саҳифаи часпак (талаби соҳиб 11.11.2026: «dar hamash haminxel») */}
+    <div className="mx-auto max-w-6xl px-3 sm:px-4 pt-[calc(64px_+_env(safe-area-inset-top,0px))] pb-5 sm:pb-8 md:pt-8">
+      {/* 📌 Сари саҳифаи ҲАМЕШАГӢ (талаби соҳиб 23.11.2026: «hama vaqt») */}
       <StickyHeader title={game.name} />
       {/* ============ САРПӯШИ БОЗӢ (COVER) ============ */}
       <div
@@ -153,10 +153,10 @@ export default function GameDetail() {
 
         {/* Мазмуни сарпӯш */}
         <div className="relative p-5 sm:p-8 text-white">
-          {/* ← САРЛАВҲА: [← иконка] [номи бозӣ] [бейҷи ПУР КАРДАН] ДАР ЯК САТР
-               (талаби соҳиб 07.11.2026: «дар ҳамаи ҷо ҳамин хел бошад —
-               иконкаи назад ва ном»; 03.11.2026 икон+бейҷ дар як сатр буд). */}
-          <div className="mt-3 mb-3 flex items-center gap-2.5 flex-wrap">
+          {/* ← САРЛАВҲА: [← иконка] [номи бозӣ] ДАР ЯК САТР.
+               Мобилӣ: ← + ном ДАР САР ҲАМЕША (сари сафед) → ин сатр
+               (дар сарпӯш) танҳо дар десктоп мемонад. */}
+          <div className="mt-3 mb-3 hidden items-center gap-2.5 flex-wrap md:flex">
             <BackButton iconOnly />
             {/* «Free ...» дар320 бурида мешуд (талаби соҳиб 11.11.2026
                 «inhoro realni kun» = номи воқеии пурра): мобилӣ text-xl */}

@@ -82,15 +82,20 @@ export default function MyOrders() {
     <div className="profile-soft min-h-[calc(100vh-4rem)]">
       {/* 📌 Сари саҳифаи часпак (талаби соҳиб 11.11.2026: «dar hamash haminxel») */}
       <StickyHeader title={t("myOrders")} />
-      <div className="mx-auto max-w-3xl px-4 py-8 space-y-4">
-        {/* ⬅️ Тугмаи бозгашт (услуби якхела дар ҳамаи саҳифаҳо) */}
-        {/* ===== САРЛАВҲА: [← иконка] [ном] ДАР ЯК САТР
-             (талаби соҳиб — мисли скриншоти «Интересное») ===== */}
+      {/* pt: сари ҳамешагӣ (56px + safe-area) → мазмун аз зери он (дар
+          мобилӣ) бо «76 / Фармоишҳо» оғоз меёбад; md+ → padding-и аслӣ. */}
+      <div className="mx-auto max-w-3xl px-4 pt-[calc(64px_+_env(safe-area-inset-top,0px))] pb-8 md:pt-8 space-y-4">
+        {/* ===== САРЛАВҲА: [← иконка] [ном] ДАР ЯК САТР (талаби соҳиб) =====
+             Мобилӣ: ← + ном ДАР САР ҲАМЕША ҳаст (сари сафед) → ин дуто
+             пинҳон (`md:contents` → дар десктоп беғубр ба сатр бармегарданд);
+             шумора ҳамеша намоён (мисли скриншоти соҳиб). */}
         <div className="flex items-center gap-2.5 flex-wrap">
-          <BackButton iconOnly />
-          <h1 className="text-2xl md:text-3xl font-black tracking-tight">
-            {t("myOrders")}
-          </h1>
+          <div className="hidden items-center gap-2.5 md:contents">
+            <BackButton iconOnly />
+            <h1 className="text-2xl md:text-3xl font-black tracking-tight">
+              {t("myOrders")}
+            </h1>
+          </div>
           {!loading && !err && (
             <span className="ml-auto text-sm font-semibold text-slate-500 dark:text-slate-400">
               {orders.length} / {t("orders")}

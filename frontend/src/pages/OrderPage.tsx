@@ -219,13 +219,13 @@ export default function OrderPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 sm:py-12 -mb-20 md:mb-0">
-      {/* 📌 Сари саҳифаи часпак — якхела бо ҳамаи саҳифаҳои дигар
-          (талаби соҳиб: «dar hama gholat haminxel boshad» — ← + ном,
-          ҳарду режим light/dark). `always` → дар /order/:id, ки дар
-          320×700 бе скролл ҷой мегирад (талаби соҳиб31.10), сарлавҳа
-          ҲАМЕША нишон мешавад; футер ва navbar-и поёнӣ ҳам дар ин
-          саҳифа пинҳонанд → роҳи бозгашт танҳо аз ҳамин ҷо. */}
-      <StickyHeader title={t("orderCreated")} always />
+      {/* 📌 Сари саҳифаи ҲАМЕШАГӢ — якхела бо ҳамаи саҳифаҳои дигар
+          (талаби соҳиб: «in header hama vaqt boshad» — ← + ном ҲАМА ВАҚТ,
+          ҳарду режим light/dark). `heading={false}` → корти зери он h1-и
+          худро дорад («Фармоиш сохта шуд») → дар сар `p` (ду h1-и намоён
+          набошад). Дар /order/:id футер ва navbar-и поёнӣ пинҳонанд →
+          роҳи бозгашт танҳо аз ҳамин ҷо. */}
+      <StickyHeader title={t("orderCreated")} heading={false} />
       {/* 📱 `-mb-20 md:mb-0` → padding-и `pb-20`-и main (ҷои navbar-и поёнӣ,
           ки дар /order/:id пинҳон аст) бекор → «Фармоиш сохта шуд» бе скролл
           дар HONOR 400 LITE 320×700 (талаби соҳиб, 31.10.2026). */}
