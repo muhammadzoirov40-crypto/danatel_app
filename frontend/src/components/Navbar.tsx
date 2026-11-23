@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Coins, Disc3, Info, LayoutGrid, Menu, Package, Send, Star } from "lucide-react";
+import { Coins, Disc3, Info, LayoutGrid, Menu, Moon, Package, Send, Star, Sun } from "lucide-react";
 import { api } from "../api/client";
 import { useApp } from "../context/AppContext";
 import { GoldCoin, Ic } from "./Icons";
@@ -28,7 +28,7 @@ import SidebarMenu from "./SidebarMenu";
  *  ❗ Дар лоиҳа САБАД (cart) вуҷуд надорад → тугмаи сабад гузошта НАШУД.
  */
 export default function Navbar() {
-  const { t, user, balance } = useApp();
+  const { t, user, balance, theme, toggleTheme } = useApp();
   const nav = useNavigate();
   const { pathname, key: locKey } = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -207,7 +207,7 @@ export default function Navbar() {
             ⚠️ 28.10.2026 (талаби соҳиб): калимаи бренда ҲАМЕША намоён
             (қаблӣ дар мобилӣ `hidden sm:inline` буд → танҳо нишонаи D). */}
         <Link to="/" className="shrink-0" title="donatshop" aria-label="donatshop">
-          <Logo size={22} variant="header" withText textClass="text-[15px] sm:text-base" />
+          <Logo size={22} withText textClass="text-[15px] sm:text-base" />
         </Link>
 
         {/* 🔗 Пайвандҳо — танҳо аз lg (дар экранҳои хурд дар меню) */}
@@ -313,6 +313,27 @@ export default function Navbar() {
             </>
           )}
         </Link>
+
+        {/* 🌙 Тугмаи мавзӯ 44×44 — ТАНҲО ҳангоми вуруд (соҳиб: «маҳзӯи рӯшан/торик»).
+            Дар саҳифаи қайд/вуруд (бевуруд) намоён НЕСТ. */}
+        {user && (
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-label={theme === "dark" ? t("themeLight") : t("themeDark")}
+            title={theme === "dark" ? t("themeLight") : t("themeDark")}
+            aria-pressed={theme === "dark"}
+            className="grid place-items-center w-11 h-11 rounded-full shrink-0 transition active:scale-95
+                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+            style={{
+              background: "var(--tg-surface)",
+              color: "var(--tg-fg)",
+              border: "1px solid var(--tg-border)",
+            }}
+          >
+            <Ic icon={theme === "dark" ? Sun : Moon} size="md" />
+          </button>
+        )}
 
         {/* ☰ Меню — ҲАМАИ экранҳо (мобилӣ + десктоп); кушодани SIDEBAR
             (чап→рост): забон, мавзӯ, баланс, профил, баромад — ҳама дар он ҷост */}

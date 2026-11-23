@@ -14,7 +14,6 @@ import ScrollProgress from "./components/ScrollProgress";
 
 import Footer from "./components/Footer";
 
-import Logo from "./components/Logo";
 import UpdateToast from "./components/UpdateToast";
 import GameOpenAnim from "./components/GameOpenAnim";
 import { Ic } from "./components/Icons";

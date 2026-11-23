@@ -266,7 +266,7 @@ likesDailyNote: "Ба як ID дар 24 соат танҳо 1 маротиба �
   navOrders: "Фармоишҳои ман",
   navReviews: "Тақризҳо",
   navAbout: "Дар бораи мо",
-  themeLight: "Мавзӯи равшан",
+  themeLight: "Мавзӯи рӯшан",
   themeDark: "Мавзӯи торик",
   noResults: "Бозӣ ёфт нашуд",
   resultsFor: "Натиҷаҳо",

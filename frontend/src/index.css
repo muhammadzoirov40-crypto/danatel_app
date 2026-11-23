@@ -4,6 +4,20 @@
 
 :root {
   color-scheme: light;
+  /* 🌙 Тугмаи мавзӯ (44×44) — CSS-тағйирёбандаҳо, тавассути data-theme on <html> */
+  --tg-surface: rgba(255,255,255,0.9);
+  --tg-fg: #0f172a;
+  --tg-border: rgba(15,23,42,0.12);
+  --tg-ring: rgba(37,99,235,0.55);
+  --tg-hover: rgba(15,23,42,0.06);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --tg-surface: rgba(30,41,59,0.9);
+  --tg-fg: #e2e8f0;
+  --tg-border: rgba(226,232,240,0.16);
+  --tg-ring: rgba(96,165,250,0.6);
+  --tg-hover: rgba(226,232,240,0.1);
 }
 
 /* ============ 📱 Саҳифаи «Профил» — услуби MegaFon ============
@@ -322,30 +336,6 @@ body::before {
   }
 }
 
-/* =====================================================================
-   💎 АНИМАТСИЯИ ЛОГОТИП — «шинои кристалл» (.logo-shine):
-   · Як тасмаи равшан аз чап ба рост ба навбати худ мегузарад
-   · Танҳо бо <Logo animate /> (саҳифаи Вуруд/Қайд)
-   ===================================================================== */
-.logo-shine {
-  will-change: transform;
-  animation: logoShine 3.4s ease-in-out 0.8s infinite;
-}
-@keyframes logoShine {
-  0% {
-    transform: translateX(0);
-  }
-  55%,
-  100% {
-    transform: translateX(330px);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .logo-shine {
-    animation: none;
-    opacity: 0;
-  }
-}
 
 /* =====================================================================
    🌙 МАВЗУИ ТОРИК (.dark) — ҳамаи қоидаҳо дар як ҷо.

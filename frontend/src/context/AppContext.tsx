@@ -97,6 +97,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
+    // 🌙 data-theme атрибут барои CSS-тағйирёбандаҳо дар :root
+    document.documentElement.setAttribute("data-theme", theme);
     // 📱 Status bar / browser chrome ҳамон ранги splash/фон шавад
     const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
     if (meta && !document.documentElement.classList.contains("splash-active")) {

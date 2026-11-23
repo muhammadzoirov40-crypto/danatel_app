@@ -106,7 +106,7 @@ export default function Footer() {
           {/* 1️⃣ Brand */}
           <section className="space-y-3 lg:space-y-4" style={reveal(0)}>
             <Link to="/" className="inline-flex items-center gap-4" title="donatshop">
-              <Logo size={40} variant="color" />
+              <Logo size={40} />
               <span className="text-[17px] font-bold leading-none text-[var(--ios-label)]">
                 donatshop
               </span>

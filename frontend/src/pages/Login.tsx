@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Loader2, LogIn, UserPlus } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { api, ApiError } from "../api/client";
-import Logo from "../components/Logo";
+
 import { Ic } from "../components/Icons";
 import CountrySelect from "../components/CountrySelect";
 import { COUNTRIES, fullPhone, type Country } from "../data/countries";
@@ -139,8 +139,15 @@ export default function Login() {
           дар ин саҳифа пинҳон аст) бекор мешавад → қайд бе скролл дар 320×700. */}
       <div className="card p-6 sm:p-8">
         <div className="text-center mb-4">
-          <div className="flex justify-center mb-2">
-            <Logo size={46} animate />
+          <div className="flex justify-center mb-3">
+            <img
+              src="/logo.svg"
+              alt="donatshop"
+              width={116}
+              height={116}
+              className="shrink-0"
+              style={{ filter: "drop-shadow(0 12px 26px rgba(37,99,235,0.45))" }}
+            />
           </div>
           <h1 className="text-xl font-bold">
             {mode === "login" ? t("login") : t("register")}

@@ -2,6 +2,7 @@
 <html lang="tj" class="splash-active">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
     <link rel="icon" type="image/png" href="/icons/favicon-32.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
@@ -278,8 +279,11 @@
       try {
         var q = new URLSearchParams(location.search).get("theme");
         if (q === "dark" || q === "light") localStorage.setItem("danatel_theme", q);
-        var dark = localStorage.getItem("danatel_theme") === "dark";
+        var saved = null;
+        try { saved = localStorage.getItem("danatel_theme"); } catch (e2) {}
+        var dark = saved ? saved === "dark" : (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
         if (dark) document.documentElement.classList.add("dark");
+        document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
         var tm = document.getElementById("theme-color-meta");
         if (tm) tm.setAttribute("content", "#010A27");
       } catch (e) {}

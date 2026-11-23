@@ -216,7 +216,7 @@ export default function SidebarMenu({
         {/* 🔝 Сарлавҳа: логотип + ном + ✕ */}
         <div className="flex items-center gap-3 px-5 pt-6 pb-4">
           <span className="grid place-items-center w-11 h-11 rounded-full bg-blue-50 dark:bg-brand-900/30 ring-1 ring-blue-100 dark:ring-brand-700/40 shrink-0 overflow-hidden">
-            <Logo size={33} variant="color" />
+            <Logo size={33} />
           </span>
           <span className="flex-1 min-w-0 font-black text-[17px] tracking-tight text-slate-900 dark:text-white truncate">
             {t("brand")}
@@ -348,7 +348,9 @@ export default function SidebarMenu({
 
         {/* ⚙️ Панели поёнӣ: мавзӯ + забон (мисли RentHub) */}
         <div className="border-t border-slate-100 dark:border-slate-800 px-4 py-3 flex flex-col gap-2.5">
-          {/* ☀️/🌙 ИККИ АЛОҲИДА ТУГМА — ҳарду мавзӯро бевосита фаъол мекунад */}
+          {/* 🌙 Мавзӯ — ТАНҲО ҳангоми вуруд (соҳиб: «маҳзӯи рӯшан/торик»,
+              дар саҳифаи қайд/вуруд тугмаи мавзӯ НЕСТ) */}
+          {user && (
           <div className="flex items-center gap-2" role="group" aria-label={t("theme")}>
             {([
               { key: "light" as const, icon: Sun, label: t("themeLight") },
@@ -379,7 +381,7 @@ export default function SidebarMenu({
               );
             })}
           </div>
-
+          )}
 
           {/* 🌐 Забон — 4 доира (флаг) */}
           <div
