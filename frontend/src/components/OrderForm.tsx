@@ -16,6 +16,7 @@ import {
   Lock,
   Package,
   Search,
+  ThumbsUp,
   Ticket,
   TriangleAlert,
   Wallet,
@@ -830,44 +831,58 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
               <section
                 key={key}
                 className={`glass rounded-3xl p-4 sm:p-6 ${
-                  tabsOn && key !== activeKey ? "max-[767px]:hidden" : ""
-                }`}
+                  key === "likes" ? "likes-card" : ""
+                } ${tabsOn && key !== activeKey ? "max-[767px]:hidden" : ""}`}
               >
                 {/* Сарлавҳаи бахш дар мобилӣ аз табҳо пинҳон (дар десктоп мемонад) */}
                 <div className={`flex items-center gap-3 mb-4 ${tabsOn ? "max-[767px]:hidden" : ""}`}>
                   <span
-                    className="w-9 h-9 shrink-0 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700
-                               text-white flex items-center justify-center
-                               shadow-[0_8px_18px_-8px_rgba(37,99,235,0.95)]"
+                    className={
+                      key === "likes"
+                        ? "lk-head-icon"
+                        : `w-9 h-9 shrink-0 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700
+                           text-white flex items-center justify-center
+                           shadow-[0_8px_18px_-8px_rgba(37,99,235,0.95)]`
+                    }
                   >
                     <Ic icon={icon} size="sm" />
                   </span>
                   <div className="min-w-0">
-                    <h3 className="font-extrabold text-slate-800 text-base sm:text-lg leading-tight">
+                    <h3
+                      className={`font-extrabold text-base sm:text-lg leading-tight ${
+                        key === "likes" ? "lk-title" : "text-slate-800"
+                      }`}
+                    >
                       {t(titleKey)}
                     </h3>
-                    <p className="text-xs text-slate-500 mt-0.5">
+                    <p
+                      className={`text-xs mt-0.5 ${
+                        key === "likes" ? "lk-sub" : "text-slate-500"
+                      }`}
+                    >
                       {items.length} {t("statProducts")}
                     </p>
                   </div>
                 </div>
 
                         {/* ⏰ Қоидаи воқеии Leak Studio (соҳиб 20.11.2026):
-                            «dar davomi 1 ruz 1bor meshavad» — танҳо дар бахши лайк */}
+                            «dar davomi 1 ruz 1bor meshavad» — танҳо дар бахши лайк.
+                            24.11.2026: огоҳиномаи нарм (rose) бо сояи хокистарӣ */}
                         {key === "likes" && (
-                          <p className="mb-3 flex items-start gap-2 rounded-2xl border border-rose-200/80 bg-rose-50 px-3 py-2 text-[11px] leading-snug text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-200">
-                            <Ic icon={CalendarClock} size="xs" className="mt-0.5 shrink-0" />
+                          <p className="lk-notice flex items-start gap-2.5">
+                            <Ic icon={CalendarClock} size="xs" className="mt-[3px] shrink-0" />
                             <span>{t("likesDailyNote")}</span>
                           </p>
                         )}
                 {/* 20.11.2026 (соҳиб «dar 1 row nishon dihad»): ду лайк
-                    ёнбаш дар як сатр, дигар бахшҳо — мисли пешин */}
+                    ёнбаш дар як сатр, дигар бахшҳо — мисли пешин.
+                    24.11.2026: сеткаи 8px (gap 16px) барои кортҳои ЛАЙКҲО */}
                 <div
-                  className={`grid gap-2 sm:gap-2.5 mb-6 ${
+                  className={`grid ${
                     key === "likes"
-                      ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4"
-                      : "grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4"
-                  }`}
+                      ? "grid-cols-2 gap-4"
+                      : "grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-2.5 md:grid-cols-4"
+                  } mb-6`}
                 >
                   {items.map((p) => {
                     const active = selected?.id === p.id;
@@ -888,16 +903,16 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                         aria-pressed={active}
                         aria-label={p.name}
                         title={p.name}
-                        className={`relative flex min-w-0 flex-row items-center ${key === "likes" ? "gap-2 px-2.5" : "gap-3 px-3"} rounded-2xl border-2 py-3 text-left transition-all
-                          ${
-                              key === "likes"
-                                ? active
-                                  ? "border-emerald-600 bg-emerald-50 shadow-[0_8px_20px_-10px_rgba(5,150,105,0.7)] scale-[1.02]"
-                                  : "border-emerald-100 bg-white hover:border-emerald-300 hover:shadow-md hover:-translate-y-0.5"
-                                : active
+                        className={
+                          key === "likes"
+                            ? // 🎯 ЛАЙКҲО — тарҳи нав (24.11.2026): ҳамаи стилҳо дар CSS
+                              `relative lk-card`
+                            : `relative flex min-w-0 flex-row items-center gap-3 px-3 rounded-2xl border-2 py-3 text-left transition-all ${
+                                active
                                   ? "border-brand-600 bg-brand-50 shadow-[0_8px_20px_-10px_rgba(37,99,235,0.7)] scale-[1.02]"
                                   : "border-slate-200 bg-white hover:border-brand-300 hover:shadow-md hover:-translate-y-0.5"
-                          }`}
+                              }`
+                        }
                       >
                         {p.is_popular && (
                           <span className="absolute -top-2.5 right-2 badge bg-rose-500 text-white shadow">
@@ -931,65 +946,57 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
                           </span>
                         )}
 
-                        {/* 🖼️ Расми воқеии маҳсулот (талаби соҳиб 12.11.2026
-                            «hamai bozihoro kun») — ҳамаи 8 бозӣ; расм нест
-                            → иконкаи ҳозира (фолбэк рост) */}
-                        {art ? (
-                          <img
-                            src={art}
-                            alt=""
-                            aria-hidden
-                            className={
-                              key === "likes"
-                                ? "h-10 w-10 shrink-0 rounded-full object-contain"
-                                : "inline-flex h-12 w-14 shrink-0 rounded-xl object-contain"
-                            }
-                          />
-                        ) : (
-                          <span
-                            aria-hidden
-                            className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border
-                            ${
-                              active
-                                ? "border-brand-200 bg-white"
-                                : "border-brand-100 bg-gradient-to-br from-brand-50 to-blue-50"
-                            }`}
-                          >
-                            {view.diamond ? (
-                              /* 💎 Алмос → тасвири воқеии алмос (танҳо барои алмосҳо) */
-                              <DiamondArt className="h-5 w-5" />
-                            ) : (
-                              <Ic
-                                icon={view.icon}
-                                size="sm"
-                                className={active ? "text-brand-700" : "text-brand-600"}
-                              />
-                            )}
-                          </span>
-                        )}
-
-                        {/* 20.11.2026 (соҳиб «monandi bashad»): корти сабз —
-                            расм + РАҚАМ калон + «лайк» + нархи поён */}
-                        {key === "likes" ? (
-                          <span className="min-w-0 flex-1 flex flex-col gap-0.5">
-                            <span className="flex items-baseline gap-1">
-                              <span
-                                className={`text-base font-extrabold tabular-nums leading-none ${
-                                  active ? "text-emerald-700" : "text-emerald-800"
-                                }`}
-                              >
-                                {Number(p.amount || 0).toLocaleString("tj-TJ")}
-                              </span>
-                              <span className="text-[10px] font-semibold text-slate-500 truncate ml-0.5">
-                                {t("unitLikes")}
-                              </span>
-                            </span>
+                        {/* 🖼️ Расми воқеии маҳсулот — барои ЛАЙКҲО истифода
+                            намешавад (тарҳи нав 24.11.2026: 👍 дар ҳалқаи сабз) */}
+                        {key !== "likes" &&
+                          (art ? (
+                            <img
+                              src={art}
+                              alt=""
+                              aria-hidden
+                              className="inline-flex h-12 w-14 shrink-0 rounded-xl object-contain"
+                            />
+                          ) : (
                             <span
-                              className={`font-extrabold tabular-nums text-[11px] whitespace-nowrap ${
-                                active ? "text-emerald-700" : "text-emerald-600"
+                              aria-hidden
+                              className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border
+                              ${
+                                active
+                                  ? "border-brand-200 bg-white"
+                                  : "border-brand-100 bg-gradient-to-br from-brand-50 to-blue-50"
                               }`}
                             >
-                              {Number(p.price_tjs).toLocaleString("tj-TJ")} {t("currency")}
+                              {view.diamond ? (
+                                /* 💎 Алмос → тасвири воқеии алмос (танҳо барои алмосҳо) */
+                                <DiamondArt className="h-5 w-5" />
+                              ) : (
+                                <Ic
+                                  icon={view.icon}
+                                  size="sm"
+                                  className={active ? "text-brand-700" : "text-brand-600"}
+                                />
+                              )}
+                            </span>
+                          ))}
+
+                        {/* 🎯 ЛАЙКҲО — тарҳи нав (24.11.2026): 👍 дар ҳалқаи
+                            сабз + рақами калон бо «лайк» (ҲЕЧ гоҳ бурида
+                            намешавад) + нарх дар дохили pill-и сабз */}
+                        {key === "likes" ? (
+                          <span className="lk-body">
+                            <span className="lk-badge" aria-hidden>
+                              <Ic icon={ThumbsUp} size="sm" />
+                            </span>
+                            <span className="lk-text">
+                              <span className="lk-amount">
+                                <span className="lk-num">
+                                  {Number(p.amount || 0).toLocaleString("tj-TJ")}
+                                </span>
+                                <span className="lk-unit">{t("unitLikes")}</span>
+                              </span>
+                              <span className="lk-price">
+                                {Number(p.price_tjs).toLocaleString("tj-TJ")} {t("currency")}
+                              </span>
                             </span>
                           </span>
                         ) : (
@@ -1023,8 +1030,10 @@ export default function OrderForm({ game, selected: extSelected, onSelected, onC
 
                         {active && (
                           <span
-                            className="absolute -top-2.5 -left-2.5 w-6 h-6 rounded-full bg-brand-600 text-white
-                                       flex items-center justify-center border-2 border-white shadow-md"
+                            className={`absolute -top-2.5 -left-2.5 w-6 h-6 rounded-full text-white
+                                       flex items-center justify-center border-2 border-white shadow-md ${
+                                         key === "likes" ? "bg-[#0A7C50]" : "bg-brand-600"
+                                       }`}
                           >
                             <Ic icon={Check} size="xs" strokeWidth={3} />
                           </span>
